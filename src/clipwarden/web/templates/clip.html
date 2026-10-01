@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Review {{ row.id }}{% endblock %}
+{% block body %}
+<div class="row-between">
+  <h1>Review <span class="mono">{{ row.id }}</span></h1>
+  <span class="badge b-{{ row.status }}">{{ row.status.replace('_',' ') }}</span>
+</div>
+{% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+
+<div class="review">
+  <figure class="card vid">
+    <figcaption>Before: raw source segment ({{ '%.1f'|format(plan.start) }}–{{ '%.1f'|format(plan.end) }} s)</figcaption>
+    {% if row.preview_sha %}<video src="/media/{{ row.preview_sha }}" controls preload="none"{% if row.posters %} poster="/media/{{ row.posters.before }}"{% endif %}></video>{% endif %}
+  </figure>
+  <figure class="card vid tall">
+    <figcaption>After: finished clip with value-add, captions, disclosures</figcaption>
+    {% if row.clip_sha %}<video src="/media/{{ row.clip_sha }}" controls preload="none"{% if row.posters %} poster="/media/{{ row.posters.clip }}"{% endif %}></video>{% endif %}
+  </figure>
+  <section class="card">
+    <h2>Compliance report</h2>
+    {% if gate %}
+      <p class="{{ 'ok' if gate.passed else 'bad' }} big">{{ '✓ Passed' if gate.passed else '✕ Blocked' }} · {{ gate.blocks|length }} block(s) · {{ gate.warnings|length }} warning(s)</p>
+      <ul class="checks">
+      {% for group, results in grouped.items() %}{% for r in results %}
+        <li class="c-{{ r.severity }}"><span class="ic" aria-hidden="true">{{ {'pass':'✓','warn':'⚠','block':'✕'}[r.severity] }}</span>
+          <span class="grp">{{ group }}</span> <span class="msg">{% if r.code != 'OK' %}<code>{{ r.code }}</code> {% endif %}{{ r.message }}</span></li>
+      {% endfor %}{% endfor %}
+      </ul>
+      <p class="muted small mono">clip sha256 {{ gate.clip_sha256[:16] }}… · request sha256 {{ gate.metadata_sha256[:16] }}…</p>
+    {% else %}<p class="muted">Not rendered yet.</p>{% endif %}
+  </section>
+</div>
+
+<div class="grid2">
+<section class="card">
+  <h2>Metadata (as it will be sent)</h2>
+  {% if row.metadata %}
+  <p class="yt-title">{{ row.metadata.title }}</p>
+  <pre class="desc">{{ row.metadata.description }}</pre>
+  <p class="small">Tags: {% for t in row.metadata.tags %}<span class="tag">{{ t }}</span>{% endfor %}</p>
+  <details><summary>Exact <code>videos.insert</code> request body</summary><pre class="log">{{ row.body | pretty }}</pre></details>
+  {% endif %}
+</section>
+
+<section class="card decision">
+  <h2>Decision</h2>
+  {% if row.status == 'awaiting_approval' %}
+  <form method="post" action="/clips/{{ row.id }}/decide">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% if human_only %}<p class="muted small">Human approval is mandatory for this clip{% if plan.tags %} ({{ plan.tags|join(', ') }}){% endif %}.</p>{% endif %}
+    <fieldset>
+      <legend>Visibility after upload</legend>
+      <label><input type="radio" name="visibility" value="private" checked> Private</label>
+      <label><input type="radio" name="visibility" value="unlisted" {{ 'disabled' if paid }}> Unlisted</label>
+      <label><input type="radio" name="visibility" value="scheduled_public" {{ 'disabled' if paid }} data-reveal="when"> Scheduled public</label>
+      <div id="when" class="when"><label for="publish_at">Publish at (UTC)</label><input id="publish_at" type="datetime-local" name="publish_at"></div>
+      {% if paid %}<p class="warnbox">Paid promotion: the YouTube API can't set the paid-promotion flag, so this clip uploads <strong>private</strong>. Tick “includes paid promotion” in YouTube Studio, then publish it there.</p>{% endif %}
+    </fieldset>
+    {% if gate and gate.warnings %}
+    <label class="ack"><input type="checkbox" name="ack"> I reviewed the {{ gate.warnings|length }} warning(s) above.</label>
+    {% endif %}
+    <label for="reason">Reason (required to reject)</label>
+    <textarea id="reason" name="reason" rows="2" maxlength="1000"></textarea>
+    <div class="actions">
+      <button class="btn primary" name="decision" value="approve" {{ 'disabled' if not gate or not gate.passed }}>✓ Approve</button>
+      <button class="btn danger" name="decision" value="reject">✕ Reject</button>
+    </div>
+  </form>
+  {% elif row.decision %}
+    <dl class="kv">
+      <dt>Decision</dt><dd>{{ 'approved' if row.decision.approved else 'rejected' }} by {{ row.decision.reviewer }}</dd>
+      <dt>When</dt><dd>{{ row.decision.decided_at }}</dd>
+      <dt>Visibility</dt><dd>{{ row.decision.visibility }}{% if row.decision.publish_at %} at {{ row.decision.publish_at }}{% endif %}</dd>
+      <dt>Reason</dt><dd>{{ row.decision.reason or '—' }}</dd>
+    </dl>
+  {% else %}
+    <p class="muted">The gate blocked this clip. Fix the plan and re-render; blocked clips can't be approved.</p>
+  {% endif %}
+  {% if row.upload %}<p class="small">Upload: <span class="mono">{{ row.upload | pretty }}</span></p>{% endif %}
+</section>
+</div>
+
+<details class="card"><summary>Clip log</summary><pre class="log">{{ (row.logs or []) | join('\n') }}</pre></details>
+{% endblock %}

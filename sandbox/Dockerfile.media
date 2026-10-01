@@ -1,0 +1,28 @@
+# clipwarden media sandbox: FFmpeg + fonts + the job worker. Nothing else.
+# Base pinned by digest (debian:trixie-slim, 2026-09-19 build; see docker-library/repo-info).
+# Dependabot keeps the digest current. For byte-for-byte reproducible apt packages, build with
+#   --build-arg SNAPSHOT=20260919T000000Z   (uses snapshot.debian.org at that instant)
+FROM debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
+
+ARG SNAPSHOT=""
+RUN set -eux; \
+    if [ -n "$SNAPSHOT" ]; then \
+      printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/%s\nSuites: trixie trixie-updates\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://snapshot.debian.org/archive/debian-security/%s\nSuites: trixie-security\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n' "$SNAPSHOT" "$SNAPSHOT" > /etc/apt/sources.list.d/debian.sources; \
+      echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99snapshot; \
+    fi; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core python3-minimal; \
+    rm -rf /var/lib/apt/lists/*; \
+    ffmpeg -hide_banner -version | head -1 > /ffmpeg-version.txt; \
+    useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin media
+
+COPY src/clipwarden/data/fonts/*.ttf /fonts/
+COPY src/clipwarden/media/worker.py /app/worker.py
+
+USER 10001:10001
+WORKDIR /tmp
+# Per-job mode (`docker run ... --entrypoint ffmpeg`) overrides this; compose runs the worker.
+ENTRYPOINT ["python3", "/app/worker.py"]
+LABEL org.opencontainers.image.title="clipwarden-media" \
+      org.opencontainers.image.description="Network-less FFmpeg sandbox for clipwarden" \
+      org.opencontainers.image.licenses="Apache-2.0"

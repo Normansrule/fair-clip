@@ -1,0 +1,82 @@
+{
+ "_doc": "Top-5 candidates from the bundled sample (make demo), frozen so the Eq. 1 charts are reproducible. Regenerate with: python scripts/export_site.py --freeze-eq1 && python scripts/render_assets.py",
+ "weights": {
+  "energy": 0.25,
+  "relevance": 0.35,
+  "rate": 0.15,
+  "scene": 0.1,
+  "silence": 0.15
+ },
+ "candidates": [
+  {
+   "candidate_id": "src-2ece24ffd63c-c0109",
+   "rank": 1,
+   "start": 80.874,
+   "end": 105.784,
+   "score": 1.1398489531367493,
+   "z": {
+    "energy": 3.0,
+    "relevance": 0.33218191941495984,
+    "rate": 1.9564319960920156,
+    "scene": 0.0,
+    "silence": 0.13253012048192772
+   }
+  },
+  {
+   "candidate_id": "src-2ece24ffd63c-c0043",
+   "rank": 2,
+   "start": 26.693,
+   "end": 50.494,
+   "score": 0.7946205802347853,
+   "z": {
+    "energy": 1.1823222654658854,
+    "relevance": 0.2683281572999747,
+    "rate": 2.8857083416686513,
+    "scene": 0.0,
+    "silence": 0.18487394957983194
+   }
+  },
+  {
+   "candidate_id": "src-2ece24ffd63c-c0082",
+   "rank": 3,
+   "start": 58.358,
+   "end": 79.707,
+   "score": 0.7625846282369378,
+   "z": {
+    "energy": 1.8941813969890573,
+    "relevance": 0.19999999999999996,
+    "rate": 1.624196286160666,
+    "scene": 0.0,
+    "silence": 0.16393442622950818
+   }
+  },
+  {
+   "candidate_id": "src-2ece24ffd63c-c0002",
+   "rank": 4,
+   "start": 0.62,
+   "end": 30.913,
+   "score": 0.008083119178574835,
+   "z": {
+    "energy": -0.6338306002952984,
+    "relevance": 0.23354968324845685,
+    "rate": 0.7781938212316432,
+    "scene": 0.0,
+    "silence": 0.21287128712871287
+   }
+  },
+  {
+   "candidate_id": "src-2ece24ffd63c-c0121",
+   "rank": 5,
+   "start": 99.378,
+   "end": 123.645,
+   "score": -0.6583207086716855,
+   "z": {
+    "energy": -1.1273166416202525,
+    "relevance": 0.15191090506254998,
+    "rate": -2.6479075882292746,
+    "scene": 0.0,
+    "silence": 0.21649484536082475
+   }
+  }
+ ]
+}

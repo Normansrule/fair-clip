@@ -1,0 +1,21 @@
+# gitleaks config: default rules plus project-specific ones.
+title = "clipwarden gitleaks config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "google-oauth-refresh-token"
+description = "Google OAuth refresh token"
+regex = '''1//[0-9A-Za-z_\-]{30,}'''
+tags = ["google", "oauth"]
+
+[[rules]]
+id = "google-oauth-client-secret"
+description = "Google OAuth client secret"
+regex = '''GOCSPX-[0-9A-Za-z_\-]{20,}'''
+tags = ["google", "oauth"]
+
+[allowlist]
+description = "test fixtures use obviously fake, short values"
+paths = ['''tests/.*''']

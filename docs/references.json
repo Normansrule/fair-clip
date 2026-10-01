@@ -1,0 +1,587 @@
+[
+ {
+  "id": "yt-monetization",
+  "type": "webpage",
+  "title": "YouTube channel monetization policies (reused content; inauthentic content, formerly repetitious)",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/1311392?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Reused content applies 'even if you have permission from the original creator'; renamed repetitious -> inauthentic on 2025-07-15 to cover repetitive or mass-produced content."
+ },
+ {
+  "id": "yt-altered",
+  "type": "webpage",
+  "title": "Disclosing use of altered or synthetic content",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/14328491?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Disclose realistic content that makes a real person appear to say/do something, alters real events/places, or generates realistic scenes; captions, filters and cloning one's own voice for dubs don't need it."
+ },
+ {
+  "id": "yt-paid-promotion",
+  "type": "webpage",
+  "title": "Add paid product placements, sponsorships & endorsements",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/154235?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Creators tick the paid-promotion box in video details; creators and partners remain responsible for legal requirements."
+ },
+ {
+  "id": "yt-chapters",
+  "type": "webpage",
+  "title": "Video chapters",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/9884579?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "First timestamp 00:00; at least three timestamps; each chapter at least 10 seconds."
+ },
+ {
+  "id": "yt-shorts",
+  "type": "webpage",
+  "title": "Upload YouTube Shorts (length and aspect ratio)",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/15424877?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Vertical or square videos up to three minutes uploaded after 2024-10-15 are Shorts."
+ },
+ {
+  "id": "yt-kids",
+  "type": "webpage",
+  "title": "Determining if your content is made for kids",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/9528076?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Cites COPPA and YouTube's agreement with the US FTC."
+ },
+ {
+  "id": "ytapi-insert",
+  "type": "webpage",
+  "title": "YouTube Data API v3: Videos: insert",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/docs/videos/insert",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "1 unit in the Video Uploads quota bucket; accepted scopes include youtube.upload; uploads from unverified API projects created after 2020-07-28 are restricted to private; settable: status.privacyStatus, publishAt, selfDeclaredMadeForKids, containsSyntheticMedia (paidProductPlacementDetails is a readable part, not a settable property)."
+ },
+ {
+  "id": "ytapi-videos",
+  "type": "webpage",
+  "title": "YouTube Data API v3: Videos resource",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/docs/videos",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Title max 100 characters, description max 5000 bytes, neither may contain < or >; tags max 500 characters incl. commas; publishAt only when privacyStatus is private."
+ },
+ {
+  "id": "ytapi-update",
+  "type": "webpage",
+  "title": "YouTube Data API v3: Videos: update",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/docs/videos/update",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Requires youtube, youtube.force-ssl or youtubepartner scope (not youtube.upload); 50 units; paidProductPlacementDetails not among settable properties."
+ },
+ {
+  "id": "ytapi-quota",
+  "type": "webpage",
+  "title": "YouTube Data API: Quota calculator / determine quota cost",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/determine_quota_cost",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Default allocation: 100 search.list calls, 100 videos.insert calls, and 10,000 units per day for all other endpoints."
+ },
+ {
+  "id": "ytapi-revisions",
+  "type": "webpage",
+  "title": "YouTube Data API: Revision history",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/revision_history",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "2024-10-30 containsSyntheticMedia added; 2025-12-04 upload cost cut from ~1600 to ~100 units; 2026-06-01 videos.insert and search.list moved to their own quota buckets."
+ },
+ {
+  "id": "ytapi-rmf",
+  "type": "webpage",
+  "title": "YouTube API Services: Required Minimum Functionality",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/terms/required-minimum-functionality",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Upload clients must let users choose public, private or unlisted."
+ },
+ {
+  "id": "ytapi-scopes",
+  "type": "webpage",
+  "title": "YouTube Data API: OAuth 2.0 for installed applications (scopes)",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/guides/auth/installed-apps",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Lists youtube, youtube.force-ssl, youtube.readonly, youtube.upload and partner scopes."
+ },
+ {
+  "id": "yt-analytics-metrics",
+  "type": "webpage",
+  "title": "YouTube Analytics and Reporting APIs: Metrics",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/analytics/metrics",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "averageViewDuration (s), averageViewPercentage, audienceWatchRatio, relativeRetentionPerformance definitions."
+ },
+ {
+  "id": "google-oauth-native",
+  "type": "webpage",
+  "title": "OAuth 2.0 for iOS & Desktop Apps",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/identity/protocols/oauth2/native-app",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "PKCE with S256 code challenge; loopback redirect http://127.0.0.1:port for desktop apps; state parameter."
+ },
+ {
+  "id": "google-oauth-web",
+  "type": "webpage",
+  "title": "Using OAuth 2.0 for Web Server Applications (token revocation, incremental authorization)",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/identity/protocols/oauth2/web-server",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Revoke via POST https://oauth2.googleapis.com/revoke; request scopes incrementally, in context; store refresh tokens securely."
+ },
+ {
+  "id": "ftc-disclosures-101",
+  "type": "webpage",
+  "title": "Disclosures 101 for Social Media Influencers",
+  "author": [
+   {
+    "literal": "US Federal Trade Commission"
+   }
+  ],
+  "URL": "https://www.ftc.gov/business-guidance/resources/disclosures-101-social-media-influencers",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Put the disclosure with the endorsement; in the video, not just the description; audio and video together is more noticeable; don't rely only on a platform's disclosure tool."
+ },
+ {
+  "id": "ftc-endorsement-faq",
+  "type": "webpage",
+  "title": "FTC's Endorsement Guides: What People Are Asking",
+  "author": [
+   {
+    "literal": "US Federal Trade Commission"
+   }
+  ],
+  "URL": "https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Affiliate links need disclosure; 'affiliate link' alone is not adequate; example wording: 'I get commissions for purchases made through links in this post.'"
+ },
+ {
+  "id": "cfr-16-255",
+  "type": "legislation",
+  "title": "Guides Concerning the Use of Endorsements and Testimonials in Advertising, 16 CFR Part 255",
+  "author": [
+   {
+    "literal": "US Federal Trade Commission"
+   }
+  ],
+  "URL": "https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "issued": {
+   "date-parts": [
+    [
+     2023,
+     7,
+     26
+    ]
+   ]
+  },
+  "note": "Section 255.5: material connections must be disclosed clearly and conspicuously; 255.0(f): a disclosure in both visual and audible portions is more likely clear and conspicuous."
+ },
+ {
+  "id": "usc-15-77q",
+  "type": "legislation",
+  "title": "15 U.S.C. § 77q(b) (Securities Act of 1933 § 17(b), anti-touting)",
+  "author": [
+   {
+    "literal": "Legal Information Institute, Cornell Law School"
+   }
+  ],
+  "URL": "https://www.law.cornell.edu/uscode/text/15/77q",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Publicizing a security for consideration from an issuer, underwriter or dealer requires fully disclosing the receipt and the amount of that consideration."
+ },
+ {
+  "id": "sec-social-media-scams",
+  "type": "webpage",
+  "title": "Social Media and Stock Tip Scams (Investor Alert)",
+  "author": [
+   {
+    "literal": "US Securities and Exchange Commission, Office of Investor Education and Advocacy"
+   }
+  ],
+  "URL": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/social-media-stock-scams",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "issued": {
+   "date-parts": [
+    [
+     2026,
+     2,
+     6
+    ]
+   ]
+  },
+  "note": "Red flags: guaranteed high returns with little risk, pump-and-dump, scalping, touting without disclosing compensation."
+ },
+ {
+  "id": "owasp-llm-2025",
+  "type": "webpage",
+  "title": "OWASP Top 10 for Large Language Model Applications 2025",
+  "author": [
+   {
+    "literal": "OWASP GenAI Security Project"
+   }
+  ],
+  "URL": "https://genai.owasp.org/llm-top-10/",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "LLM01:2025 Prompt Injection; LLM05:2025 Improper Output Handling; LLM06:2025 Excessive Agency."
+ },
+ {
+  "id": "google-2sv",
+  "type": "webpage",
+  "title": "Turn on 2-Step Verification",
+  "author": [
+   {
+    "literal": "Google Account Help"
+   }
+  ],
+  "URL": "https://support.google.com/accounts/answer/185839?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Google Account > Security & sign-in > 'Turn on 2-Step Verification'; passkeys and hardware security keys are recommended because they resist phishing."
+ },
+ {
+  "id": "google-consent",
+  "type": "webpage",
+  "title": "Configure the OAuth consent screen and choose scopes",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/workspace/guides/configure-oauth-consent",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Menu > Google Auth platform > Branding, then Audience (Internal/External, test users) and Data Access (scopes)."
+ },
+ {
+  "id": "google-oauth-overview",
+  "type": "webpage",
+  "title": "Using OAuth 2.0 to Access Google APIs (refresh token expiration)",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/identity/protocols/oauth2",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "External apps in 'Testing' publishing status get refresh tokens that expire in 7 days; limit of 100 refresh tokens per Google Account per OAuth client ID (oldest silently invalidated)."
+ },
+ {
+  "id": "ytapi-delete",
+  "type": "webpage",
+  "title": "YouTube Data API v3: Videos: delete",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/docs/videos/delete",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Accepts youtubepartner, youtube or youtube.force-ssl scopes (not youtube.upload)."
+ },
+ {
+  "id": "ytapi-channels-update",
+  "type": "webpage",
+  "title": "YouTube Data API v3: Channels: update",
+  "author": [
+   {
+    "literal": "Google for Developers"
+   }
+  ],
+  "URL": "https://developers.google.com/youtube/v3/docs/channels/update",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     9,
+     30
+    ]
+   ]
+  },
+  "note": "Accepts youtubepartner, youtube or youtube.force-ssl scopes (not youtube.upload)."
+ }
+]

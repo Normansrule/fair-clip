@@ -1,0 +1,69 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read          # least privilege: jobs ask for more only where needed
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: System packages (FFmpeg, espeak-ng for the sample generator)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng
+      - name: Python dependencies (hash-checked)
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          echo "PYTHONPATH=$PWD/src" >> "$GITHUB_ENV"   # run from source: no unpinned build tools
+      - name: Lint (ruff, incl. bandit security rules)
+        run: ruff check src scripts tests
+      - name: Tests (unit, gate, security, equations, end-to-end on the sample)
+        run: python -m pytest -q
+      - name: Visuals are up to date (vector assets regenerate byte-for-byte)
+        run: python scripts/render_assets.py --check
+      - name: Bibliography is well-formed
+        run: python scripts/check_refs.py
+
+  secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sandbox:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build images (base images pinned by digest)
+        run: |
+          docker build -f sandbox/Dockerfile.media -t clipwarden-media:0.1.0 .
+          docker build -t clipwarden-app:0.1.0 .
+      - name: Sandbox isolation smoke test (no network, read-only, non-root, worker policy)
+        run: bash scripts/sandbox_smoke.sh clipwarden-media:0.1.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Hostile-media test through the real sandbox
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          CLIPWARDEN_TEST_IMAGE=clipwarden-media:0.1.0 PYTHONPATH=src python -m pytest -q tests/test_sandbox_and_web.py -k hostile

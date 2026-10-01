@@ -1,0 +1,47 @@
+flowchart TD
+  IN(["Rendered clip + metadata"]) --> G0
+  G0{"Safety"}
+  G0 -->|pass| G1
+  G0 -->|block| B0["✕#160;KILL_SWITCH_ON"]
+  G1{"Rights"}
+  G1 -->|pass| G2
+  G1 -->|block| B1["✕#160;RIGHTS_MISSING<br/>✕#160;RIGHTS_EXPIRED<br/>✕#160;RIGHTS_SCOPE<br/>✕#160;RIGHTS_NO_DERIVATIVES<br/>✕#160;RIGHTS_NONCOMMERCIAL<br/>✕#160;RIGHTS_FILE_MISMATCH<br/>✕#160;RIGHTS_NO_EVIDENCE"]
+  G2{"Value-add"}
+  G2 -->|pass| G3
+  G2 -->|block| B2["✕#160;VALUE_ADD_MISSING<br/>✕#160;VALUE_ADD_INSUFFICIENT<br/>✕#160;VALUE_ADD_THIN<br/>✕#160;VALUE_ADD_NOT_ORIGINAL"]
+  G2 -.->|warn| W2["⚠#160;AI_DRAFT_UNAPPROVED"]
+  G3{"Disclosures"}
+  G3 -->|pass| G4
+  G3 -->|block| B3["✕#160;SYNTHETIC_DISCLOSURE_MISSING<br/>✕#160;PAID_PROMOTION_DESCRIPTION_MISSING"]
+  G3 -.->|warn| W3["⚠#160;PAID_PROMOTION_STUDIO_STEP"]
+  G4{"Affiliate"}
+  G4 -->|pass| G5
+  G4 -->|block| B4["✕#160;AFFILIATE_PLAN_MISSING<br/>✕#160;AFFILIATE_START_DISCLOSURE_MISSING<br/>✕#160;AFFILIATE_CARD_MISSING<br/>✕#160;AFFILIATE_RECOMMENDATION_UNMARKED<br/>✕#160;AFFILIATE_DESCRIPTION_ORDER<br/>✕#160;AFFILIATE_WEAK_WORDING<br/>✕#160;AFFILIATE_UNEVALUATED_PRODUCT<br/>✕#160;AFFILIATE_FABRICATED_CLAIM<br/>✕#160;AFFILIATE_KIDS"]
+  G4 -.->|warn| W4["⚠#160;AFFILIATE_SINGLE_CHANNEL"]
+  G5{"Links"}
+  G5 -->|pass| G6
+  G5 -->|block| B5["✕#160;LINK_NOT_ALLOWLISTED<br/>✕#160;LINK_CLOAKED"]
+  G6{"Markets"}
+  G6 -->|pass| G7
+  G6 -->|block| B6["✕#160;FINANCE_PLAN_MISSING<br/>✕#160;FINANCE_ADVICE_LANGUAGE<br/>✕#160;FINANCE_DISCLAIMER_MISSING<br/>✕#160;FINANCE_POSITION_UNDISCLOSED<br/>✕#160;FINANCE_PAID_UNDISCLOSED<br/>✕#160;FINANCE_UNSOURCED_NUMBER<br/>✕#160;FINANCE_STALE_DATA<br/>✕#160;FINANCE_PUMP_PATTERN"]
+  G7{"Metadata"}
+  G7 -->|pass| G8
+  G7 -->|block| B7["✕#160;METADATA_LIMITS<br/>✕#160;METADATA_UNGROUNDED<br/>✕#160;METADATA_CLICKBAIT"]
+  G8{"Uniqueness"}
+  G8 -->|pass| G9
+  G8 -->|block| B8["✕#160;DUPLICATE_OF_OWN_UPLOAD<br/>✕#160;DAILY_CAP_REACHED<br/>✕#160;VARIETY_SAME_SOURCE<br/>✕#160;VARIETY_TITLE"]
+  G8 -.->|warn| W8["⚠#160;VARIETY_TEMPLATE"]
+  G9{"Screen"}
+  G9 -->|pass| G10
+  G9 -->|block| B9["✕#160;SCREEN_BLOCKED_TERM"]
+  G9 -.->|warn| W9["⚠#160;SCREEN_REVIEW"]
+  G10{"Untrusted input"}
+  G10 -->|pass| HA
+  G10 -.->|warn| W10["⚠#160;PROMPT_INJECTION_SUSPECTED<br/>⚠#160;SPOKEN_LINK"]
+  HA[["■ Human approval"]] -->|approve| UP(["Upload: private or scheduled"])
+  classDef block fill:#FDE2E2,stroke:#C81E1E,color:#0B1020
+  classDef warn fill:#FFF4D6,stroke:#9A5B00,color:#0B1020
+  classDef stop fill:#FDE2E2,stroke:#C81E1E,stroke-width:3px,color:#0B1020
+  class B0,B1,B2,B3,B4,B5,B6,B7,B8,B9 block
+  class W2,W3,W4,W8,W9,W10 warn
+  class HA stop

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block body %}
+<h1>Settings</h1>
+<div class="grid2">
+<section class="card">
+  <h2>Kill switch</h2>
+  <p>Stops rendering and publishing immediately, including uploads already queued.</p>
+  <form method="post" action="/settings/kill">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% if kill %}<button class="btn primary" name="state" value="off">Release kill switch</button>
+    {% else %}<button class="btn danger" name="state" value="on">■ Engage kill switch</button>{% endif %}
+  </form>
+</section>
+<section class="card">
+  <h2>Publishing</h2>
+  <dl class="kv">
+    <dt>Mode</dt><dd>{{ settings.publish.mode }}</dd>
+    <dt>Live ready</dt><dd>{{ 'yes' if ready else 'no: ' ~ why }}</dd>
+    <dt>OAuth scopes</dt><dd class="mono small">{{ settings.publish.scopes | join(' ') }}</dd>
+    <dt>Token</dt><dd>{% if has_token is none %}vault locked (set CLIPWARDEN_VAULT_PASSPHRASE){% elif has_token %}stored (keychain/encrypted){% else %}none{% endif %}</dd>
+    <dt>Daily cap</dt><dd>{{ settings.channel.daily_cap }} clips/day</dd>
+  </dl>
+  {% if has_token %}
+  <form method="post" action="/settings/revoke"><input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn danger">Revoke YouTube access</button></form>
+  {% endif %}
+</section>
+</div>
+<section class="card">
+  <h2>Highlight weights</h2>
+  <p class="muted small">Bounded to [0.02, 0.60], summing to 1; an analytics-driven update may move each weight by at most 0.05 and needs your approval.</p>
+  <p>{% for k, v in weights.items() %}<span class="tag mono">{{ k }} {{ '%.3f'|format(v) }}</span>{% endfor %}</p>
+  {% for p in proposals %}
+  <div class="proposal">
+    <p class="small">Proposal #{{ p.id }} ({{ p.status }}): {{ p.proposed | tojson }}</p>
+    {% if p.status == 'pending' %}
+    <form method="post" action="/settings/weights/{{ p.id }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn primary" name="decision" value="approve">Approve</button>
+      <button class="btn" name="decision" value="reject">Reject</button></form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

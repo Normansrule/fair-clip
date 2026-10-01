@@ -1,0 +1,12 @@
+Sample talk "Where does the weight go?" (examples/demo/source.mp4, transcript.json)
+
+Made from scratch by clipwarden contributors with scripts/make_sample.py: slides and a geometric
+narrator drawn in Python, narration synthesized with espeak-ng. No third-party footage, music,
+images or real people.
+
+Dedicated to the public domain under Creative Commons CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+To the extent possible under law, the contributors have waived all copyright and related or
+neighboring rights to this sample. The narration voice is synthetic; the demo rights record flags
+it as altered/synthetic so the pipeline's disclosure logic is exercised.

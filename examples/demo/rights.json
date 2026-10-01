@@ -1,0 +1,12 @@
+{
+  "record_id": "demo-bridge-talk-cc0",
+  "basis": "creative_commons",
+  "cc_license": "CC0-1.0",
+  "source_title": "Where does the weight go? (sample talk)",
+  "rights_holder": "clipwarden contributors",
+  "attribution": "Sample talk by clipwarden contributors",
+  "evidence": "examples/demo/LICENSE-SAMPLE.txt",
+  "source_sha256": "2ece24ffd63c03adae86878e9e4addab7fe73d026eafab83ee20270bad9ef7a9",
+  "synthetic_or_altered": true,
+  "notes": "Synthetic text-to-speech narration; flagged as altered/synthetic by default (when unsure, disclose)."
+}

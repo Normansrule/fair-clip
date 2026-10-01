@@ -1,0 +1,16 @@
+# Community-guidelines screen. One term or phrase per line, case-insensitive, whole-word match.
+# "hard:" terms BLOCK the clip. "soft:" terms raise a WARNING the reviewer must acknowledge.
+# This list is deliberately short and mild. Add the terms that matter for your channel and
+# audience; YouTube's own Community Guidelines are the authority (see docs/POLICY.md).
+hard: kill yourself
+hard: kys
+hard: dox
+hard: doxx
+soft: damn
+soft: hell
+soft: crap
+soft: sucks
+soft: stupid
+soft: idiot
+soft: shut up
+soft: wtf

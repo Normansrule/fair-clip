@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Source{% endblock %}
+{% block body %}
+<h1>{{ src.rights.source_title }}</h1>
+<div class="grid2">
+<section class="card">
+  <h2>Rights record</h2>
+  <dl class="kv">
+    <dt>Record</dt><dd class="mono">{{ src.rights.record_id }}</dd>
+    <dt>Basis</dt><dd>{{ src.rights.basis }}{% if src.rights.cc_license %} · {{ src.rights.cc_license }}{% endif %}</dd>
+    <dt>Rights holder</dt><dd>{{ src.rights.rights_holder }}</dd>
+    <dt>Evidence</dt><dd>{{ src.rights.evidence }}</dd>
+    <dt>Synthetic/altered</dt><dd>{{ 'yes (disclosed)' if src.rights.synthetic_or_altered else 'no' }}</dd>
+    <dt>File SHA-256</dt><dd class="mono small">{{ src.media_sha }}</dd>
+  </dl>
+</section>
+<section class="card">
+  <h2>Highlight scores</h2>
+  <p class="muted small">S = w<sub>E</sub>·z(E) + w<sub>R</sub>·R + w<sub>r</sub>·z(r) + w<sub>D</sub>·D − w<sub>Q</sub>·Q, weights:
+  {% for k, v in weights.items() %}<span class="mono">{{ k }}={{ '%.2f'|format(v) }}</span> {% endfor %}</p>
+  {{ bars | safe }}
+</section>
+</div>
+<table class="tbl">
+  <thead><tr><th>#</th><th>Candidate</th><th>Window</th><th>E dBFS</th><th>R</th><th>r w/s</th><th>D</th><th>Q</th><th>S</th><th>Text</th></tr></thead>
+  <tbody>
+  {% for c in cands %}
+  <tr><td>{{ c.rank }}</td><td class="mono small">{{ c.candidate_id }}</td><td>{{ '%.1f'|format(c.start) }}–{{ '%.1f'|format(c.end) }}s</td>
+    <td>{{ '%.1f'|format(c.features.audio_energy_db) }}</td><td>{{ '%.2f'|format(c.features.relevance) }}</td>
+    <td>{{ '%.2f'|format(c.features.speech_rate_wps) }}</td><td>{{ '%.2f'|format(c.features.scene_density) }}</td>
+    <td>{{ '%.2f'|format(c.features.silence_ratio) }}</td><td><strong>{{ '%+.3f'|format(c.score) }}</strong></td>
+    <td class="small">{{ c.text[:140] }}…</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted small">Plan a clip from a candidate: <code>clipwarden plan CANDIDATE_ID --plan-file plan.json</code>, then <code>clipwarden render CLIP_ID</code>.</p>
+{% endblock %}

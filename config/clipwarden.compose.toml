@@ -1,0 +1,19 @@
+# Config for docker-compose. `make compose-init` copies this to data/clipwarden.toml.
+data_dir = "/data"
+link_allowlist = []
+
+[channel]
+name = "My Channel"
+topics = []
+daily_cap = 3
+
+[media]
+runner = "worker"          # FFmpeg runs in the network-less media container
+jobs_dir = "/data/jobs"    # same path in both containers
+
+[publish]
+mode = "dry-run"
+
+[dashboard]
+host = "0.0.0.0"           # inside the container only; compose publishes it on 127.0.0.1
+port = 8765

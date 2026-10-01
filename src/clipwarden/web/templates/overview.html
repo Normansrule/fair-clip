@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+{% block body %}
+<h1>Pipeline</h1>
+<p class="muted">Every source moves through ten stages. <span class="stop-legend">■</span> marks the two hard stops: the compliance gate and human approval.
+  Audit chain: {% if audit_ok %}<strong class="ok">✓ intact</strong>{% else %}<strong class="bad">✕ broken at entry {{ audit_bad }}</strong>{% endif %}</p>
+
+{% for src in sources %}
+<section class="card">
+  <div class="row-between">
+    <h2><a href="/sources/{{ src.id }}">{{ src.rights.source_title if src.rights else src.id }}</a></h2>
+    <span class="muted mono">{{ src.id }} · {{ src.rights.basis }}{% if src.rights.cc_license %} ({{ src.rights.cc_license }}){% endif %}</span>
+  </div>
+  <ol class="rail">
+  {% for st in STAGES %}
+    {% set info = (src.stages or {}).get(st) %}
+    <li class="stage s-{{ info.status if info else 'idle' }} {{ 'hardstop' if st in ('gate','approval') }}">
+      <span class="num">{{ loop.index }}</span>
+      <span class="name">{{ st.replace('_',' ') }}</span>
+      <span class="status">{{ info.status if info else '—' }}</span>
+    </li>
+  {% endfor %}
+  </ol>
+  <details><summary>Stage logs</summary>
+    {% for st in STAGES %}{% set info = (src.stages or {}).get(st) %}{% if info and info.log %}
+      <h3 class="small">{{ st }}</h3><pre class="log">{{ info.log | join('\n') }}</pre>
+    {% endif %}{% endfor %}
+  </details>
+</section>
+{% else %}
+<section class="card"><p>No sources yet. Run <code>clipwarden ingest VIDEO --rights RIGHTS.json</code> (or <code>make demo</code>).</p></section>
+{% endfor %}
+
+<h2>Clips</h2>
+<table class="tbl">
+  <thead><tr><th>Clip</th><th>Status</th><th>Gate</th><th>Title</th></tr></thead>
+  <tbody>
+  {% for c in clips %}
+  <tr>
+    <td><a class="mono" href="/clips/{{ c.id }}">{{ c.id }}</a></td>
+    <td><span class="badge b-{{ c.status }}">{{ c.status.replace('_',' ') }}</span></td>
+    <td>{% if c.gate %}{% if c.gate.passed %}<span class="ok">✓ passed</span>{% else %}<span class="bad">✕ blocked</span>{% endif %}{% else %}—{% endif %}</td>
+    <td>{{ (c.metadata or {}).get('title', '') }}</td>
+  </tr>
+  {% else %}<tr><td colspan="4" class="muted">No clips yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

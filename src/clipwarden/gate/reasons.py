@@ -1,0 +1,62 @@
+"""Every reason the compliance gate can block (or warn about) a clip, in one registry.
+
+docs/POLICY.md, the gate flowchart and the dashboard all render from this table, so the docs
+can't drift from the code. Each entry: (group, severity, short name, what fixes it).
+"""
+
+from __future__ import annotations
+
+REASONS: dict[str, tuple[str, str, str, str]] = {
+    # group            code                          sev     name                              fix
+    "KILL_SWITCH_ON": ("Safety", "block", "Kill switch engaged", "Turn the kill switch off on the Settings page."),
+    "RIGHTS_MISSING": ("Rights", "block", "No rights record", "Add a rights record for the source."),
+    "RIGHTS_EXPIRED": ("Rights", "block", "Rights expired", "Renew the permission or license."),
+    "RIGHTS_SCOPE": ("Rights", "block", "Rights don't cover YouTube", "Get permission that covers YouTube."),
+    "RIGHTS_NO_DERIVATIVES": ("Rights", "block", "License forbids edits", "Clipping is a derivative; use another source."),
+    "RIGHTS_NONCOMMERCIAL": ("Rights", "block", "Non-commercial license on a monetized channel", "Get a commercial license or turn off monetization."),
+    "RIGHTS_FILE_MISMATCH": ("Rights", "block", "File differs from the licensed file", "Use the exact file named in the rights record."),
+    "RIGHTS_NO_EVIDENCE": ("Rights", "block", "Permission has no evidence", "Point the record at the signed permission/contract."),
+    "VALUE_ADD_MISSING": ("Value-add", "block", "No original value-add", "Add commentary, a context card, a graphic or analysis."),
+    "VALUE_ADD_INSUFFICIENT": ("Value-add", "block", "Value-add covers too little of the clip", "Lengthen or add value-add elements."),
+    "VALUE_ADD_THIN": ("Value-add", "block", "Value-add text too short", "Write a real sentence or two of your own."),
+    "VALUE_ADD_NOT_ORIGINAL": ("Value-add", "block", "Value-add just repeats the transcript", "Say something the clip doesn't already say."),
+    "AI_DRAFT_UNAPPROVED": ("Value-add", "warn", "AI-drafted value-add not yet approved", "Edit and approve the draft, or delete it."),
+    "SYNTHETIC_DISCLOSURE_MISSING": ("Disclosures", "block", "Altered/synthetic flag not set", "The upload must set containsSyntheticMedia."),
+    "PAID_PROMOTION_STUDIO_STEP": ("Disclosures", "warn", "Paid promotion: manual YouTube Studio step", "The API can't set this flag. The clip uploads private; tick 'includes paid promotion' in Studio before publishing."),
+    "PAID_PROMOTION_DESCRIPTION_MISSING": ("Disclosures", "block", "Paid promotion not stated in the description", "Keep the auto-inserted paid-promotion line."),
+    "AFFILIATE_PLAN_MISSING": ("Affiliate", "block", "Tagged affiliate but no affiliate plan", "Fill in the affiliate plan."),
+    "AFFILIATE_START_DISCLOSURE_MISSING": ("Affiliate", "block", "No disclosure near the start", "Say it or show it in the first 10 s."),
+    "AFFILIATE_SINGLE_CHANNEL": ("Affiliate", "warn", "Disclosure only audio or only on-screen", "FTC: both audio and video is more likely clear."),
+    "AFFILIATE_CARD_MISSING": ("Affiliate", "block", "No card near a recommendation", "Show the disclosure card when you recommend."),
+    "AFFILIATE_RECOMMENDATION_UNMARKED": ("Affiliate", "block", "Links but no marked recommendation times", "Mark when each product is recommended."),
+    "AFFILIATE_DESCRIPTION_ORDER": ("Affiliate", "block", "Disclosure not above the first link", "Put the disclosure line before any link."),
+    "AFFILIATE_WEAK_WORDING": ("Affiliate", "block", "Disclosure wording unclear", "Say you earn money: 'I earn a commission...'."),
+    "AFFILIATE_UNEVALUATED_PRODUCT": ("Affiliate", "block", "Recommending a product you haven't evaluated", "Only recommend what you actually tried."),
+    "AFFILIATE_FABRICATED_CLAIM": ("Affiliate", "block", "Scarcity/testimonial/result claim", "Remove fake urgency, reviews or results."),
+    "AFFILIATE_KIDS": ("Affiliate", "block", "Affiliate content marked made-for-kids", "No affiliate marketing aimed at children."),
+    "LINK_NOT_ALLOWLISTED": ("Links", "block", "Link not on the allowlist", "Add it to the allowlist (exact URL) or remove it."),
+    "LINK_CLOAKED": ("Links", "block", "Shortened/redirecting/disguised link", "Use the plain destination URL."),
+    "FINANCE_PLAN_MISSING": ("Markets", "block", "Tagged markets but no markets plan", "Fill in sources, positions and disclaimer."),
+    "FINANCE_ADVICE_LANGUAGE": ("Markets", "block", "Buy/sell advice or guaranteed-return language", "Reframe as education or pick another segment."),
+    "FINANCE_DISCLAIMER_MISSING": ("Markets", "block", "Disclaimer missing on screen or in description", "Enable both disclaimers."),
+    "FINANCE_POSITION_UNDISCLOSED": ("Markets", "block", "Positions held but not disclosed", "Disclose your positions."),
+    "FINANCE_PAID_UNDISCLOSED": ("Markets", "block", "Paid securities promotion without payer and amount", "Disclose who paid and how much (Securities Act §17(b))."),
+    "FINANCE_UNSOURCED_NUMBER": ("Markets", "block", "A number with no cited data source", "Add a timestamped source for every figure."),
+    "FINANCE_STALE_DATA": ("Markets", "block", "Data older than the freshness limit", "Refresh the data."),
+    "FINANCE_PUMP_PATTERN": ("Markets", "block", "Hype, urgency or pump-style claims", "Remove it. This is never publishable."),
+    "METADATA_LIMITS": ("Metadata", "block", "Title/description/tags over YouTube limits", "Shorten them."),
+    "METADATA_UNGROUNDED": ("Metadata", "block", "Title claims something not said in the clip", "Use words/numbers from the clip."),
+    "METADATA_CLICKBAIT": ("Metadata", "block", "Clickbait title", "Describe the clip plainly."),
+    "DUPLICATE_OF_OWN_UPLOAD": ("Uniqueness", "block", "Near-duplicate of one of your uploads", "Pick a different moment."),
+    "DAILY_CAP_REACHED": ("Uniqueness", "block", "Daily publishing cap reached", "Schedule for another day."),
+    "VARIETY_SAME_SOURCE": ("Uniqueness", "block", "Too many clips from one source today", "Spread clips across days."),
+    "VARIETY_TITLE": ("Uniqueness", "block", "Title too similar to a recent upload", "Write a distinct title."),
+    "VARIETY_TEMPLATE": ("Uniqueness", "warn", "Same template on every recent clip", "Vary the value-add template."),
+    "SCREEN_BLOCKED_TERM": ("Screen", "block", "Blocked term (community guidelines)", "Remove it."),
+    "SCREEN_REVIEW": ("Screen", "warn", "Term needs a human look", "Acknowledge or edit."),
+    "PROMPT_INJECTION_SUSPECTED": ("Untrusted input", "warn", "Instruction-like text in the transcript", "Check the metadata by eye."),
+    "SPOKEN_LINK": ("Untrusted input", "warn", "A link is spoken in the clip", "Make sure it isn't promoted."),
+}
+
+GROUP_ORDER = ["Safety", "Rights", "Value-add", "Disclosures", "Affiliate", "Links", "Markets",
+               "Metadata", "Uniqueness", "Screen", "Untrusted input"]

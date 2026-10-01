@@ -1,0 +1,24 @@
+# local state: never commit
+data/
+demo-data/
+secrets/
+*.sqlite3*
+vault.json.enc
+session.key
+client_secret*.json
+clipwarden.toml
+.env
+.env.*
+!.env.example
+# python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+_site/
+node_modules/

@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clipwarden"
+version = "0.1.0"
+description = "Security-first AI clipping pipeline: rights-cleared long video in, value-adding short clips out, every clip through a compliance gate and human approval before YouTube."
+readme = "README.md"
+license = "Apache-2.0"
+authors = [{ name = "Aleksander Norman" }]
+requires-python = ">=3.11"
+# Exact pins: see requirements.lock for the full, hash-pinned set used by CI and Docker.
+dependencies = [
+  "fastapi==0.142.2",
+  "uvicorn==0.46.0",
+  "pydantic==2.13.3",
+  "jinja2==3.1.6",
+  "python-multipart==0.0.26",
+  "itsdangerous==2.2.0",
+  "numpy==2.4.4",
+  "cryptography==46.0.7",
+]
+
+[project.optional-dependencies]
+# Real YouTube publishing (OAuth + Data API v3). Not needed for dry-run or the demo.
+youtube = [
+  "google-api-python-client==2.201.0",
+  "google-auth==2.59.1",
+  "google-auth-oauthlib==1.5.0",
+]
+# Operating-system keychain for refresh tokens (preferred over the encrypted-file vault).
+keychain = ["keyring==25.7.0"]
+# Local speech-to-text with word-level timestamps.
+asr = ["faster-whisper==1.2.1"]
+dev = [
+  "pytest==9.1.1",
+  "httpx==0.28.1",
+  "ruff==0.16.9",
+  "pillow==12.2.0",
+  "matplotlib==3.10.9",
+  "playwright==1.56.0",
+]
+
+[project.scripts]
+clipwarden = "clipwarden.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+clipwarden = ["web/templates/*.html", "web/static/*", "data/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "S", "UP", "I"]
+ignore = ["S101", "S603", "S607", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use fixed fake passphrases, seeded PRNGs and literal bind addresses on purpose.
+"tests/*" = ["S104", "S105", "S106", "S311"]

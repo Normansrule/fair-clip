@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block body %}
+<section class="card narrow">
+  <h1>Log in</h1>
+  <p class="muted">This dashboard only listens on this computer. The first-run password was printed in the terminal that started it.</p>
+  {% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="/login">
+    <label for="pw">Password</label>
+    <input id="pw" type="password" name="password" autocomplete="current-password" required autofocus>
+    <button class="btn primary">Log in</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,1794 @@
+{
+ "language": "en",
+ "engine": "generator:espeak-ng+proportional-word-timing",
+ "sentences": [
+  {
+   "start": 0.62,
+   "end": 5.848,
+   "text": "Here's a question that sounds simple: how does a suspension bridge hold up a fully loaded truck?",
+   "words": [
+    {
+     "text": "Here's",
+     "start": 0.62,
+     "end": 0.985
+    },
+    {
+     "text": "a",
+     "start": 1.005,
+     "end": 1.095
+    },
+    {
+     "text": "question",
+     "start": 1.115,
+     "end": 1.591
+    },
+    {
+     "text": "that",
+     "start": 1.611,
+     "end": 1.866
+    },
+    {
+     "text": "sounds",
+     "start": 1.886,
+     "end": 2.251
+    },
+    {
+     "text": "simple:",
+     "start": 2.271,
+     "end": 2.636
+    },
+    {
+     "text": "how",
+     "start": 2.656,
+     "end": 2.856
+    },
+    {
+     "text": "does",
+     "start": 2.876,
+     "end": 3.131
+    },
+    {
+     "text": "a",
+     "start": 3.151,
+     "end": 3.242
+    },
+    {
+     "text": "suspension",
+     "start": 3.262,
+     "end": 3.847
+    },
+    {
+     "text": "bridge",
+     "start": 3.867,
+     "end": 4.232
+    },
+    {
+     "text": "hold",
+     "start": 4.252,
+     "end": 4.507
+    },
+    {
+     "text": "up",
+     "start": 4.527,
+     "end": 4.672
+    },
+    {
+     "text": "a",
+     "start": 4.692,
+     "end": 4.782
+    },
+    {
+     "text": "fully",
+     "start": 4.802,
+     "end": 5.113
+    },
+    {
+     "text": "loaded",
+     "start": 5.133,
+     "end": 5.498
+    },
+    {
+     "text": "truck?",
+     "start": 5.518,
+     "end": 5.828
+    }
+   ]
+  },
+  {
+   "start": 6.515,
+   "end": 11.274,
+   "text": "The deck looks like it's floating, but every kilogram of that truck is going somewhere.",
+   "words": [
+    {
+     "text": "The",
+     "start": 6.515,
+     "end": 6.716
+    },
+    {
+     "text": "deck",
+     "start": 6.736,
+     "end": 6.993
+    },
+    {
+     "text": "looks",
+     "start": 7.013,
+     "end": 7.325
+    },
+    {
+     "text": "like",
+     "start": 7.345,
+     "end": 7.602
+    },
+    {
+     "text": "it's",
+     "start": 7.622,
+     "end": 7.878
+    },
+    {
+     "text": "floating,",
+     "start": 7.898,
+     "end": 8.376
+    },
+    {
+     "text": "but",
+     "start": 8.396,
+     "end": 8.598
+    },
+    {
+     "text": "every",
+     "start": 8.618,
+     "end": 8.93
+    },
+    {
+     "text": "kilogram",
+     "start": 8.95,
+     "end": 9.428
+    },
+    {
+     "text": "of",
+     "start": 9.448,
+     "end": 9.594
+    },
+    {
+     "text": "that",
+     "start": 9.614,
+     "end": 9.871
+    },
+    {
+     "text": "truck",
+     "start": 9.891,
+     "end": 10.203
+    },
+    {
+     "text": "is",
+     "start": 10.223,
+     "end": 10.369
+    },
+    {
+     "text": "going",
+     "start": 10.389,
+     "end": 10.701
+    },
+    {
+     "text": "somewhere.",
+     "start": 10.721,
+     "end": 11.254
+    }
+   ]
+  },
+  {
+   "start": 11.91,
+   "end": 14.753,
+   "text": "Let's follow the weight, one piece at a time.",
+   "words": [
+    {
+     "text": "Let's",
+     "start": 11.91,
+     "end": 12.277
+    },
+    {
+     "text": "follow",
+     "start": 12.297,
+     "end": 12.73
+    },
+    {
+     "text": "the",
+     "start": 12.75,
+     "end": 12.988
+    },
+    {
+     "text": "weight,",
+     "start": 13.008,
+     "end": 13.441
+    },
+    {
+     "text": "one",
+     "start": 13.461,
+     "end": 13.699
+    },
+    {
+     "text": "piece",
+     "start": 13.719,
+     "end": 14.087
+    },
+    {
+     "text": "at",
+     "start": 14.107,
+     "end": 14.281
+    },
+    {
+     "text": "a",
+     "start": 14.301,
+     "end": 14.41
+    },
+    {
+     "text": "time.",
+     "start": 14.43,
+     "end": 14.733
+    }
+   ]
+  },
+  {
+   "start": 16.393,
+   "end": 18.748,
+   "text": "First, the truck pushes down on the deck.",
+   "words": [
+    {
+     "text": "First,",
+     "start": 16.393,
+     "end": 16.726
+    },
+    {
+     "text": "the",
+     "start": 16.746,
+     "end": 16.962
+    },
+    {
+     "text": "truck",
+     "start": 16.982,
+     "end": 17.315
+    },
+    {
+     "text": "pushes",
+     "start": 17.335,
+     "end": 17.727
+    },
+    {
+     "text": "down",
+     "start": 17.747,
+     "end": 18.021
+    },
+    {
+     "text": "on",
+     "start": 18.041,
+     "end": 18.198
+    },
+    {
+     "text": "the",
+     "start": 18.218,
+     "end": 18.433
+    },
+    {
+     "text": "deck.",
+     "start": 18.453,
+     "end": 18.728
+    }
+   ]
+  },
+  {
+   "start": 19.412,
+   "end": 22.685,
+   "text": "The deck hangs from vertical ropes called suspenders.",
+   "words": [
+    {
+     "text": "The",
+     "start": 19.412,
+     "end": 19.639
+    },
+    {
+     "text": "deck",
+     "start": 19.659,
+     "end": 19.948
+    },
+    {
+     "text": "hangs",
+     "start": 19.968,
+     "end": 20.319
+    },
+    {
+     "text": "from",
+     "start": 20.339,
+     "end": 20.627
+    },
+    {
+     "text": "vertical",
+     "start": 20.647,
+     "end": 21.183
+    },
+    {
+     "text": "ropes",
+     "start": 21.203,
+     "end": 21.553
+    },
+    {
+     "text": "called",
+     "start": 21.573,
+     "end": 21.986
+    },
+    {
+     "text": "suspenders.",
+     "start": 22.006,
+     "end": 22.665
+    }
+   ]
+  },
+  {
+   "start": 23.361,
+   "end": 26.025,
+   "text": "The suspenders pull down on the two main cables.",
+   "words": [
+    {
+     "text": "The",
+     "start": 23.361,
+     "end": 23.563
+    },
+    {
+     "text": "suspenders",
+     "start": 23.583,
+     "end": 24.174
+    },
+    {
+     "text": "pull",
+     "start": 24.194,
+     "end": 24.451
+    },
+    {
+     "text": "down",
+     "start": 24.471,
+     "end": 24.729
+    },
+    {
+     "text": "on",
+     "start": 24.749,
+     "end": 24.895
+    },
+    {
+     "text": "the",
+     "start": 24.915,
+     "end": 25.117
+    },
+    {
+     "text": "two",
+     "start": 25.137,
+     "end": 25.339
+    },
+    {
+     "text": "main",
+     "start": 25.359,
+     "end": 25.617
+    },
+    {
+     "text": "cables.",
+     "start": 25.637,
+     "end": 26.005
+    }
+   ]
+  },
+  {
+   "start": 26.693,
+   "end": 30.913,
+   "text": "And those main cables are in pure tension, like a rope in a game of tug of war.",
+   "words": [
+    {
+     "text": "And",
+     "start": 26.693,
+     "end": 26.889
+    },
+    {
+     "text": "those",
+     "start": 26.909,
+     "end": 27.214
+    },
+    {
+     "text": "main",
+     "start": 27.234,
+     "end": 27.485
+    },
+    {
+     "text": "cables",
+     "start": 27.505,
+     "end": 27.863
+    },
+    {
+     "text": "are",
+     "start": 27.883,
+     "end": 28.08
+    },
+    {
+     "text": "in",
+     "start": 28.1,
+     "end": 28.242
+    },
+    {
+     "text": "pure",
+     "start": 28.262,
+     "end": 28.513
+    },
+    {
+     "text": "tension,",
+     "start": 28.533,
+     "end": 28.945
+    },
+    {
+     "text": "like",
+     "start": 28.965,
+     "end": 29.216
+    },
+    {
+     "text": "a",
+     "start": 29.236,
+     "end": 29.324
+    },
+    {
+     "text": "rope",
+     "start": 29.344,
+     "end": 29.595
+    },
+    {
+     "text": "in",
+     "start": 29.615,
+     "end": 29.757
+    },
+    {
+     "text": "a",
+     "start": 29.777,
+     "end": 29.865
+    },
+    {
+     "text": "game",
+     "start": 29.885,
+     "end": 30.136
+    },
+    {
+     "text": "of",
+     "start": 30.156,
+     "end": 30.298
+    },
+    {
+     "text": "tug",
+     "start": 30.318,
+     "end": 30.515
+    },
+    {
+     "text": "of",
+     "start": 30.535,
+     "end": 30.677
+    },
+    {
+     "text": "war.",
+     "start": 30.697,
+     "end": 30.893
+    }
+   ]
+  },
+  {
+   "start": 31.541,
+   "end": 36.201,
+   "text": "Steel is incredibly good at tension, which is exactly why engineers chose it.",
+   "words": [
+    {
+     "text": "Steel",
+     "start": 31.541,
+     "end": 31.889
+    },
+    {
+     "text": "is",
+     "start": 31.909,
+     "end": 32.073
+    },
+    {
+     "text": "incredibly",
+     "start": 32.093,
+     "end": 32.748
+    },
+    {
+     "text": "good",
+     "start": 32.768,
+     "end": 33.054
+    },
+    {
+     "text": "at",
+     "start": 33.074,
+     "end": 33.238
+    },
+    {
+     "text": "tension,",
+     "start": 33.258,
+     "end": 33.729
+    },
+    {
+     "text": "which",
+     "start": 33.749,
+     "end": 34.096
+    },
+    {
+     "text": "is",
+     "start": 34.116,
+     "end": 34.28
+    },
+    {
+     "text": "exactly",
+     "start": 34.3,
+     "end": 34.771
+    },
+    {
+     "text": "why",
+     "start": 34.791,
+     "end": 35.016
+    },
+    {
+     "text": "engineers",
+     "start": 35.036,
+     "end": 35.629
+    },
+    {
+     "text": "chose",
+     "start": 35.649,
+     "end": 35.997
+    },
+    {
+     "text": "it.",
+     "start": 36.017,
+     "end": 36.181
+    }
+   ]
+  },
+  {
+   "start": 37.549,
+   "end": 40.033,
+   "text": "Now the main cables drape over the towers.",
+   "words": [
+    {
+     "text": "Now",
+     "start": 37.549,
+     "end": 37.766
+    },
+    {
+     "text": "the",
+     "start": 37.786,
+     "end": 38.002
+    },
+    {
+     "text": "main",
+     "start": 38.022,
+     "end": 38.298
+    },
+    {
+     "text": "cables",
+     "start": 38.318,
+     "end": 38.712
+    },
+    {
+     "text": "drape",
+     "start": 38.732,
+     "end": 39.067
+    },
+    {
+     "text": "over",
+     "start": 39.087,
+     "end": 39.363
+    },
+    {
+     "text": "the",
+     "start": 39.383,
+     "end": 39.599
+    },
+    {
+     "text": "towers.",
+     "start": 39.619,
+     "end": 40.013
+    }
+   ]
+  },
+  {
+   "start": 40.743,
+   "end": 44.874,
+   "text": "Here is the surprising part: the towers are not holding the bridge sideways at all.",
+   "words": [
+    {
+     "text": "Here",
+     "start": 40.743,
+     "end": 40.975
+    },
+    {
+     "text": "is",
+     "start": 40.995,
+     "end": 41.126
+    },
+    {
+     "text": "the",
+     "start": 41.146,
+     "end": 41.328
+    },
+    {
+     "text": "surprising",
+     "start": 41.348,
+     "end": 41.882
+    },
+    {
+     "text": "part:",
+     "start": 41.902,
+     "end": 42.134
+    },
+    {
+     "text": "the",
+     "start": 42.154,
+     "end": 42.335
+    },
+    {
+     "text": "towers",
+     "start": 42.355,
+     "end": 42.688
+    },
+    {
+     "text": "are",
+     "start": 42.708,
+     "end": 42.889
+    },
+    {
+     "text": "not",
+     "start": 42.909,
+     "end": 43.091
+    },
+    {
+     "text": "holding",
+     "start": 43.111,
+     "end": 43.494
+    },
+    {
+     "text": "the",
+     "start": 43.514,
+     "end": 43.695
+    },
+    {
+     "text": "bridge",
+     "start": 43.715,
+     "end": 44.048
+    },
+    {
+     "text": "sideways",
+     "start": 44.068,
+     "end": 44.501
+    },
+    {
+     "text": "at",
+     "start": 44.521,
+     "end": 44.652
+    },
+    {
+     "text": "all.",
+     "start": 44.672,
+     "end": 44.854
+    }
+   ]
+  },
+  {
+   "start": 45.455,
+   "end": 50.494,
+   "text": "The cables pull down on the top of each tower, so the tower is squeezed, in compression.",
+   "words": [
+    {
+     "text": "The",
+     "start": 45.455,
+     "end": 45.67
+    },
+    {
+     "text": "cables",
+     "start": 45.69,
+     "end": 46.08
+    },
+    {
+     "text": "pull",
+     "start": 46.1,
+     "end": 46.373
+    },
+    {
+     "text": "down",
+     "start": 46.393,
+     "end": 46.666
+    },
+    {
+     "text": "on",
+     "start": 46.686,
+     "end": 46.841
+    },
+    {
+     "text": "the",
+     "start": 46.861,
+     "end": 47.076
+    },
+    {
+     "text": "top",
+     "start": 47.096,
+     "end": 47.31
+    },
+    {
+     "text": "of",
+     "start": 47.33,
+     "end": 47.486
+    },
+    {
+     "text": "each",
+     "start": 47.506,
+     "end": 47.779
+    },
+    {
+     "text": "tower,",
+     "start": 47.799,
+     "end": 48.13
+    },
+    {
+     "text": "so",
+     "start": 48.15,
+     "end": 48.306
+    },
+    {
+     "text": "the",
+     "start": 48.326,
+     "end": 48.54
+    },
+    {
+     "text": "tower",
+     "start": 48.56,
+     "end": 48.892
+    },
+    {
+     "text": "is",
+     "start": 48.912,
+     "end": 49.068
+    },
+    {
+     "text": "squeezed,",
+     "start": 49.088,
+     "end": 49.595
+    },
+    {
+     "text": "in",
+     "start": 49.615,
+     "end": 49.771
+    },
+    {
+     "text": "compression.",
+     "start": 49.791,
+     "end": 50.474
+    }
+   ]
+  },
+  {
+   "start": 51.2,
+   "end": 56.598,
+   "text": "Concrete and steel columns love compression, so tall towers can be surprisingly slender.",
+   "words": [
+    {
+     "text": "Concrete",
+     "start": 51.2,
+     "end": 51.738
+    },
+    {
+     "text": "and",
+     "start": 51.758,
+     "end": 51.986
+    },
+    {
+     "text": "steel",
+     "start": 52.006,
+     "end": 52.359
+    },
+    {
+     "text": "columns",
+     "start": 52.379,
+     "end": 52.855
+    },
+    {
+     "text": "love",
+     "start": 52.875,
+     "end": 53.165
+    },
+    {
+     "text": "compression,",
+     "start": 53.185,
+     "end": 53.91
+    },
+    {
+     "text": "so",
+     "start": 53.93,
+     "end": 54.096
+    },
+    {
+     "text": "tall",
+     "start": 54.116,
+     "end": 54.406
+    },
+    {
+     "text": "towers",
+     "start": 54.426,
+     "end": 54.84
+    },
+    {
+     "text": "can",
+     "start": 54.86,
+     "end": 55.088
+    },
+    {
+     "text": "be",
+     "start": 55.108,
+     "end": 55.275
+    },
+    {
+     "text": "surprisingly",
+     "start": 55.295,
+     "end": 56.081
+    },
+    {
+     "text": "slender.",
+     "start": 56.101,
+     "end": 56.578
+    }
+   ]
+  },
+  {
+   "start": 58.358,
+   "end": 60.932,
+   "text": "But the cables still have to end somewhere.",
+   "words": [
+    {
+     "text": "But",
+     "start": 58.358,
+     "end": 58.577
+    },
+    {
+     "text": "the",
+     "start": 58.597,
+     "end": 58.817
+    },
+    {
+     "text": "cables",
+     "start": 58.837,
+     "end": 59.236
+    },
+    {
+     "text": "still",
+     "start": 59.256,
+     "end": 59.595
+    },
+    {
+     "text": "have",
+     "start": 59.615,
+     "end": 59.894
+    },
+    {
+     "text": "to",
+     "start": 59.914,
+     "end": 60.074
+    },
+    {
+     "text": "end",
+     "start": 60.094,
+     "end": 60.313
+    },
+    {
+     "text": "somewhere.",
+     "start": 60.333,
+     "end": 60.912
+    }
+   ]
+  },
+  {
+   "start": 61.642,
+   "end": 66.9,
+   "text": "At each end they are tied into huge blocks called anchorages, often set deep into rock.",
+   "words": [
+    {
+     "text": "At",
+     "start": 61.642,
+     "end": 61.805
+    },
+    {
+     "text": "each",
+     "start": 61.825,
+     "end": 62.111
+    },
+    {
+     "text": "end",
+     "start": 62.131,
+     "end": 62.355
+    },
+    {
+     "text": "they",
+     "start": 62.375,
+     "end": 62.661
+    },
+    {
+     "text": "are",
+     "start": 62.681,
+     "end": 62.906
+    },
+    {
+     "text": "tied",
+     "start": 62.926,
+     "end": 63.211
+    },
+    {
+     "text": "into",
+     "start": 63.231,
+     "end": 63.517
+    },
+    {
+     "text": "huge",
+     "start": 63.537,
+     "end": 63.823
+    },
+    {
+     "text": "blocks",
+     "start": 63.843,
+     "end": 64.251
+    },
+    {
+     "text": "called",
+     "start": 64.271,
+     "end": 64.679
+    },
+    {
+     "text": "anchorages,",
+     "start": 64.699,
+     "end": 65.351
+    },
+    {
+     "text": "often",
+     "start": 65.371,
+     "end": 65.718
+    },
+    {
+     "text": "set",
+     "start": 65.738,
+     "end": 65.963
+    },
+    {
+     "text": "deep",
+     "start": 65.983,
+     "end": 66.268
+    },
+    {
+     "text": "into",
+     "start": 66.288,
+     "end": 66.574
+    },
+    {
+     "text": "rock.",
+     "start": 66.594,
+     "end": 66.88
+    }
+   ]
+  },
+  {
+   "start": 67.592,
+   "end": 72.501,
+   "text": "The anchorage holds the cable back, the way your feet hold you back in tug of war.",
+   "words": [
+    {
+     "text": "The",
+     "start": 67.592,
+     "end": 67.815
+    },
+    {
+     "text": "anchorage",
+     "start": 67.835,
+     "end": 68.421
+    },
+    {
+     "text": "holds",
+     "start": 68.441,
+     "end": 68.784
+    },
+    {
+     "text": "the",
+     "start": 68.804,
+     "end": 69.027
+    },
+    {
+     "text": "cable",
+     "start": 69.047,
+     "end": 69.39
+    },
+    {
+     "text": "back,",
+     "start": 69.41,
+     "end": 69.693
+    },
+    {
+     "text": "the",
+     "start": 69.713,
+     "end": 69.936
+    },
+    {
+     "text": "way",
+     "start": 69.956,
+     "end": 70.178
+    },
+    {
+     "text": "your",
+     "start": 70.198,
+     "end": 70.481
+    },
+    {
+     "text": "feet",
+     "start": 70.501,
+     "end": 70.784
+    },
+    {
+     "text": "hold",
+     "start": 70.804,
+     "end": 71.087
+    },
+    {
+     "text": "you",
+     "start": 71.107,
+     "end": 71.33
+    },
+    {
+     "text": "back",
+     "start": 71.35,
+     "end": 71.633
+    },
+    {
+     "text": "in",
+     "start": 71.653,
+     "end": 71.814
+    },
+    {
+     "text": "tug",
+     "start": 71.834,
+     "end": 72.057
+    },
+    {
+     "text": "of",
+     "start": 72.077,
+     "end": 72.239
+    },
+    {
+     "text": "war.",
+     "start": 72.259,
+     "end": 72.481
+    }
+   ]
+  },
+  {
+   "start": 73.162,
+   "end": 79.707,
+   "text": "So the weight of the truck travels from deck, to suspenders, to cables, to towers, and finally into the ground.",
+   "words": [
+    {
+     "text": "So",
+     "start": 73.162,
+     "end": 73.325
+    },
+    {
+     "text": "the",
+     "start": 73.345,
+     "end": 73.57
+    },
+    {
+     "text": "weight",
+     "start": 73.59,
+     "end": 73.998
+    },
+    {
+     "text": "of",
+     "start": 74.018,
+     "end": 74.181
+    },
+    {
+     "text": "the",
+     "start": 74.201,
+     "end": 74.426
+    },
+    {
+     "text": "truck",
+     "start": 74.446,
+     "end": 74.793
+    },
+    {
+     "text": "travels",
+     "start": 74.813,
+     "end": 75.283
+    },
+    {
+     "text": "from",
+     "start": 75.303,
+     "end": 75.588
+    },
+    {
+     "text": "deck,",
+     "start": 75.608,
+     "end": 75.894
+    },
+    {
+     "text": "to",
+     "start": 75.914,
+     "end": 76.078
+    },
+    {
+     "text": "suspenders,",
+     "start": 76.098,
+     "end": 76.751
+    },
+    {
+     "text": "to",
+     "start": 76.771,
+     "end": 76.934
+    },
+    {
+     "text": "cables,",
+     "start": 76.954,
+     "end": 77.362
+    },
+    {
+     "text": "to",
+     "start": 77.382,
+     "end": 77.546
+    },
+    {
+     "text": "towers,",
+     "start": 77.566,
+     "end": 77.974
+    },
+    {
+     "text": "and",
+     "start": 77.994,
+     "end": 78.219
+    },
+    {
+     "text": "finally",
+     "start": 78.239,
+     "end": 78.708
+    },
+    {
+     "text": "into",
+     "start": 78.728,
+     "end": 79.014
+    },
+    {
+     "text": "the",
+     "start": 79.034,
+     "end": 79.259
+    },
+    {
+     "text": "ground.",
+     "start": 79.279,
+     "end": 79.687
+    }
+   ]
+  },
+  {
+   "start": 80.874,
+   "end": 85.494,
+   "text": "So what actually threatens a bridge like this? Usually it is not weight. It is wind.",
+   "words": [
+    {
+     "text": "So",
+     "start": 80.874,
+     "end": 81.023
+    },
+    {
+     "text": "what",
+     "start": 81.043,
+     "end": 81.305
+    },
+    {
+     "text": "actually",
+     "start": 81.325,
+     "end": 81.812
+    },
+    {
+     "text": "threatens",
+     "start": 81.832,
+     "end": 82.375
+    },
+    {
+     "text": "a",
+     "start": 82.395,
+     "end": 82.488
+    },
+    {
+     "text": "bridge",
+     "start": 82.508,
+     "end": 82.882
+    },
+    {
+     "text": "like",
+     "start": 82.902,
+     "end": 83.164
+    },
+    {
+     "text": "this?",
+     "start": 83.184,
+     "end": 83.446
+    },
+    {
+     "text": "Usually",
+     "start": 83.466,
+     "end": 83.896
+    },
+    {
+     "text": "it",
+     "start": 83.916,
+     "end": 84.065
+    },
+    {
+     "text": "is",
+     "start": 84.085,
+     "end": 84.234
+    },
+    {
+     "text": "not",
+     "start": 84.254,
+     "end": 84.46
+    },
+    {
+     "text": "weight.",
+     "start": 84.48,
+     "end": 84.854
+    },
+    {
+     "text": "It",
+     "start": 84.874,
+     "end": 85.023
+    },
+    {
+     "text": "is",
+     "start": 85.043,
+     "end": 85.192
+    },
+    {
+     "text": "wind.",
+     "start": 85.212,
+     "end": 85.474
+    }
+   ]
+  },
+  {
+   "start": 86.098,
+   "end": 92.334,
+   "text": "In 1940, the Tacoma Narrows Bridge twisted itself apart in a steady wind, only months after it opened.",
+   "words": [
+    {
+     "text": "In",
+     "start": 86.098,
+     "end": 86.265
+    },
+    {
+     "text": "1940,",
+     "start": 86.285,
+     "end": 86.577
+    },
+    {
+     "text": "the",
+     "start": 86.597,
+     "end": 86.827
+    },
+    {
+     "text": "Tacoma",
+     "start": 86.847,
+     "end": 87.263
+    },
+    {
+     "text": "Narrows",
+     "start": 87.283,
+     "end": 87.762
+    },
+    {
+     "text": "Bridge",
+     "start": 87.782,
+     "end": 88.199
+    },
+    {
+     "text": "twisted",
+     "start": 88.219,
+     "end": 88.697
+    },
+    {
+     "text": "itself",
+     "start": 88.717,
+     "end": 89.134
+    },
+    {
+     "text": "apart",
+     "start": 89.154,
+     "end": 89.508
+    },
+    {
+     "text": "in",
+     "start": 89.528,
+     "end": 89.695
+    },
+    {
+     "text": "a",
+     "start": 89.715,
+     "end": 89.82
+    },
+    {
+     "text": "steady",
+     "start": 89.84,
+     "end": 90.256
+    },
+    {
+     "text": "wind,",
+     "start": 90.276,
+     "end": 90.568
+    },
+    {
+     "text": "only",
+     "start": 90.588,
+     "end": 90.88
+    },
+    {
+     "text": "months",
+     "start": 90.9,
+     "end": 91.316
+    },
+    {
+     "text": "after",
+     "start": 91.336,
+     "end": 91.691
+    },
+    {
+     "text": "it",
+     "start": 91.711,
+     "end": 91.878
+    },
+    {
+     "text": "opened.",
+     "start": 91.898,
+     "end": 92.314
+    }
+   ]
+  },
+  {
+   "start": 92.969,
+   "end": 98.775,
+   "text": "Its deck was thin and flexible, so the wind made it flutter, and each twist made the next one bigger.",
+   "words": [
+    {
+     "text": "Its",
+     "start": 92.969,
+     "end": 93.183
+    },
+    {
+     "text": "deck",
+     "start": 93.203,
+     "end": 93.477
+    },
+    {
+     "text": "was",
+     "start": 93.497,
+     "end": 93.711
+    },
+    {
+     "text": "thin",
+     "start": 93.731,
+     "end": 94.004
+    },
+    {
+     "text": "and",
+     "start": 94.024,
+     "end": 94.239
+    },
+    {
+     "text": "flexible,",
+     "start": 94.259,
+     "end": 94.767
+    },
+    {
+     "text": "so",
+     "start": 94.787,
+     "end": 94.943
+    },
+    {
+     "text": "the",
+     "start": 94.963,
+     "end": 95.178
+    },
+    {
+     "text": "wind",
+     "start": 95.198,
+     "end": 95.471
+    },
+    {
+     "text": "made",
+     "start": 95.491,
+     "end": 95.764
+    },
+    {
+     "text": "it",
+     "start": 95.784,
+     "end": 95.94
+    },
+    {
+     "text": "flutter,",
+     "start": 95.96,
+     "end": 96.409
+    },
+    {
+     "text": "and",
+     "start": 96.429,
+     "end": 96.644
+    },
+    {
+     "text": "each",
+     "start": 96.664,
+     "end": 96.937
+    },
+    {
+     "text": "twist",
+     "start": 96.957,
+     "end": 97.289
+    },
+    {
+     "text": "made",
+     "start": 97.309,
+     "end": 97.582
+    },
+    {
+     "text": "the",
+     "start": 97.602,
+     "end": 97.817
+    },
+    {
+     "text": "next",
+     "start": 97.837,
+     "end": 98.11
+    },
+    {
+     "text": "one",
+     "start": 98.13,
+     "end": 98.345
+    },
+    {
+     "text": "bigger.",
+     "start": 98.365,
+     "end": 98.755
+    }
+   ]
+  },
+  {
+   "start": 99.378,
+   "end": 105.784,
+   "text": "Modern decks are deeper and stiffer, and engineers test scale models in wind tunnels before anything is built.",
+   "words": [
+    {
+     "text": "Modern",
+     "start": 99.378,
+     "end": 99.77
+    },
+    {
+     "text": "decks",
+     "start": 99.79,
+     "end": 100.122
+    },
+    {
+     "text": "are",
+     "start": 100.142,
+     "end": 100.357
+    },
+    {
+     "text": "deeper",
+     "start": 100.377,
+     "end": 100.769
+    },
+    {
+     "text": "and",
+     "start": 100.789,
+     "end": 101.004
+    },
+    {
+     "text": "stiffer,",
+     "start": 101.024,
+     "end": 101.474
+    },
+    {
+     "text": "and",
+     "start": 101.494,
+     "end": 101.709
+    },
+    {
+     "text": "engineers",
+     "start": 101.729,
+     "end": 102.296
+    },
+    {
+     "text": "test",
+     "start": 102.316,
+     "end": 102.59
+    },
+    {
+     "text": "scale",
+     "start": 102.61,
+     "end": 102.943
+    },
+    {
+     "text": "models",
+     "start": 102.963,
+     "end": 103.354
+    },
+    {
+     "text": "in",
+     "start": 103.374,
+     "end": 103.531
+    },
+    {
+     "text": "wind",
+     "start": 103.551,
+     "end": 103.824
+    },
+    {
+     "text": "tunnels",
+     "start": 103.844,
+     "end": 104.295
+    },
+    {
+     "text": "before",
+     "start": 104.315,
+     "end": 104.706
+    },
+    {
+     "text": "anything",
+     "start": 104.726,
+     "end": 105.235
+    },
+    {
+     "text": "is",
+     "start": 105.255,
+     "end": 105.411
+    },
+    {
+     "text": "built.",
+     "start": 105.431,
+     "end": 105.764
+    }
+   ]
+  },
+  {
+   "start": 107.137,
+   "end": 108.125,
+   "text": "Let's recap.",
+   "words": [
+    {
+     "text": "Let's",
+     "start": 107.137,
+     "end": 107.611
+    },
+    {
+     "text": "recap.",
+     "start": 107.631,
+     "end": 108.105
+    }
+   ]
+  },
+  {
+   "start": 109.008,
+   "end": 113.668,
+   "text": "Cables pull, towers push, anchorages hold, and the ground takes it all.",
+   "words": [
+    {
+     "text": "Cables",
+     "start": 109.008,
+     "end": 109.468
+    },
+    {
+     "text": "pull,",
+     "start": 109.488,
+     "end": 109.81
+    },
+    {
+     "text": "towers",
+     "start": 109.83,
+     "end": 110.29
+    },
+    {
+     "text": "push,",
+     "start": 110.31,
+     "end": 110.633
+    },
+    {
+     "text": "anchorages",
+     "start": 110.653,
+     "end": 111.386
+    },
+    {
+     "text": "hold,",
+     "start": 111.406,
+     "end": 111.729
+    },
+    {
+     "text": "and",
+     "start": 111.749,
+     "end": 112.003
+    },
+    {
+     "text": "the",
+     "start": 112.023,
+     "end": 112.277
+    },
+    {
+     "text": "ground",
+     "start": 112.297,
+     "end": 112.757
+    },
+    {
+     "text": "takes",
+     "start": 112.777,
+     "end": 113.168
+    },
+    {
+     "text": "it",
+     "start": 113.188,
+     "end": 113.374
+    },
+    {
+     "text": "all.",
+     "start": 113.394,
+     "end": 113.648
+    }
+   ]
+  },
+  {
+   "start": 114.396,
+   "end": 118.377,
+   "text": "And the thing to respect most isn't the heaviest truck. It's the wind.",
+   "words": [
+    {
+     "text": "And",
+     "start": 114.396,
+     "end": 114.607
+    },
+    {
+     "text": "the",
+     "start": 114.627,
+     "end": 114.838
+    },
+    {
+     "text": "thing",
+     "start": 114.858,
+     "end": 115.184
+    },
+    {
+     "text": "to",
+     "start": 115.204,
+     "end": 115.357
+    },
+    {
+     "text": "respect",
+     "start": 115.377,
+     "end": 115.819
+    },
+    {
+     "text": "most",
+     "start": 115.839,
+     "end": 116.107
+    },
+    {
+     "text": "isn't",
+     "start": 116.127,
+     "end": 116.454
+    },
+    {
+     "text": "the",
+     "start": 116.474,
+     "end": 116.684
+    },
+    {
+     "text": "heaviest",
+     "start": 116.704,
+     "end": 117.204
+    },
+    {
+     "text": "truck.",
+     "start": 117.224,
+     "end": 117.55
+    },
+    {
+     "text": "It's",
+     "start": 117.57,
+     "end": 117.838
+    },
+    {
+     "text": "the",
+     "start": 117.858,
+     "end": 118.069
+    },
+    {
+     "text": "wind.",
+     "start": 118.089,
+     "end": 118.357
+    }
+   ]
+  },
+  {
+   "start": 119.105,
+   "end": 123.645,
+   "text": "Next time you drive across one, you'll know exactly where your weight is going.",
+   "words": [
+    {
+     "text": "Next",
+     "start": 119.105,
+     "end": 119.376
+    },
+    {
+     "text": "time",
+     "start": 119.396,
+     "end": 119.667
+    },
+    {
+     "text": "you",
+     "start": 119.687,
+     "end": 119.9
+    },
+    {
+     "text": "drive",
+     "start": 119.92,
+     "end": 120.249
+    },
+    {
+     "text": "across",
+     "start": 120.269,
+     "end": 120.656
+    },
+    {
+     "text": "one,",
+     "start": 120.676,
+     "end": 120.889
+    },
+    {
+     "text": "you'll",
+     "start": 120.909,
+     "end": 121.297
+    },
+    {
+     "text": "know",
+     "start": 121.317,
+     "end": 121.588
+    },
+    {
+     "text": "exactly",
+     "start": 121.608,
+     "end": 122.053
+    },
+    {
+     "text": "where",
+     "start": 122.073,
+     "end": 122.402
+    },
+    {
+     "text": "your",
+     "start": 122.422,
+     "end": 122.693
+    },
+    {
+     "text": "weight",
+     "start": 122.713,
+     "end": 123.101
+    },
+    {
+     "text": "is",
+     "start": 123.121,
+     "end": 123.275
+    },
+    {
+     "text": "going.",
+     "start": 123.295,
+     "end": 123.625
+    }
+   ]
+  }
+ ]
+}

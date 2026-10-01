@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block body %}
+<h1>Analytics</h1>
+<p class="muted">Retention r(τ) is the share of viewers still watching at each point of the clip. The shaded area ≈ average percentage viewed (APV).</p>
+{% for c in charts %}
+<section class="card">
+  <div class="row-between"><h2 class="mono">{{ c.clip }}</h2>{% if c.illustrative %}<span class="badge">illustrative sample data</span>{% endif %}</div>
+  {{ c.svg | safe }}
+  <p class="small">Area under curve (APV) ≈ <strong>{{ '%.0f'|format(c.apv * 100) }}%</strong>
+  {% for k, v in c.stats.items() %} · {{ k }} {{ v }}{% endfor %}</p>
+</section>
+{% else %}
+<section class="card"><p>No analytics yet. Import with <code>clipwarden analytics import FILE.json</code> (milestone 2 pulls from the YouTube Analytics API, read-only scope).</p></section>
+{% endfor %}
+{% endblock %}

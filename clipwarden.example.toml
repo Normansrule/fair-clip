@@ -1,0 +1,40 @@
+# clipwarden configuration. Copy to clipwarden.toml and edit.
+# Safety-critical limits have hard floors/ceilings in code (see src/clipwarden/config.py).
+
+data_dir = "./data"
+
+# Exact URLs only. No shorteners, no redirects, https only. Checked at startup.
+link_allowlist = []
+
+[channel]
+name = "My Channel"
+topics = []                 # words your channel is about; used for transcript relevance (R)
+monetized = true
+daily_cap = 3               # max clips scheduled per day (code ceiling: 10)
+max_clips_per_source_per_day = 2
+
+[gate]
+min_value_add_ratio = 0.25  # value-add must be on screen for >= 25% of the clip (floor: 15%)
+min_value_add_words = 8
+max_value_add_transcript_overlap = 0.6
+markets_max_data_age_hours = 72
+
+[scoring]
+clip_min_s = 20
+clip_max_s = 60
+max_candidates = 10
+
+[media]
+runner = "auto"             # "docker" = always sandbox; "auto" = sandbox, or host only for pinned trusted demo files
+image = "clipwarden-media:0.1.0"
+memory = "2g"
+cpus = "2"
+
+[publish]
+mode = "dry-run"            # "live" also needs `clipwarden publish enable-live`
+require_human_approval = true   # cannot be turned off for markets/affiliate/sponsored clips
+oauth_client_file = "client_secret.json"
+
+[dashboard]
+host = "127.0.0.1"
+port = 8765

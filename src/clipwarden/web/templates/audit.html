@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block body %}
+<h1>Audit log</h1>
+<p>Chain: {% if ok %}<strong class="ok">✓ intact</strong>{% else %}<strong class="bad">✕ broken at entry {{ bad }}</strong>{% endif %}
+ · head <span class="mono small">{{ head }}</span></p>
+<p class="muted small">Append-only and hash-chained: each entry includes the SHA-256 of the one before it. Copy the head hash somewhere this machine can't write to anchor it.</p>
+<table class="tbl">
+<thead><tr><th>#</th><th>Time (UTC)</th><th>Who</th><th>Action</th><th>Subject</th><th>Details</th></tr></thead>
+<tbody>
+{% for e in entries %}
+<tr><td>{{ e.seq }}</td><td class="small mono nowrap">{{ e.ts[:19].replace("T", " ") }}</td><td>{{ e.actor }}</td><td><span class="badge">{{ e.action }}</span></td>
+<td class="mono small">{{ e.subject }}</td><td class="small mono wrap">{{ e.details | tojson }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

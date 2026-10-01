@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="same-origin">
+<title>clipwarden · security-first AI clipping</title>
+<meta name="description" content="Open-source pipeline that turns rights-cleared long videos into value-adding short clips, with a blocking compliance gate and human approval before YouTube.">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a class="brand" href="./"><span>◈</span> clipwarden</a>
+  <nav><a href="demo.html">Interactive demo</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="https://github.com/Normansrule/clipwarden">GitHub</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="motto">Automate the labor, never the judgment</div>
+    <h1>Short clips that add something real, and never go out without a person saying yes.</h1>
+    <p class="lede">clipwarden turns long videos you have the <strong>rights</strong> to into captioned vertical clips with your own commentary. Every clip passes a <strong>blocking compliance gate</strong> and <strong>human approval</strong> before it reaches YouTube. Self-hosted, dry-run by default, one narrow OAuth scope.</p>
+    <div class="cta"><a class="btn primary" href="demo.html">Try the interactive demo →</a><a class="btn" href="https://github.com/Normansrule/clipwarden#quick-start--5-minutes">Run it locally in 5 minutes</a></div>
+    <figure class="frame"><img src="assets/hero.gif" alt="Animated tour: a long sample video with a rights record goes in, highlights are ranked, a vertical clip with captions and an owner-written context card is rendered, the gate checks pass, a person approves, and the upload is scheduled as private with a publish time." width="960" height="540"></figure>
+  </section>
+
+  <section>
+    <h2>Ten stages, two hard stops</h2>
+    <p class="sub">The token is one clip. It can't pass <span class="stop">■ the compliance gate</span> with any block, or <span class="stop">■ human approval</span> without a person clicking Approve.</p>
+    <figure><picture><source media="(prefers-color-scheme: dark)" srcset="assets/pipeline-dark.svg"><img src="assets/pipeline-light.svg" alt="Animated ten-stage pipeline diagram with the compliance gate and human approval drawn as hard stops." width="1200" height="410"></picture></figure>
+  </section>
+
+  <section>
+    <h2>Why "value-add" is required, not optional</h2>
+    <p class="sub">YouTube's reused-content policy applies <em>even if you have permission</em> from the creator. So every clip must carry original context, commentary or analysis on screen for at least a quarter of its length, written by you.</p>
+    <figure class="frame"><img src="assets/before-after.png" alt="Raw 16:9 source frame next to the finished 9:16 clip with labelled context card, captions, lower third and attribution." width="1600" height="1160"></figure>
+  </section>
+
+  <section id="gate">
+    <h2>The compliance gate</h2>
+    <p class="sub">48 checks in 11 groups. Every one runs, and every reason is reported: 41 block the clip, 7 are warnings a person must acknowledge. The chart is generated from the code that enforces it.</p>
+    <div class="grid3">
+      <div class="card"><h3>Rights &amp; originality</h3><p>No rights record, no processing. Licenses that forbid edits or commercial use are refused. Value-add coverage, length and originality are measured.</p></div>
+      <div class="card"><h3>Disclosures</h3><p>The synthetic-content flag is set from the rights record (when unsure, disclose). Paid promotion goes private-only plus a Studio step, because the API can't set that flag.</p></div>
+      <div class="card"><h3>Affiliate &amp; markets</h3><p>Disclosure at the start, at each recommendation and above the first link; allowlisted links only; no fake urgency. Securities promotion needs payer + amount; numbers need fresh sources; pump language blocks.</p></div>
+    </div>
+    <figure class="spaced"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gate-flow-dark.svg"><img src="assets/gate-flow-light.svg" alt="Compliance gate flowchart listing every block and warning code by group." width="1200"></picture></figure>
+  </section>
+
+  <section>
+    <h2>Disclosures where viewers actually see them</h2>
+    <p class="sub">On screen near the start, on screen at the recommendation, and in the description above the first link, all checked before upload.</p>
+    <figure class="frame"><img src="assets/disclosures.png" alt="Three disclosure placements rendered from the demo's affiliate example." width="1600" height="1000"></figure>
+  </section>
+
+  <section id="security">
+    <h2>Security boundaries</h2>
+    <p class="sub">Media is decoded only in a network-less, read-only, non-root container. The refresh token lives in your OS keychain or an encrypted vault. Only the approved clip and its exact metadata reach Google.</p>
+    <figure><picture><source media="(prefers-color-scheme: dark)" srcset="assets/security-dark.svg"><img src="assets/security-light.svg" alt="Security boundary diagram showing untrusted inputs, the media sandbox, the token vault and the only paths to Google." width="1200" height="700"></picture></figure>
+  </section>
+
+  <section>
+    <h2>The review screen</h2>
+    <p class="sub">Before/after, the full report, the exact request body. Approving binds the file and request hashes, so nothing can change after you say yes.</p>
+    <figure class="frame"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-review-dark.png"><img src="assets/dashboard-review-light.png" alt="Dashboard review screen with before and after previews and a passed compliance report." width="1360" height="900"></picture></figure>
+  </section>
+</main>
+
+<footer><div class="wrap">Apache-2.0 · the sample talk is CC0 · not legal advice: you are responsible for what you publish · <a href="https://github.com/Normansrule/clipwarden/blob/main/docs/POLICY.md">rules &amp; sources</a> · <a href="https://github.com/Normansrule/clipwarden/blob/main/docs/EQUATIONS.md">the math</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,48 @@
+# All-in-Docker deployment. The app never gets the Docker socket; FFmpeg runs in a separate,
+# network-less, read-only "media" container that shares ONLY the jobs folder.
+#   docker compose build && docker compose up -d
+#   open http://127.0.0.1:8765   (published on this machine's loopback only)
+services:
+  app:
+    build: .
+    image: clipwarden-app:0.1.0
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"   # owns ./data on the host
+    ports:
+      - "127.0.0.1:8765:8765"     # loopback only: nothing on your network can reach it
+    volumes:
+      - ./data:/data              # database, media store, audit log, jobs
+    environment:
+      CLIPWARDEN_CONFIG: /data/clipwarden.toml
+      CLIPWARDEN_VAULT_PASSPHRASE_FILE: /run/secrets/vault_passphrase
+    secrets: [vault_passphrase]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 1g
+    depends_on: [media]
+    restart: unless-stopped
+
+  media:
+    build:
+      context: .
+      dockerfile: sandbox/Dockerfile.media
+    image: clipwarden-media:0.1.0
+    network_mode: none            # no network at all, not even DNS
+    volumes:
+      - ./data/jobs:/data/jobs    # the ONLY thing it can see; same path as in the app
+    environment:
+      CLIPWARDEN_JOBS: /data/jobs
+    read_only: true
+    tmpfs: ["/tmp:size=512m,noexec,nosuid"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2
+    restart: unless-stopped
+
+secrets:
+  vault_passphrase:
+    file: ./secrets/vault_passphrase.txt   # create with: make secrets  (chmod 600, git-ignored)
