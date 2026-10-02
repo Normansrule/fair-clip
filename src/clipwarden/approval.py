@@ -5,8 +5,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from .config import Settings
-from .models import ClipPlan, Decision, GateReport, Visibility
+from .models import ClipPlan, Decision, GateReport, RightsBasis, RightsRecord, Visibility
 from .publish.body import paid_promotion_required
+from .rights import rights_problems
 from .store import Store
 
 HUMAN_ONLY_TAGS = {"markets", "affiliate", "sponsored"}
@@ -45,6 +46,13 @@ def decide(store: Store, settings: Settings, d: Decision) -> dict:
             raise ApprovalError("the compliance gate blocked this clip; it cannot be approved")
         if gate.warnings and not d.warnings_acknowledged:
             raise ApprovalError("acknowledge the gate warnings before approving")
+        src = store.row("sources", plan.source_id) or {}
+        if src.get("rights"):
+            rec = RightsRecord.model_validate(src["rights"])
+            day = d.publish_at.astimezone(UTC).date() if d.publish_at else datetime.now(UTC).date()
+            probs = rights_problems(rec, media_sha256=src.get("media_sha"), monetized=settings.channel.monetized, today=day)
+            if probs:
+                raise ApprovalError(f"rights won't cover this clip on {day}: " + "; ".join(m for _, m in probs))
         if paid_promotion_required(plan) and d.visibility is not Visibility.PRIVATE:
             raise ApprovalError("paid-promotion clips upload private: tick 'includes paid promotion' in "
                                 "YouTube Studio, then publish from Studio")
@@ -82,7 +90,9 @@ def maybe_auto_approve(store: Store, settings: Settings, clip_id: str) -> bool:
         return False
     plan = ClipPlan.model_validate(row["plan"])
     gate = GateReport.model_validate(row["gate"])
-    if human_required(plan, settings) or not gate.passed or gate.warnings:
+    src = store.row("sources", plan.source_id) or {}
+    own = (src.get("rights") or {}).get("basis") == RightsBasis.OWN_CONTENT.value
+    if human_required(plan, settings) or not gate.passed or gate.warnings or not own:
         return False
     decide(store, settings, Decision(clip_id=clip_id, approved=True, reviewer="policy:auto-approve",
                                      reason="human approval disabled for plain own-content clips; uploads private",

@@ -34,6 +34,9 @@ from .reasons import REASONS
 
 AFFILIATE_START_WINDOW = 10.0  # s: "near the start"
 RECOMMENDATION_TOLERANCE = 3.0  # s: card must be on screen within ±3 s of the recommendation
+MIN_CARD_SECONDS = 2.0  # a disclosure card shorter than this can't be read
+# Links our own code adds (license deeds for attribution); everything else must be allowlisted.
+SYSTEM_LINK = re.compile(r"^https://creativecommons\.org/(?:licenses|publicdomain)/[a-z0-9.\-/]+$")
 
 
 @dataclass
@@ -62,6 +65,15 @@ class GateContext:
     screen_terms: dict[str, list[str]]
     media_sha256: str
     now: datetime = field(default_factory=lambda: datetime.now(UTC))
+    summary: str = ""  # the model/extractive part of the description (the rest is code-assembled)
+    words: list[tuple[float, float, str]] = field(default_factory=list)  # (start, end, text) on the clip timeline
+
+    def owner_text(self) -> str:
+        """Everything a person or model wrote: title, summary, tags, value-add. Checked hardest."""
+        return "\n".join([self.metadata.title, self.summary, " ".join(self.metadata.tags), *(v.text for v in self.plan.value_add)])
+
+    def said_between(self, a: float, b: float) -> str:
+        return " ".join(t for s, e, t in self.words if e >= a and s <= b)
 
 
 def _r(code: str, message: str = "") -> CheckResult:
@@ -103,9 +115,12 @@ def check_rights(c: GateContext) -> list[CheckResult]:
     if c.rights is None:
         return [_r("RIGHTS_MISSING")]
     probs = rights_problems(c.rights, media_sha256=c.media_sha256, monetized=c.settings.channel.monetized, today=c.now.date())
-    if probs:
-        return [_r(code, msg) for code, msg in probs]
-    return [_ok("Rights", f"rights record {c.rights.record_id} ({c.rights.basis.value}) covers this use")]
+    out = [_r(code, msg) for code, msg in probs]
+    if not c.rights.obtained_from_rights_holder:
+        out.append(_r("RIGHTS_PLATFORM_COPY"))
+    if not probs:
+        out.append(_ok("Rights", f"rights record {c.rights.record_id} ({c.rights.basis.value}) covers this use"))
+    return out
 
 
 def check_value_add(c: GateContext) -> list[CheckResult]:
@@ -134,6 +149,26 @@ def check_value_add(c: GateContext) -> list[CheckResult]:
     return out
 
 
+def _card_ok(card: tuple[float, float] | None, duration: float, start_by: float) -> bool:
+    """A card counts if it starts in time and is readable (>= MIN_CARD_SECONDS) inside the clip."""
+    if card is None:
+        return False
+    a, b = max(0.0, card[0]), min(duration, card[1])
+    return a <= start_by and b - a >= MIN_CARD_SECONDS
+
+
+PAID_SPOKEN = re.compile(r"\b(?:sponsored|paid promotion|paid partnership|paid (?:me|us) to|thanks to \w+ for sponsoring)\b", re.I)
+
+
+def _spoken(c: GateContext, at: float | None, rx: re.Pattern[str]) -> bool:
+    """A spoken disclosure must be in the transcript where the plan says it is (±10 s)."""
+    if at is None or at > AFFILIATE_START_WINDOW:
+        return False
+    if c.words:
+        return bool(rx.search(c.said_between(at - 1.0, at + 10.0)))
+    return bool(rx.search(c.transcript_text))  # no word timings available (e.g. unit tests)
+
+
 def check_disclosures(c: GateContext) -> list[CheckResult]:
     out = []
     st = c.body.get("status", {})
@@ -143,13 +178,18 @@ def check_disclosures(c: GateContext) -> list[CheckResult]:
         out.append(_r("PAID_PROMOTION_STUDIO_STEP"))
         if "includes paid promotion" not in c.metadata.description.lower() and not (c.plan.markets and c.plan.markets.paid_by):
             out.append(_r("PAID_PROMOTION_DESCRIPTION_MISSING"))
+        # The FTC wants the disclosure IN the video, not only in the description or a platform checkbox.
+        shown = _card_ok(c.plan.paid_disclosure_card, c.clip_duration, AFFILIATE_START_WINDOW)
+        if not (shown or _spoken(c, c.plan.paid_disclosure_spoken_at, PAID_SPOKEN)):
+            out.append(_r("PAID_PROMOTION_INVIDEO_MISSING"))
     if not any(r.severity is Severity.BLOCK for r in out):
         flags = f"synthetic={st.get('containsSyntheticMedia')}, kids={st.get('selfDeclaredMadeForKids')}, paid={paid_promotion_required(c.plan)}"
         out.append(_ok("Disclosures", f"upload flags consistent ({flags})"))
     return out
 
 
-PLAIN_DISCLOSURE = re.compile(r"\b(commission|paid|earn|money|compensat|sponsor)", re.I)
+# Plain words that say "I get paid". Bare "paid"/"earn" are not enough ("I paid nothing", "earnings").
+PLAIN_DISCLOSURE = re.compile(r"\b(?:commissions?|i (?:earn|get|make) (?:a |money|paid|commission)|paid (?:link|promotion|partnership)|sponsored|compensated)\b", re.I)
 FABRICATED = [
     r"only \d+ (?:left|remaining|in stock)", r"selling out", r"almost gone", r"limited time", r"last chance",
     r"(?:ends|expires) (?:today|tonight|soon)", r"guaranteed (?:results?|to work)", r"\d+% off (?:today|now) only",
@@ -166,19 +206,20 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
     if p.affiliate is None:
         return [_r("AFFILIATE_PLAN_MISSING")]
     af, out = p.affiliate, []
-    spoken = af.spoken_disclosure_at is not None and af.spoken_disclosure_at <= AFFILIATE_START_WINDOW
-    if spoken:  # a spoken disclosure has to actually be in the transcript
-        spoken = bool(PLAIN_DISCLOSURE.search(c.transcript_text))
-    shown = af.start_card is not None and af.start_card[0] <= AFFILIATE_START_WINDOW and af.start_card[1] - af.start_card[0] >= 2.0
+    D = c.clip_duration
+    spoken = _spoken(c, af.spoken_disclosure_at, PLAIN_DISCLOSURE)
+    shown = _card_ok(af.start_card, D, AFFILIATE_START_WINDOW)
     if not (spoken or shown):
         out.append(_r("AFFILIATE_START_DISCLOSURE_MISSING"))
     elif not (spoken and shown):
         out.append(_r("AFFILIATE_SINGLE_CHANNEL"))
     if af.links and not af.recommendation_times:
         out.append(_r("AFFILIATE_RECOMMENDATION_UNMARKED"))
+    cards = [(max(0.0, a), min(D, b)) for a, b in af.recommendation_cards]
+    cards = [(a, b) for a, b in cards if b - a >= MIN_CARD_SECONDS]
     for t in af.recommendation_times:
-        if not any(a - RECOMMENDATION_TOLERANCE <= t <= b + RECOMMENDATION_TOLERANCE for a, b in af.recommendation_cards):
-            out.append(_r("AFFILIATE_CARD_MISSING", f"no disclosure card within ±{RECOMMENDATION_TOLERANCE:.0f} s of the recommendation at {t:.1f} s"))
+        if not any(a - RECOMMENDATION_TOLERANCE <= t <= b + RECOMMENDATION_TOLERANCE for a, b in cards):
+            out.append(_r("AFFILIATE_CARD_MISSING", f"no readable (≥{MIN_CARD_SECONDS:.0f} s) disclosure card within ±{RECOMMENDATION_TOLERANCE:.0f} s of the recommendation at {t:.1f} s"))
     desc = c.metadata.description
     links = find_links(desc)
     if links:
@@ -192,7 +233,7 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
     for link in af.links:
         if link.product.lower() not in evaluated:
             out.append(_r("AFFILIATE_UNEVALUATED_PRODUCT", f"'{link.product}' is not in products_evaluated"))
-    owner_text = " ".join([c.metadata.title, desc, *(v.text for v in p.value_add)])
+    owner_text = c.owner_text() + "\n" + desc
     for rx in _FAB:
         m = rx.search(owner_text)
         if m:
@@ -205,26 +246,53 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
 
 
 def check_links_(c: GateContext) -> list[CheckResult]:
-    text = "\n".join([c.metadata.title, c.metadata.description, *(v.text for v in c.plan.value_add)])
+    text = "\n".join([c.metadata.description, c.owner_text()])
     bad, cloaked = check_links(text, c.settings.link_allowlist)
+    bad = [u for u in bad if not SYSTEM_LINK.match(u)]
     out = [_r("LINK_NOT_ALLOWLISTED", f"'{u}' is not on the allowlist (exact match required)") for u in bad]
     out += [_r("LINK_CLOAKED", f"'{u}': {why}") for u, why in cloaked]
     return out or [_ok("Links", f"{len(find_links(text))} link(s), all allowlisted")]
 
 
+# Explicit advice and pump/urgency language block wherever they appear (owner text or transcript).
 ADVICE = [
-    r"\byou should (?:buy|sell|short|invest in|get into)\b", r"\b(?:strong )?buy (?:it|this|now|signal)\b",
-    r"\bsell (?:it |this )?now\b", r"\bprice target\b", r"\bcan'?t lose\b", r"\bguaranteed (?:returns?|profits?|gains?|income)\b",
-    r"\brisk[- ]free\b", r"\b100 ?% (?:safe|sure|certain)\b", r"\bdouble your money\b", r"\bwill (?:definitely|surely|certainly) (?:go up|rise|moon|pump)\b",
+    r"\byou (?:should|need to|must) (?:buy|sell|short|invest in|get into)\b", r"\b(?:go|just) buy (?:it|this|now)\b",
+    r"\bbuy now\b", r"\bstrong buy\b", r"\bbuy signal\b", r"\bsell (?:it |this )?now\b", r"\bcan'?t lose\b",
+    r"\bguaranteed (?:returns?|profits?|gains?|income)\b", r"\brisk[- ]free\b", r"\b100 ?% (?:safe|sure|certain)\b",
+    r"\bdouble your money\b", r"\bwill (?:definitely|surely|certainly) (?:go up|rise|moon|pump)\b",
 ]
 PUMP = [
-    r"\bto the moon\b", r"\bmoon(?:ing|shot)\b", r"🚀", r"\bshort squeeze\b", r"\b(?:get|buy) in (?:now|early|before)\b",
-    r"\bbefore it'?s too late\b", r"\bdon'?t miss (?:out|this)\b", r"\bact (?:now|fast)\b", r"\bnext \d+x\b", r"\b\d{2,}x (?:gains?|returns?)\b",
-    r"\bload(?:ing)? up\b", r"\bparabolic\b", r"\bpenny stock\b", r"\bhidden gem\b", r"\bexplod(?:e|ing) (?:soon|tomorrow)\b",
+    r"\bto the moon\b", r"\bmoon(?:ing|shot)\b", r"🚀", r"\b(?:get|buy) in (?:now|early|before)\b",
+    r"\bbefore it'?s too late\b", r"\bdon'?t miss (?:out|this)\b", r"\bact (?:now|fast)\b", r"\bnext \d+x\b",
+    r"\b\d{2,}x (?:gains?|returns?)\b", r"\bexplod(?:e|ing) (?:soon|tomorrow)\b",
 ]
+# Words that are fine in education ("what a short squeeze looks like") but need a human look.
+TERMS = [r"\bshort squeeze\b", r"\bparabolic\b", r"\bpenny stocks?\b", r"\bhidden gem\b", r"\bload(?:ing)? up\b", r"\bprice target\b"]
 _ADV = [re.compile(p, re.I) for p in ADVICE]
 _PUMP = [re.compile(p, re.I) for p in PUMP]
-NUMBER = re.compile(r"(?<![\w:])[-+$€£]?\d[\d,]*(?:\.\d+)?%?(?![\w:])")
+_TERMS = [re.compile(p, re.I) for p in TERMS]
+# Numbers WITH their magnitude: "$1.9B", "3.5M", "50x", "12%", "1.2 billion".
+NUMBER = re.compile(r"(?<![\w.:/])[-+]?[$€£]?\d[\d,]*(?:\.\d+)?(?:\s?(?:%|bps|x|k|m|bn|b|t|thousand|million|billion|trillion))?(?![\w:/])", re.I)
+_DATES = re.compile(r"\b\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?Z?)?\b|\b\d{1,2}:\d{2}\b")
+_MAG = {"thousand": "k", "million": "m", "billion": "b", "bn": "b", "trillion": "t"}
+
+
+def norm_number(n: str) -> str:
+    k = n.lower().replace(",", "").replace(" ", "").lstrip("+").replace("$", "").replace("€", "").replace("£", "")
+    for word, short in _MAG.items():
+        if k.endswith(word):
+            k = k[: -len(word)] + short
+    return k
+
+
+def numbers(text: str, skip_years: bool = True) -> set[str]:
+    out = set()
+    for n in NUMBER.findall(_DATES.sub(" ", text)):
+        k = norm_number(n)
+        if skip_years and re.fullmatch(r"(19|20)\d\d", k):
+            continue
+        out.add(k)
+    return out
 
 
 def check_markets(c: GateContext) -> list[CheckResult]:
@@ -234,31 +302,30 @@ def check_markets(c: GateContext) -> list[CheckResult]:
     if p.markets is None:
         return [_r("FINANCE_PLAN_MISSING")]
     m, out = p.markets, []
-    corpus = "\n".join([c.transcript_text, c.metadata.title, c.metadata.description, *(v.text for v in p.value_add)])
+    corpus = "\n".join([c.transcript_text, c.owner_text()])
     for rx in _ADV:
         if hit := rx.search(corpus):
             out.append(_r("FINANCE_ADVICE_LANGUAGE", f"'{hit.group(0)}'"))
     for rx in _PUMP:
         if hit := rx.search(corpus):
             out.append(_r("FINANCE_PUMP_PATTERN", f"'{hit.group(0)}'"))
+    for rx in _TERMS:
+        if hit := rx.search(c.owner_text()):  # the owner chose to say it: block
+            out.append(_r("FINANCE_PUMP_PATTERN", f"'{hit.group(0)}' in your own text"))
+        elif hit := rx.search(c.transcript_text):  # said in the source: a person decides
+            out.append(_r("FINANCE_TERM_REVIEW", f"'{hit.group(0)}' is said in the clip"))
     if not (m.disclaimer_on_screen and m.disclaimer_in_description and MARKETS_DISCLAIMER in c.metadata.description):
         out.append(_r("FINANCE_DISCLAIMER_MISSING"))
     if m.positions_held and not m.positions_disclosed:
         out.append(_r("FINANCE_POSITION_UNDISCLOSED"))
     if ("sponsored" in p.tags or p.paid_promotion or m.paid_by) and not (m.paid_by and m.payment_amount):
         out.append(_r("FINANCE_PAID_UNDISCLOSED"))
-    sourced = {re.sub(r"[,$€£+]", "", d.value) for d in m.data_points}
-    said = {re.sub(r"[,$€£+]", "", n) for n in NUMBER.findall(c.transcript_text)}
-    owner_text = "\n".join([c.metadata.title, *(v.text for v in p.value_add)])
-    for n in NUMBER.findall(owner_text):
-        k = re.sub(r"[,$€£+]", "", n)
-        if k not in sourced and k not in said:
-            out.append(_r("FINANCE_UNSOURCED_NUMBER", f"'{n}' has no data source"))
-    for n in NUMBER.findall(c.transcript_text):
-        k = re.sub(r"[,$€£+]", "", n)
-        is_year = re.fullmatch(r"(19|20)\d\d", k) is not None
-        if k not in sourced and len(k.strip("%")) > 1 and not is_year:
-            out.append(_r("FINANCE_UNSOURCED_NUMBER", f"'{n}' is said in the clip but has no data point"))
+    sourced = {norm_number(d.value) for d in m.data_points}
+    for k in sorted(numbers(c.owner_text()) - sourced):
+        out.append(_r("FINANCE_UNSOURCED_NUMBER", f"'{k}' in your title/summary/tags/cards has no data source"))
+    for k in sorted(numbers(c.transcript_text) - sourced):
+        if len(k.strip("%")) > 1:
+            out.append(_r("FINANCE_UNSOURCED_NUMBER", f"'{k}' is said in the clip but has no data point"))
             break
     for d in m.data_points:
         if not d.source_url.startswith("https://"):
@@ -282,19 +349,28 @@ def tag_chars(tags: list[str]) -> int:
     return sum(len(t) + (2 if " " in t else 0) for t in tags) + max(0, len(tags) - 1)
 
 
+def _grounding(text: str, allowed: set[str]) -> float:
+    tt = tokens(text)
+    return sum(1 for t in tt if t in allowed) / len(tt) if tt else 1.0
+
+
 def check_metadata(c: GateContext) -> list[CheckResult]:
     md, out = c.metadata, []
     if len(md.title) > 100 or len(md.description.encode("utf-8")) > 5000 or tag_chars(md.tags) > 500:
         out.append(_r("METADATA_LIMITS"))
-    allowed = set(tokens(c.transcript_text)) | set(tokens(" ".join(v.text for v in c.plan.value_add))) | set(tokens(c.settings.channel.name))
-    tt = tokens(md.title)
-    grounded = sum(1 for t in tt if t in allowed) / len(tt) if tt else 1.0
+    va_text = " ".join(v.text for v in c.plan.value_add)
+    allowed = set(tokens(c.transcript_text)) | set(tokens(va_text)) | set(tokens(c.settings.channel.name))
+    grounded = _grounding(md.title, allowed)
     if grounded < 0.7:
         out.append(_r("METADATA_UNGROUNDED", f"only {grounded:.0%} of title words appear in the clip"))
-    said_numbers = set(NUMBER.findall(c.transcript_text))
-    for n in NUMBER.findall(md.title):
-        if n not in said_numbers:
-            out.append(_r("METADATA_UNGROUNDED", f"number '{n}' in the title is never said in the clip"))
+    for label, text in (("summary", c.summary), ("tags", " ".join(md.tags))):
+        g = _grounding(text, allowed)
+        if g < 0.7:
+            out.append(_r("METADATA_UNGROUNDED", f"only {g:.0%} of {label} words appear in the clip"))
+    said = numbers(c.transcript_text, skip_years=False) | numbers(va_text, skip_years=False)
+    for label, text in (("title", md.title), ("summary", c.summary), ("tags", " ".join(md.tags))):
+        for k in sorted(numbers(text, skip_years=False) - said):
+            out.append(_r("METADATA_UNGROUNDED", f"number '{k}' in the {label} is never said in the clip"))
     for rx in _CB:
         if (hit := rx.search(md.title)) and not rx.search(c.transcript_text):
             out.append(_r("METADATA_CLICKBAIT", f"'{hit.group(0)}'"))
@@ -351,7 +427,7 @@ def _term_hit(term: str, text: str) -> bool:
 
 
 def check_screen(c: GateContext) -> list[CheckResult]:
-    owner_text = "\n".join([c.metadata.title, c.metadata.description, *(v.text for v in c.plan.value_add)])
+    owner_text = "\n".join([c.metadata.description, c.owner_text()])
     out = []
     for term in c.screen_terms.get("hard", []):
         if _term_hit(term, owner_text) or _term_hit(term, c.transcript_text):

@@ -65,7 +65,11 @@ def test_rights_problems_and_attribution():
     codes = {c for c, _ in rights_problems(r, media_sha256="a" * 64, monetized=True)}
     assert {"RIGHTS_EXPIRED", "RIGHTS_SCOPE"} <= codes
     cc = own_rights(basis="creative_commons", cc_license="CC-BY-4.0", attribution="Talk by A. Person")
-    assert attribution_line(cc) == "Source: Talk by A. Person (CC-BY-4.0)"
+    line = attribution_line(cc)
+    # CC BY 4.0 §3(a): creator, license with a link, and a note that the work was modified.
+    assert line.startswith("Source: Talk by A. Person, CC-BY-4.0 https://creativecommons.org/licenses/by/4.0/")
+    assert "edited" in line
+    assert len(attribution_line(cc, short=True)) < len(line)
     assert attribution_line(own_rights()) == ""
 
 

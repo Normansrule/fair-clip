@@ -154,10 +154,14 @@ class Pipeline:
                                                                "value_add": len(plan.value_add), "tags": plan.tags})
 
     # ------------------------------------------------------------------ stage 4-7
-    def render_and_gate(self, clip_id: str, actor: str = "cli") -> GateReport:
+    FROZEN = {"approved", "uploading", "published", "dry_run_published", "deferred_quota"}
+
+    def _load(self, clip_id: str) -> tuple[dict[str, Any], ClipPlan, dict[str, Any], RightsRecord | None, Transcript, np.ndarray]:
         row = self.store.row("clips", clip_id)
         if row is None:
             raise PipelineError(f"no clip {clip_id}")
+        if row.get("status") in self.FROZEN:
+            raise PipelineError(f"clip is '{row['status']}': approved/published clips are frozen; plan a new clip instead")
         if self.store.kill_switch:
             raise PipelineError("kill switch is on")
         plan = ClipPlan.model_validate(row["plan"])
@@ -166,18 +170,27 @@ class Pipeline:
             raise PipelineError("source missing")
         rec = RightsRecord.model_validate(src["rights"]) if src.get("rights") else None
         tr = Transcript.model_validate(src["transcript"])
-        stored = self.store.find_media(src["media_sha"])
         rms = np.load(self.analysis_dir(plan.source_id) / "rms_db.npy")
+        return row, plan, src, rec, tr, rms
 
-        sid = plan.source_id
-        self.store.stage(sid, "edit", "running", f"{clip_id}: cutting pauses > {plan.remove_silences_longer_than}s")
+    @staticmethod
+    def _window(plan: ClipPlan, tr: Transcript, rms: np.ndarray) -> tuple[list, TimelineMap, list[Sentence]]:
         words = [w for w in tr.words if w.start >= plan.start - 1e-6 and w.end <= plan.end + 1e-6]
         tmap = TimelineMap(keep_intervals(tr.words, plan.start, plan.end, plan.remove_silences_longer_than, rms))
         sents = [s for s in tr.sentences if s.start >= plan.start - 1e-6 and s.end <= plan.end + 1e-6]
+        return words, tmap, sents
+
+    def render_and_gate(self, clip_id: str, actor: str = "cli") -> GateReport:
+        _row, plan, src, rec, tr, rms = self._load(clip_id)
+        stored = self.store.find_media(src["media_sha"])
+        sid = plan.source_id
+        self.store.stage(sid, "edit", "running", f"{clip_id}: cutting pauses > {plan.remove_silences_longer_than}s")
+        words, tmap, sents = self._window(plan, tr, rms)
         topics = self.s.channel.topics or default_topics(tr)
         hook = pick_hook(sents, topics)
         attribution = rights_mod.attribution_line(rec) if rec else ""
-        ass = overlay.build_ass(plan, words, tmap, hook_text=f"“{shorten(hook, 72)}”" if hook else "", channel=self.s.channel.name, attribution=attribution)
+        on_screen_credit = rights_mod.attribution_line(rec, short=True) if rec else ""
+        ass = overlay.build_ass(plan, words, tmap, hook_text=f"“{shorten(hook, 72)}”" if hook else "", channel=self.s.channel.name, attribution=on_screen_credit)
         cx = 0.5
         if plan.reframe.value == "crop":
             cx = analyze.motion_centroid_x(self.runner, stored, self.work, plan.start, plan.end)
@@ -194,38 +207,62 @@ class Pipeline:
         # Metadata on the clip's own timeline (chapters must match what viewers see).
         mapped = [Sentence(start=tmap.clamp_to_clip(s.start), end=tmap.clamp_to_clip(s.end), text=s.text, words=[]) for s in sents]
         clip_plan_for_md = plan.model_copy(update={"start": 0.0, "end": max(tmap.duration, 5.0)})
-        gate_extra: list[CheckResult] = []
+        extra: list[CheckResult] = []
+        summary = ""
+        md = None
+        notes: list[str] = []
         try:
-            md, notes = build_metadata(clip_plan_for_md, mapped, rec, attribution, topics, self.llm) if rec else (None, [])
+            if rec:
+                md, notes, summary = build_metadata(clip_plan_for_md, mapped, rec, attribution, topics, self.llm)
         except ValidationError as exc:
-            md, notes = None, [f"metadata invalid: {exc.error_count()} errors"]
-            gate_extra.append(CheckResult(code="METADATA_LIMITS", check="Metadata", severity=Severity.BLOCK,
-                                          message="metadata failed YouTube limits — fix: shorten title/description"))
-        if md is None:
-            md = Metadata(title="(missing)", description="")
+            notes = [f"metadata invalid: {exc.error_count()} errors"]
+            extra.append(CheckResult(code="METADATA_LIMITS", check="Metadata", severity=Severity.BLOCK,
+                                     message="metadata failed YouTube limits — fix: shorten title/description"))
+        md = md or Metadata(title="(missing)", description="")
         self.store.stage(sid, "metadata", "done", f"{clip_id}: " + "; ".join(notes))
-        body = build_body(md, plan, rec) if rec else {"snippet": {}, "status": {}}
-
-        clip_path = self.store.find_media(clip_sha)
-        fp = {"dhash": analyze.frame_dhashes(self.runner, clip_path, self.work),
+        fp = {"dhash": analyze.frame_dhashes(self.runner, self.store.find_media(clip_sha), self.work),
               "shingles": sorted(hashlib.sha1(s.encode()).hexdigest()[:12] for s in shingles(" ".join(w.text for w in words), 5))}  # noqa: S324
+        self.store.upsert("clips", clip_id, clip_sha=clip_sha, preview_sha=prev_sha, posters=posters, fingerprint=fp)
+        return self._gate(clip_id, plan, src, rec, words, tmap, md, summary, clip_sha, fp, extra, actor, "rendered + gated")
+
+    def regate(self, clip_id: str, title: str, description: str, actor: str) -> GateReport:
+        """The owner edited the title/description on the review page: rebuild the request and gate again.
+
+        An edited description is treated entirely as owner/model text (checked hardest), since its
+        frame is no longer the one our code assembled.
+        """
+        row, plan, src, rec, tr, rms = self._load(clip_id)
+        if not row.get("clip_sha"):
+            raise PipelineError("render the clip first")
+        words, tmap, _ = self._window(plan, tr, rms)
+        old = Metadata.model_validate(row["metadata"])
+        md = Metadata(title=title, description=description, tags=old.tags, chapters=old.chapters)  # validates limits
+        summary = description if description != old.description else (row.get("summary") or "")
+        self.store.audit.append(actor, "edit_metadata", clip_id, {"title": title, "description_changed": description != old.description})
+        return self._gate(clip_id, plan, src, rec, words, tmap, md, summary or "", row["clip_sha"], row.get("fingerprint") or {}, [], actor, "metadata edited + re-gated")
+
+    def _gate(self, clip_id: str, plan: ClipPlan, src: dict[str, Any], rec: RightsRecord | None, words: list, tmap: TimelineMap,
+              md: Metadata, summary: str, clip_sha: str, fp: dict[str, Any], extra: list[CheckResult], actor: str, note: str) -> GateReport:
+        body = build_body(md, plan, rec) if rec else {"snippet": {}, "status": {}}
         ctx = GateContext(plan=plan, rights=rec, metadata=md, body=body, transcript_text=" ".join(w.text for w in words),
                           clip_duration=tmap.duration, fingerprint=fp, settings=self.s, history=self.history(plan, clip_id),
                           kill_switch=self.store.kill_switch, screen_terms=load_screen_terms(self.screen_terms_path()),
-                          media_sha256=src["media_sha"])
+                          media_sha256=src["media_sha"], summary=summary,
+                          words=[(tmap.clamp_to_clip(w.start), tmap.clamp_to_clip(w.end), w.text) for w in words])
         report = run_gate(ctx, clip_sha)
-        if gate_extra:
-            report = report.model_copy(update={"results": gate_extra + report.results, "passed": False})
+        if extra:
+            report = report.model_copy(update={"results": extra + report.results, "passed": False})
         status = "awaiting_approval" if report.passed else "blocked"
-        self.store.upsert("clips", clip_id, clip_sha=clip_sha, preview_sha=prev_sha, posters=posters, metadata=md.model_dump(mode="json"),
-                          body=body, gate=report.model_dump(mode="json"), status=status, fingerprint=fp)
+        self.store.upsert("clips", clip_id, metadata=md.model_dump(mode="json"), summary=summary, body=body,
+                          gate=report.model_dump(mode="json"), status=status, decision=None)
+        sid = plan.source_id
         self.store.stage(sid, "gate", "done" if report.passed else "blocked",
                          f"{clip_id}: {len(report.blocks)} block(s), {len(report.warnings)} warning(s)")
         self.store.stage(sid, "approval", "waiting" if report.passed else "n/a", f"{clip_id}: {status}")
         self.store.audit.append(actor, "gate", clip_id, {"passed": report.passed, "blocks": [b.code for b in report.blocks],
                                                          "warnings": [w.code for w in report.warnings], "clip_sha256": clip_sha,
                                                          "metadata_sha256": report.metadata_sha256})
-        self.store.clip_log(clip_id, f"rendered + gated: {status}")
+        self.store.clip_log(clip_id, f"{note}: {status}")
         if report.passed and maybe_auto_approve(self.store, self.s, clip_id):
             self.store.clip_log(clip_id, "auto-approved by policy (private upload)")
         return report

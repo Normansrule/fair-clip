@@ -125,6 +125,13 @@ LABELS = {
 }
 
 
+def paid_disclosure_text(plan: ClipPlan) -> str:
+    m = plan.markets
+    if m and m.paid_by:
+        return f"Paid promotion: {m.paid_by} paid {m.payment_amount or 'me'} for this video."
+    return f"Paid promotion: sponsored by {plan.sponsor}." if plan.sponsor else "Paid promotion: this video is sponsored."
+
+
 def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text: str,
               channel: str, attribution: str) -> str:
     L = VERTICAL if plan.aspect == "9:16" else HORIZONTAL
@@ -150,6 +157,9 @@ def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text
             lines.append(ev(4, af.start_card[0], af.start_card[1], "Disclose", wrap(af.disclosure_text, wrapw), pos=(L.w // 2, L.disclose_y)))
         for a, b in af.recommendation_cards:
             lines.append(ev(4, a, b, "Disclose", wrap(af.disclosure_text, wrapw), pos=(L.w // 2, L.disclose_y)))
+    if plan.paid_disclosure_card:
+        a, b = plan.paid_disclosure_card
+        lines.append(ev(4, a, min(b, D), "Disclose", wrap(paid_disclosure_text(plan), wrapw), pos=(L.w // 2, L.disclose_y)))
     if plan.markets:
         m = plan.markets
         if m.disclaimer_on_screen:

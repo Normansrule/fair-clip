@@ -9,8 +9,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sqlite3
+import threading
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -26,7 +29,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   id TEXT PRIMARY KEY, source_id TEXT, rank INTEGER, data TEXT);
 CREATE TABLE IF NOT EXISTS clips (
   id TEXT PRIMARY KEY, source_id TEXT, created TEXT, plan TEXT, metadata TEXT,
-  clip_sha TEXT, preview_sha TEXT, posters TEXT, body TEXT, gate TEXT, status TEXT, decision TEXT, upload TEXT,
+  clip_sha TEXT, preview_sha TEXT, posters TEXT, summary TEXT, body TEXT, gate TEXT, status TEXT, decision TEXT, upload TEXT,
   fingerprint TEXT, logs TEXT);
 CREATE TABLE IF NOT EXISTS weight_proposals (
   id INTEGER PRIMARY KEY AUTOINCREMENT, created TEXT, current TEXT, proposed TEXT,
@@ -57,11 +60,13 @@ class Store:
         self.root = Path(data_dir)
         (self.root / "media").mkdir(parents=True, exist_ok=True)
         (self.root / "work").mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.root / "clipwarden.sqlite3", check_same_thread=False)
+        self.conn = sqlite3.connect(self.root / "clipwarden.sqlite3", check_same_thread=False, timeout=30)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA foreign_keys=ON")
         self.conn.executescript(SCHEMA)
-        self.audit = AuditLog(self.conn)
+        # One connection is shared by the dashboard's threads: serialize every write through this lock.
+        self.lock = threading.RLock()
+        self.audit = AuditLog(self.conn, self.lock)
 
     # ------------------------------------------------------------------ key/value settings
     def get(self, key: str, default: Any = None) -> Any:
@@ -69,7 +74,7 @@ class Store:
         return json.loads(row[0]) if row else default
 
     def set(self, key: str, value: Any) -> None:
-        with self.conn:
+        with self.lock, self.conn:
             self.conn.execute(
                 "INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",
                 (key, json.dumps(value)),
@@ -96,17 +101,29 @@ class Store:
         return self.root / "media" / sha[:2] / f"{sha}{suffix}"
 
     def put_media(self, src: Path, suffix: str | None = None, move: bool = False) -> str:
-        sha = sha256_file(src)
+        """Copy a file into the store under its SHA-256. Always a *copy*: the stored file is created by
+        this process (so we own it and can make it read-only), even when the source was written by the
+        media worker running as another user. The hash is taken from the copy itself."""
+        tmp = self.root / "media" / f".incoming-{uuid.uuid4().hex}"
+        shutil.copyfile(src, tmp)
+        sha = sha256_file(tmp)
         dst = self.media_path(sha, suffix or src.suffix.lower())
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if not dst.exists():
-            (shutil.move if move else shutil.copyfile)(src, dst)
-            dst.chmod(0o444)  # media is immutable once stored
-        elif move:
-            src.unlink()
+        if dst.exists():
+            tmp.unlink()
+        else:
+            tmp.chmod(0o444)  # media is immutable once stored
+            os.replace(tmp, dst)
+        if move:
+            try:
+                src.unlink()
+            except OSError:
+                pass  # the worker's output folder may not let us delete; it's cleaned with the job
         return sha
 
     def find_media(self, sha: str) -> Path:
+        if len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha):
+            raise ValueError("bad media id")
         d = self.root / "media" / sha[:2]
         for p in d.glob(f"{sha}.*"):
             return p
@@ -137,7 +154,7 @@ class Store:
         assert table in {"sources", "candidates", "clips"}
         enc = {k: (json.dumps(v, default=str) if not isinstance(v, str | int | float | type(None)) else v) for k, v in fields.items()}
         cols = list(enc)
-        with self.conn:
+        with self.lock, self.conn:
             exists = self.conn.execute(f"SELECT 1 FROM {table} WHERE id=?", (id_,)).fetchone()  # noqa: S608
             if exists:
                 sets = ", ".join(f"{c}=?" for c in cols)
@@ -151,6 +168,10 @@ class Store:
 
     # ------------------------------------------------------------------ stage status for dashboard
     def stage(self, source_id: str, stage: str, status: str, log: str = "") -> None:
+        with self.lock:
+            self._stage(source_id, stage, status, log)
+
+    def _stage(self, source_id: str, stage: str, status: str, log: str = "") -> None:
         row = self.row("sources", source_id) or {}
         stages = row.get("stages") or {}
         entry = stages.get(stage, {"log": []})
@@ -162,9 +183,10 @@ class Store:
         self.upsert("sources", source_id, stages=stages)
 
     def clip_log(self, clip_id: str, msg: str) -> None:
-        row = self.row("clips", clip_id) or {}
-        logs = (row.get("logs") or [])[-99:] + [f"{now()} {msg}"]
-        self.upsert("clips", clip_id, logs=logs)
+        with self.lock:
+            row = self.row("clips", clip_id) or {}
+            logs = (row.get("logs") or [])[-99:] + [f"{now()} {msg}"]
+            self.upsert("clips", clip_id, logs=logs)
 
 
 def _maybe_json(v: Any) -> Any:

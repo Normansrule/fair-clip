@@ -39,6 +39,8 @@ def rights_problems(r: RightsRecord, *, media_sha256: str | None, monetized: boo
         out.append(("RIGHTS_SCOPE", "rights record does not cover publishing on YouTube"))
     if not r.allows_modification or r.cc_license in {CCLicense.BY_ND, CCLicense.BY_NC_ND}:
         out.append(("RIGHTS_NO_DERIVATIVES", "license forbids modification; clipping creates a derivative"))
+    if r.cc_license in {CCLicense.BY_SA, CCLicense.BY_NC_SA}:
+        out.append(("RIGHTS_SHAREALIKE", "ShareAlike requires the clip to carry the same license; YouTube can't offer it"))
     if monetized and (not r.allows_monetization or r.cc_license in {CCLicense.BY_NC, CCLicense.BY_NC_SA, CCLicense.BY_NC_ND}):
         out.append(("RIGHTS_NONCOMMERCIAL", "license is non-commercial but the channel is monetized"))
     if r.source_sha256 and media_sha256 and r.source_sha256 != media_sha256:
@@ -54,9 +56,24 @@ def check_intake(r: RightsRecord, media_sha256: str, monetized: bool) -> None:
         raise RightsError("; ".join(m for _, m in problems))
 
 
-def attribution_line(r: RightsRecord) -> str:
+CC_URLS = {
+    CCLicense.CC0: "https://creativecommons.org/publicdomain/zero/1.0/",
+    CCLicense.BY: "https://creativecommons.org/licenses/by/4.0/",
+    CCLicense.BY_SA: "https://creativecommons.org/licenses/by-sa/4.0/",
+    CCLicense.BY_NC: "https://creativecommons.org/licenses/by-nc/4.0/",
+    CCLicense.BY_NC_SA: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    CCLicense.BY_ND: "https://creativecommons.org/licenses/by-nd/4.0/",
+    CCLicense.BY_NC_ND: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+}
+
+
+def attribution_line(r: RightsRecord, short: bool = False) -> str:
+    """Credit line. CC BY 4.0 §3(a) asks for the creator, the license (with a link) and a note that
+    the work was modified; `short` is the on-screen version, the full one goes in the description."""
     if r.basis is RightsBasis.OWN_CONTENT:
         return ""
     if r.cc_license:
-        return f"Source: {r.attribution} ({r.cc_license.value})"
+        if short:
+            return f"Source: {r.attribution} ({r.cc_license.value}), edited"
+        return f"Source: {r.attribution}, {r.cc_license.value} {CC_URLS[r.cc_license]} (edited: clipped, reframed, captioned)"
     return f"Source: {r.source_title}, used with permission of {r.rights_holder}"

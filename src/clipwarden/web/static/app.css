@@ -84,3 +84,4 @@ form.inline { display: inline; }
 .foot { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 .decision fieldset:has(input[value=scheduled_public]:checked) .when { display: block; }
+.edit input, .edit textarea { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; margin: 4px 0 10px; }

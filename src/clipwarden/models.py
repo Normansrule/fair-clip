@@ -8,6 +8,7 @@ the edge instead of deep inside the pipeline.
 
 from __future__ import annotations
 
+import unicodedata
 from datetime import date, datetime
 from enum import StrEnum
 from typing import Annotated, Literal
@@ -21,6 +22,15 @@ LongText = Annotated[str, Field(max_length=5000)]
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=False, str_strip_whitespace=True)
+
+
+def no_hidden_chars(v: str) -> str:
+    """Reject control and invisible 'format' characters (e.g. U+202E right-to-left override, which can
+    make 'moc.live' display as 'evil.com', or zero-width spaces that split a word past a filter)."""
+    for c in v:
+        if (ord(c) < 32 and c not in "\n\t") or unicodedata.category(c) == "Cf":
+            raise ValueError(f"hidden/control character U+{ord(c):04X} is not allowed")
+    return v
 
 
 # --------------------------------------------------------------------------- rights (stage 1)
@@ -161,6 +171,8 @@ class ValueAddElement(Strict):
     author: Author = Author.OWNER
     owner_approved: bool = False
 
+    _clean = field_validator("text")(classmethod(lambda cls, v: no_hidden_chars(v)))
+
     @model_validator(mode="after")
     def _order(self) -> ValueAddElement:
         if self.end <= self.start:
@@ -182,6 +194,8 @@ class AffiliatePlan(Strict):
     recommendation_cards: list[tuple[Seconds, Seconds]] = Field(default_factory=list, max_length=10)
     recommendation_times: list[Seconds] = Field(default_factory=list, max_length=10)
     disclosure_text: ShortText = "I earn a commission if you buy through these links."
+
+    _clean = field_validator("disclosure_text")(classmethod(lambda cls, v: no_hidden_chars(v)))
 
 
 class DataPoint(Strict):
@@ -224,6 +238,9 @@ class ClipPlan(Strict):
     affiliate: AffiliatePlan | None = None
     markets: MarketsPlan | None = None
     paid_promotion: bool = False
+    sponsor: ShortText | None = None  # who paid, shown on screen and in the description
+    paid_disclosure_card: tuple[Seconds, Seconds] | None = None  # on-screen "paid promotion" card (clip time)
+    paid_disclosure_spoken_at: Seconds | None = None
     made_for_kids: bool = False
     synthetic_or_altered: bool = False  # e.g. an AI voice-over or a realistic generated graphic
     lower_third: ShortText = ""
@@ -252,10 +269,16 @@ class Metadata(Strict):
     @field_validator("title", "description")
     @classmethod
     def _no_control_chars(cls, v: str) -> str:
-        if any(ord(c) < 32 and c not in "\n\t" for c in v):
-            raise ValueError("control characters are not allowed")
+        no_hidden_chars(v)
         if "<" in v or ">" in v:  # YouTube rejects angle brackets in titles/descriptions
             raise ValueError("angle brackets are not allowed")
+        return v
+
+    @field_validator("tags")
+    @classmethod
+    def _clean_tags(cls, v: list[str]) -> list[str]:
+        for t in v:
+            no_hidden_chars(t)
         return v
 
 
@@ -295,6 +318,7 @@ class GateReport(Strict):
 class Visibility(StrEnum):
     PRIVATE = "private"
     UNLISTED = "unlisted"
+    PUBLIC = "public"  # immediately public after upload (still only after human approval)
     SCHEDULED_PUBLIC = "scheduled_public"  # private + publishAt; YouTube flips it to public
 
 

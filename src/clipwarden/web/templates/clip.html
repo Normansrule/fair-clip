@@ -39,6 +39,18 @@
   <pre class="desc">{{ row.metadata.description }}</pre>
   <p class="small">Tags: {% for t in row.metadata.tags %}<span class="tag">{{ t }}</span>{% endfor %}</p>
   <details><summary>Exact <code>videos.insert</code> request body</summary><pre class="log">{{ row.body | pretty }}</pre></details>
+  {% if row.status in ('awaiting_approval', 'blocked') %}
+  <details class="edit"><summary>Edit title / description (re-runs the gate)</summary>
+    <form method="post" action="/clips/{{ row.id }}/metadata">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label for="title">Title (max 100 characters)</label>
+      <input id="title" name="title" maxlength="100" value="{{ row.metadata.title }}">
+      <label for="description">Description (max 5000 bytes)</label>
+      <textarea id="description" name="description" rows="10">{{ row.metadata.description }}</textarea>
+      <button class="btn">Save and re-check</button>
+    </form>
+  </details>
+  {% endif %}
   {% endif %}
 </section>
 
@@ -52,6 +64,7 @@
       <legend>Visibility after upload</legend>
       <label><input type="radio" name="visibility" value="private" checked> Private</label>
       <label><input type="radio" name="visibility" value="unlisted" {{ 'disabled' if paid }}> Unlisted</label>
+      <label><input type="radio" name="visibility" value="public" {{ 'disabled' if paid }}> Public now</label>
       <label><input type="radio" name="visibility" value="scheduled_public" {{ 'disabled' if paid }} data-reveal="when"> Scheduled public</label>
       <div id="when" class="when"><label for="publish_at">Publish at (UTC)</label><input id="publish_at" type="datetime-local" name="publish_at"></div>
       {% if paid %}<p class="warnbox">Paid promotion: the YouTube API can't set the paid-promotion flag, so this clip uploads <strong>private</strong>. Tick “includes paid promotion” in YouTube Studio, then publish it there.</p>{% endif %}

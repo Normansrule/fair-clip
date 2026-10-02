@@ -84,7 +84,7 @@ def test_obedient_model_output_still_has_frame_and_is_caught_by_gate():
     from clipwarden.gate import run_gate
 
     plan = base_plan()
-    md, notes = build_metadata(plan, SENTS, own_rights(), "", ["bridge", "wind"], llm=ObedientModel())
+    md, notes, _summary = build_metadata(plan, SENTS, own_rights(), "", ["bridge", "wind"], llm=ObedientModel())
     assert "model" in notes[0]
     ctx = make_ctx(plan=plan, title=md.title, description=md.description)
     codes = {r.code for r in run_gate(ctx, "a" * 64).blocks}
@@ -92,7 +92,7 @@ def test_obedient_model_output_still_has_frame_and_is_caught_by_gate():
 
 
 def test_chatty_model_falls_back_to_extractive():
-    md, notes = build_metadata(base_plan(), SENTS, own_rights(), "", ["bridge", "wind"], llm=ChattyModel())
+    md, notes, _summary = build_metadata(base_plan(), SENTS, own_rights(), "", ["bridge", "wind"], llm=ChattyModel())
     assert "fell back" in notes[0] and md.title == "So what actually threatens a bridge like this?"
 
 

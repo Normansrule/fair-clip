@@ -57,6 +57,8 @@ def apply_decision(body: dict[str, Any], d: Decision) -> dict[str, Any]:
     b = json.loads(json.dumps(body))
     if d.visibility is Visibility.UNLISTED:
         b["status"]["privacyStatus"] = "unlisted"
+    elif d.visibility is Visibility.PUBLIC:
+        b["status"]["privacyStatus"] = "public"
     elif d.visibility is Visibility.SCHEDULED_PUBLIC:
         assert d.publish_at is not None
         b["status"]["privacyStatus"] = "private"  # publishAt requires private; YouTube flips it

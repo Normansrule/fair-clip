@@ -23,6 +23,7 @@ import json
 import re
 import secrets
 from typing import Protocol
+from urllib.parse import urlsplit
 
 import httpx
 from pydantic import ValidationError
@@ -82,8 +83,9 @@ class OpenAICompatibleAdapter:
     """Minimal client for any OpenAI-compatible /v1/chat/completions endpoint (e.g. local Ollama)."""
 
     def __init__(self, base_url: str, model: str, api_key: str | None = None, timeout: float = 60.0) -> None:
-        if not base_url.startswith(("https://", "http://127.0.0.1", "http://localhost", "http://[::1]")):
-            raise ValueError("LLM endpoint must be https or loopback http")
+        u = urlsplit(base_url)
+        if not (u.scheme == "https" or (u.scheme == "http" and u.hostname in {"127.0.0.1", "localhost", "::1"})):
+            raise ValueError("LLM endpoint must be https, or plain http only to this machine (127.0.0.1/localhost/::1)")
         self.base_url, self.model, self.api_key, self.timeout = base_url.rstrip("/"), model, api_key, timeout
 
     def complete(self, system: str, user: str) -> str:

@@ -11,6 +11,8 @@ Any mismatch stops the upload and is written to the audit log.
 from __future__ import annotations
 
 import json
+import shutil
+import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -18,6 +20,7 @@ from typing import Any
 
 from ..config import Settings
 from ..models import ClipPlan, Decision, GateReport, Metadata, RightsRecord
+from ..rights import rights_problems
 from ..store import Store, sha256_file
 from .body import apply_decision, body_hash, build_body
 from .youtube import PublishError, QuotaError
@@ -44,8 +47,21 @@ def live_ready(store: Store, settings: Settings) -> tuple[bool, str]:
     return True, "ok"
 
 
+def requeue_deferred(store: Store, actor: str) -> int:
+    """Clips deferred for quota go back in the queue the next UTC day (quota resets daily)."""
+    today = datetime.now(UTC).date().isoformat()
+    n = 0
+    for row in store.rows("clips", "status='deferred_quota'"):
+        if str((row.get("upload") or {}).get("deferred_at", ""))[:10] < today:
+            store.upsert("clips", row["id"], status="approved")
+            store.audit.append(actor, "publish_requeued", row["id"], {"reason": "new quota day"})
+            n += 1
+    return n
+
+
 def publish_approved(store: Store, settings: Settings, *, uploader: Callable[[dict[str, Any], Path], str] | None = None,
                      actor: str = "publisher") -> list[dict[str, Any]]:
+    requeue_deferred(store, actor)
     results = []
     for row in store.rows("clips", "status='approved'", order="created"):
         cid = row["id"]
@@ -55,7 +71,7 @@ def publish_approved(store: Store, settings: Settings, *, uploader: Callable[[di
         try:
             results.append(_publish_one(store, settings, row, uploader, actor))
         except QuotaError as exc:
-            store.upsert("clips", cid, status="deferred_quota")
+            store.upsert("clips", cid, status="deferred_quota", upload={"deferred_at": datetime.now(UTC).isoformat(), "reason": str(exc)})
             store.audit.append(actor, "publish_deferred", cid, {"reason": f"quota: {exc}"})
             results.append({"clip": cid, "status": "deferred_quota"})
             break  # quota is per project, so stop for today
@@ -75,9 +91,21 @@ def _publish_one(store: Store, settings: Settings, row: dict[str, Any], uploader
     rec = RightsRecord.model_validate(src["rights"])
     md = Metadata.model_validate(row["metadata"])
 
-    path = store.find_media(row["clip_sha"])
+    # Rights must still hold now AND on the scheduled publish day.
+    when = dec.publish_at.astimezone(UTC).date() if dec.publish_at else datetime.now(UTC).date()
+    for day in {datetime.now(UTC).date(), when}:
+        probs = rights_problems(rec, media_sha256=src.get("media_sha"), monetized=settings.channel.monetized, today=day)
+        if probs:
+            raise PublishError(f"rights no longer cover this clip on {day}: " + "; ".join(m for _, m in probs))
+    # Upload from a private copy whose hash we verify, so nothing can swap the file between the
+    # check and the upload (time-of-check to time-of-use).
+    staging = store.root / "upload-staging"
+    staging.mkdir(mode=0o700, exist_ok=True)
+    path = staging / f"{cid}-{uuid.uuid4().hex}.mp4"
+    shutil.copyfile(store.find_media(row["clip_sha"]), path)
     actual = sha256_file(path)
     if actual != gate.clip_sha256 or actual != row["decision"].get("clip_sha256"):
+        path.unlink(missing_ok=True)
         raise PublishError("clip file changed after approval; re-render and re-approve")
     body = build_body(md, plan, rec)
     if body_hash(body) != gate.metadata_sha256 or body_hash(body) != row["decision"].get("metadata_sha256"):
@@ -86,6 +114,7 @@ def _publish_one(store: Store, settings: Settings, row: dict[str, Any], uploader
 
     n = uploads_today(store)
     if n >= min(settings.channel.daily_cap, DEFAULT_DAILY_UPLOAD_QUOTA):
+        path.unlink(missing_ok=True)
         raise QuotaError(f"{n} uploads today; cap reached")
 
     ready, why = live_ready(store, settings)
@@ -94,6 +123,7 @@ def _publish_one(store: Store, settings: Settings, row: dict[str, Any], uploader
         out.mkdir(exist_ok=True)
         (out / f"{cid}.json").write_text(json.dumps({"would_call": "youtube.videos.insert", "part": "snippet,status",
                                                      "body": final, "media": path.name, "why_dry_run": why}, indent=2))
+        path.unlink(missing_ok=True)
         store.upsert("clips", cid, status="dry_run_published", upload={"at": datetime.now(UTC).isoformat(), "dry_run": True, "why": why})
         store.set("dry_runs_completed", int(store.get("dry_runs_completed", 0)) + 1)
         store.audit.append(actor, "dry_run_publish", cid, {"body_sha256": body_hash(body), "privacy": final["status"]["privacyStatus"],
@@ -105,7 +135,10 @@ def _publish_one(store: Store, settings: Settings, row: dict[str, Any], uploader
         raise PublishError("no uploader configured")
     store.upsert("clips", cid, status="uploading")
     store.audit.append(actor, "upload_start", cid, {"privacy": final["status"]["privacyStatus"], "publishAt": final["status"].get("publishAt")})
-    video_id = uploader(final, path)
+    try:
+        video_id = uploader(final, path)
+    finally:
+        path.unlink(missing_ok=True)
     store.upsert("clips", cid, status="published", upload={"at": datetime.now(UTC).isoformat(), "video_id": video_id,
                                                          "privacy": final["status"]["privacyStatus"], "publishAt": final["status"].get("publishAt")})
     store.audit.append(actor, "upload_done", cid, {"video_id": video_id})

@@ -11,12 +11,31 @@ Rules (checked by the compliance gate):
 from __future__ import annotations
 
 import re
+import unicodedata
 from urllib.parse import parse_qs, urlsplit
 
-# Bare domains like "evil.example/buy" count as links too: viewers can type them.
+# Anything shaped like host.tld counts as a link: viewers can type "evil.ai/free" as easily as a
+# clickable URL. Any 2-24 letter TLD matches (new gTLDs appear constantly), except a short list of
+# file extensions that would otherwise flag ordinary words like "Node.js" or "clip.mp4".
 URL_RE = re.compile(
-    r"(?i)\b((?:https?://|www\.)[^\s<>\"')\]]+|[a-z0-9][a-z0-9-]{0,62}(?:\.[a-z0-9-]{1,63})*\.(?:com|net|org|io|co|ly|gg|me|app|dev|xyz|link|shop|store|info|biz|us|uk|ca|de)(?:/[^\s<>\"')\]]*)?)"
+    r"(?i)(?<![\w@.-])((?:https?://|www\.)[^\s<>\"')\]]+|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+([a-z]{2,24})(?::\d{2,5})?(?:/[^\s<>\"')\]]*)?)(?![\w-])"
 )
+NOT_TLDS = {"js", "py", "md", "txt", "json", "mp4", "mp3", "png", "jpg", "jpeg", "gif", "pdf", "csv", "html", "css",
+            "ts", "tsx", "jsx", "exe", "zip", "toml", "yaml", "yml", "sh", "wav", "mov", "mkv", "svg", "lock", "e", "g", "i"}
+# Spoken or obfuscated links: "evil dot com slash free", "evil[.]com", "evil (dot) com".
+_OBFUSCATED = [
+    (re.compile(r"(?i)\s*(?:\[\s*\.\s*\]|\(\s*\.\s*\)|\[\s*dot\s*\]|\(\s*dot\s*\)|\{\s*dot\s*\})\s*"), "."),
+    (re.compile(r"(?i)(?<=[a-z0-9])\s+dot\s+(?=[a-z0-9])"), "."),
+    (re.compile(r"(?i)(?<=[a-z0-9])\s+slash\s+(?=[a-z0-9])"), "/"),
+]
+
+
+def normalise_for_links(text: str) -> str:
+    """Undo common obfuscations and drop invisible characters before looking for links."""
+    text = "".join(c for c in unicodedata.normalize("NFKC", text) if unicodedata.category(c) != "Cf")
+    for rx, rep in _OBFUSCATED:
+        text = rx.sub(rep, text)
+    return text
 SHORTENERS = {
     "bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "rebrand.ly", "cutt.ly", "is.gd", "buff.ly",
     "shorturl.at", "tiny.cc", "rb.gy", "s.id", "t.ly", "lnkd.in", "linktr.ee", "bl.ink", "short.io",
@@ -25,7 +44,14 @@ REDIRECT_PARAMS = {"url", "u", "redirect", "redirect_uri", "next", "dest", "dest
 
 
 def find_links(text: str) -> list[str]:
-    return [m.group(1).rstrip(".,;:!?") for m in URL_RE.finditer(text)]
+    out = []
+    for m in URL_RE.finditer(normalise_for_links(text)):
+        link = m.group(1).rstrip(".,;:!?")
+        tld = (m.group(2) or "").lower()
+        if not link.lower().startswith(("http", "www.")) and tld in NOT_TLDS:
+            continue
+        out.append(link)
+    return out
 
 
 def entry_problems(url: str) -> list[str]:

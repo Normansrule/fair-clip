@@ -165,7 +165,7 @@
     ]
    ]
   },
-  "note": "Title max 100 characters, description max 5000 bytes, neither may contain < or >; tags max 500 characters incl. commas; publishAt only when privacyStatus is private."
+  "note": "Title max 100 characters, description max 5000 bytes, neither may contain < or >; tags max 500 characters incl. commas; publishAt only when privacyStatus is private. status.license accepts only 'creativeCommon' or 'youtube'."
  },
  {
   "id": "ytapi-update",
@@ -583,5 +583,47 @@
    ]
   },
   "note": "Accepts youtubepartner, youtube or youtube.force-ssl scopes (not youtube.upload)."
+ },
+ {
+  "id": "cc-by-4",
+  "type": "legislation",
+  "title": "Creative Commons Attribution 4.0 International, legal code (SPDX copy)",
+  "author": [
+   {
+    "literal": "Creative Commons"
+   }
+  ],
+  "URL": "https://spdx.org/licenses/CC-BY-4.0.html",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     10,
+     1
+    ]
+   ]
+  },
+  "note": "Section 3(a)(1): retain creator identification and a link to the material, indicate if You modified the Licensed Material, and indicate the license with its text or URI."
+ },
+ {
+  "id": "yt-cc",
+  "type": "webpage",
+  "title": "Creative Commons (adding a CC BY license; attribution when reusing CC BY content)",
+  "author": [
+   {
+    "literal": "YouTube Help"
+   }
+  ],
+  "URL": "https://support.google.com/youtube/answer/2797468?hl=en",
+  "accessed": {
+   "date-parts": [
+    [
+     2026,
+     10,
+     1
+    ]
+   ]
+  },
+  "note": "YouTube offers the Creative Commons Attribution (CC BY) license; credit should include title, author, source URL and license info, e.g. as text overlay."
  }
 ]

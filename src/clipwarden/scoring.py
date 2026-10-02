@@ -71,7 +71,10 @@ def zscores(values: list[float]) -> list[float]:
 
 def normalise(w: dict[str, float]) -> dict[str, float]:
     """Project weights into the box [W_MIN, W_MAX] with sum 1 (a few clip-and-rescale rounds)."""
-    v = np.array([max(0.0, w.get(k, 0.0)) for k in FEATURES])
+    raw = [w.get(k, 0.0) for k in FEATURES]
+    if not all(math.isfinite(x) for x in raw):
+        raise ValueError("weights must be finite numbers")
+    v = np.array([max(0.0, x) for x in raw])
     if v.sum() == 0:
         v = np.ones(len(FEATURES))
     v = v / v.sum()
@@ -86,6 +89,11 @@ def normalise(w: dict[str, float]) -> dict[str, float]:
         else:
             v = v / v.sum()
     return {k: float(round(x, 6)) for k, x in zip(FEATURES, v, strict=True)}
+
+
+def scene_density(n_cuts: int, duration_s: float) -> float:
+    """D = min(1, cuts per minute / D_REF)."""
+    return min(1.0, (n_cuts / (max(duration_s, 1e-6) / 60.0)) / D_REF)
 
 
 def score_value(z: dict[str, float], w: dict[str, float]) -> float:
@@ -123,7 +131,7 @@ def features_for(w: Window, audio: AudioSignal, cuts: list[float], topics: list[
         audio_energy_db=float(np.mean(lv)) if lv.size else -120.0,
         speech_rate_wps=w.n_words / dur,
         relevance=relevance(w.text, topics),
-        scene_density=min(1.0, (ncuts / (dur / 60.0)) / D_REF),
+        scene_density=scene_density(ncuts, dur),
         silence_ratio=float(np.mean(lv < SILENCE_DB)) if lv.size else 1.0,
     )
 
@@ -177,6 +185,8 @@ def propose_weights(current: dict[str, float], X: list[dict[str, float]], y: lis
         raise ValueError(f"need at least {MIN_CLIPS_FOR_UPDATE} published clips, have {len(y)}")
     cur = normalise(current)
     A = np.array([[SIGN[k] * row[k] for k in FEATURES] for row in X], dtype=float)
+    if not (np.isfinite(A).all() and np.isfinite(np.asarray(y, dtype=float)).all()):
+        raise ValueError("analytics rows contain NaN or infinite values")
     zy = np.asarray(zscores(list(y)), dtype=float)
     w0 = np.array([cur[k] for k in FEATURES])
     fit = np.linalg.solve(A.T @ A + lam * np.eye(len(FEATURES)), A.T @ zy + lam * w0)

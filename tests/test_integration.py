@@ -60,7 +60,7 @@ def test_full_pipeline_dry_run(tmp_path: Path):
     dur = float(info["format"]["duration"])
     assert dur < plan.end - plan.start  # pauses were cut
     assert row["body"]["status"]["containsSyntheticMedia"] is True  # synthetic narrator -> disclosed
-    assert "Sample talk by clipwarden contributors (CC0-1.0)" in row["metadata"]["description"]
+    assert "Sample talk by clipwarden contributors, CC0-1.0" in row["metadata"]["description"]
     assert p.store.find_media(row["posters"]["clip"]).suffix == ".jpg"  # review-page poster frame
 
     decide(p.store, s, Decision(clip_id=plan.clip_id, approved=True, reviewer="tester", reason="ok"))

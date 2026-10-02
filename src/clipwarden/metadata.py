@@ -71,8 +71,8 @@ def assemble_description(plan: ClipPlan, summary: str, rights: RightsRecord, att
     parts: list[str] = []
     if plan.affiliate:  # disclosure ABOVE the first link, in plain words
         parts.append(plan.affiliate.disclosure_text)
-    if plan.paid_promotion:
-        parts.append("This video includes paid promotion.")
+    if plan.paid_promotion or "sponsored" in plan.tags:
+        parts.append("This video includes paid promotion" + (f" (sponsor: {plan.sponsor})." if plan.sponsor else "."))
     if plan.markets:
         parts.append(MARKETS_DISCLAIMER)
         if plan.markets.paid_by:
@@ -100,8 +100,9 @@ def assemble_description(plan: ClipPlan, summary: str, rights: RightsRecord, att
 
 
 def build_metadata(plan: ClipPlan, sentences: list[Sentence], rights: RightsRecord, attribution: str,
-                   topics: list[str], llm: LLMAdapter | None = None) -> tuple[Metadata, list[str]]:
-    """Returns (metadata, notes). Notes record which engine produced what, for the audit log."""
+                   topics: list[str], llm: LLMAdapter | None = None) -> tuple[Metadata, list[str], str]:
+    """Returns (metadata, notes, summary). Notes record which engine produced what (audit log);
+    the summary is returned separately so the gate can check the model-written part hardest."""
     notes: list[str] = []
     clip_text = " ".join(s.text for s in sentences)
     hook = pick_hook(sentences, topics)
@@ -122,4 +123,4 @@ def build_metadata(plan: ClipPlan, sentences: list[Sentence], rights: RightsReco
     chapters = chapters_for(sentences, plan.start, plan.end - plan.start)
     desc = assemble_description(plan, summary, rights, attribution, chapters)
     md = Metadata(title=title, description=desc, tags=tags, chapters=chapters)
-    return md, notes
+    return md, notes, summary

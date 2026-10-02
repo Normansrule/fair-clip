@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -58,8 +59,9 @@ class AuditEntry:
 
 
 class AuditLog:
-    def __init__(self, conn: sqlite3.Connection) -> None:
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock | None = None) -> None:
         self.conn = conn
+        self.lock = lock or threading.RLock()
         self.conn.executescript(SCHEMA)
 
     def head(self) -> str:
@@ -69,13 +71,23 @@ class AuditLog:
     def append(self, actor: str, action: str, subject: str, details: dict[str, Any] | None = None) -> AuditEntry:
         ts = datetime.now(UTC).isoformat(timespec="microseconds")
         det = json.dumps(details or {}, sort_keys=True, separators=(",", ":"), default=str)
-        with self.conn:  # one transaction: read head + insert, so two writers can't fork the chain
-            prev = self.head()
-            h = _entry_hash(prev, ts, actor, action, subject, det)
-            cur = self.conn.execute(
-                "INSERT INTO audit (ts, actor, action, subject, details, prev_hash, hash) VALUES (?,?,?,?,?,?,?)",
-                (ts, actor, action, subject, det, prev, h),
-            )
+        # Read-head-then-insert must be atomic or two writers could fork the chain: a thread lock for
+        # this process plus BEGIN IMMEDIATE (a write lock on the database file) for other processes.
+        with self.lock:
+            if self.conn.in_transaction:
+                self.conn.commit()
+            self.conn.execute("BEGIN IMMEDIATE")
+            try:
+                prev = self.head()
+                h = _entry_hash(prev, ts, actor, action, subject, det)
+                cur = self.conn.execute(
+                    "INSERT INTO audit (ts, actor, action, subject, details, prev_hash, hash) VALUES (?,?,?,?,?,?,?)",
+                    (ts, actor, action, subject, det, prev, h),
+                )
+                self.conn.commit()
+            except BaseException:
+                self.conn.rollback()
+                raise
         return AuditEntry(cur.lastrowid or 0, ts, actor, action, subject, json.loads(det), prev, h)
 
     def entries(self, limit: int = 500, subject: str | None = None) -> list[AuditEntry]:

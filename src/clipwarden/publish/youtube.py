@@ -47,7 +47,7 @@ def authorize(client_file: Path, scopes: list[str], vault: KeychainVault | Encry
     creds = flow.run_local_server(host="127.0.0.1", bind_addr="127.0.0.1", port=0, open_browser=True,
                                   authorization_prompt_message="Opening Google sign-in in your browser...",
                                   success_message="clipwarden is authorized. You can close this tab.")
-    granted = set(creds.scopes or scopes)
+    granted = set(getattr(creds, "granted_scopes", None) or creds.scopes or scopes)
     if granted - set(scopes):
         raise PublishError(f"Google granted extra scopes {granted - set(scopes)}; refusing to store them")
     record = {"refresh_token": creds.refresh_token, "scopes": sorted(granted), "obtained": int(time.time())}
@@ -72,8 +72,8 @@ def revoke(vault: KeychainVault | EncryptedFileVault, http: httpx.Client | None 
     ok = True
     if rec and rec.get("refresh_token"):
         client = http or httpx.Client(timeout=15)
-        r = client.post(REVOKE_URL, params={"token": rec["refresh_token"]},
-                        headers={"Content-Type": "application/x-www-form-urlencoded"})
+        # Token in the POST body (not the URL), so it can't end up in any URL/access log.
+        r = client.post(REVOKE_URL, data={"token": rec["refresh_token"]})
         ok = r.status_code == 200
     vault.delete(TOKEN_NAME)  # delete locally even if Google already considered it revoked
     return ok
@@ -109,7 +109,8 @@ def upload(youtube: Any, body: dict[str, Any], file: Path, *, max_retries: int =
             _status, response = request.next_chunk()
         except Exception as exc:  # noqa: BLE001 - classify below
             code, reason = _error_reason(exc)
-            if code == 403 and reason in QUOTA_REASONS or code == 429:
+            # Classify by reason, not status: uploadLimitExceeded is documented as HTTP 400.
+            if reason in QUOTA_REASONS or code == 429:
                 raise QuotaError(reason or "quota") from exc
             if code in RETRYABLE_STATUS or isinstance(exc, OSError):
                 retries += 1

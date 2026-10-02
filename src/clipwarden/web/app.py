@@ -6,6 +6,7 @@ Runs on 127.0.0.1 only. Server-rendered HTML (Jinja2 autoescaping on) with no in
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -21,7 +22,7 @@ from ..approval import ApprovalError, decide, human_required
 from ..config import Settings
 from ..gate.reasons import GROUP_ORDER, REASONS
 from ..models import ClipPlan, Decision, GateReport, Visibility
-from ..pipeline import STAGES
+from ..pipeline import STAGES, Pipeline, PipelineError
 from ..publish.body import paid_promotion_required
 from ..publish.publisher import live_ready
 from ..publish.youtube import TOKEN_NAME
@@ -36,7 +37,8 @@ HERE = Path(__file__).resolve().parent
 
 def create_app(settings: Settings, store: Store | None = None, extra_hosts: tuple[str, ...] = ()) -> FastAPI:
     store = store or Store(settings.data_path)
-    sessions = sec.Sessions(sec.session_key(store.root))
+    sessions = sec.Sessions(sec.session_key(store.root), store)
+    pipeline = Pipeline(settings, store)
     throttle = sec.Throttle()
     hosts = sec.allowed_hosts(settings.dashboard.port) - {"testserver"} | set(extra_hosts)
     first_pw = sec.ensure_password(store)
@@ -109,6 +111,8 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     async def logout(request: Request) -> Response:
         s = need(request)
         await need_csrf(request, s)
+        sec.bump_epoch(store)  # server-side logout: the old cookie stops working everywhere
+        store.audit.append(s["u"], "logout", "dashboard", {})
         r = RedirectResponse("/login", status_code=303)
         r.delete_cookie(sec.SESSION_COOKIE, path="/")
         return r
@@ -164,11 +168,25 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
             return RedirectResponse(f"/clips/{cid}?error={msg[:200]}", status_code=303)
         return RedirectResponse(f"/clips/{cid}", status_code=303)
 
+    @app.post("/clips/{cid}/metadata")
+    async def clip_metadata(request: Request, cid: str) -> Response:
+        """YouTube requires that users can set title and description; any edit is gated again."""
+        s = need(request)
+        form = await need_csrf(request, s)
+        try:
+            pipeline.regate(cid, str(form.get("title", ""))[:100], str(form.get("description", "")).replace("\r\n", "\n")[:5000], s["u"])
+        except (PipelineError, ValidationError, ValueError) as exc:
+            msg = exc.errors()[0]["msg"] if isinstance(exc, ValidationError) else str(exc)
+            return RedirectResponse(f"/clips/{cid}?error={msg[:200]}", status_code=303)
+        return RedirectResponse(f"/clips/{cid}", status_code=303)
+
     @app.get("/media/{sha}")
     def media(request: Request, sha: str) -> FileResponse:
         need(request)
+        if not re.fullmatch(r"[0-9a-f]{64}", sha):
+            raise HTTPException(404)
         referenced = store.conn.execute("SELECT 1 FROM clips WHERE clip_sha=? OR preview_sha=? OR instr(posters, ?) > 0",
-                                        (sha, sha, f'"{sha}"')).fetchone()
+                                        (sha, sha, f'": "{sha}"')).fetchone()
         if not referenced:
             raise HTTPException(404)
         try:
@@ -217,11 +235,18 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     async def weight_decision(request: Request, pid: int) -> Response:
         s = need(request)
         form = await need_csrf(request, s)
-        row = store.conn.execute("SELECT proposed, status FROM weight_proposals WHERE id=?", (pid,)).fetchone()
+        row = store.conn.execute("SELECT proposed, status, current FROM weight_proposals WHERE id=?", (pid,)).fetchone()
         if not row or row[1] != "pending":
             raise HTTPException(404)
         approve = form.get("decision") == "approve"
-        with store.conn:
+        live = normalise(store.get("weights") or settings.scoring.weights)
+        if approve and any(abs(live[k] - v) > 1e-6 for k, v in normalise(json.loads(row[2])).items()):
+            # Proposed against weights that have since changed: applying it could exceed the ±0.05 step.
+            with store.lock, store.conn:
+                store.conn.execute("UPDATE weight_proposals SET status='stale', decided_by=? WHERE id=?", (s["u"], pid))
+            store.audit.append(s["u"], "weights_stale", f"proposal-{pid}", {})
+            return RedirectResponse("/settings", status_code=303)
+        with store.lock, store.conn:
             store.conn.execute("UPDATE weight_proposals SET status=?, decided_by=? WHERE id=?",
                                ("approved" if approve else "rejected", s["u"], pid))
         if approve:

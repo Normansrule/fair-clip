@@ -51,6 +51,12 @@ def set_password(store: Store, pw: str) -> None:
         raise ValueError("password must be at least 12 characters")
     salt = os.urandom(16)
     store.set("dashboard_pw", {"salt": salt.hex(), "hash": _scrypt(pw, salt).hex()})
+    bump_epoch(store)  # a new password logs out every existing session
+
+
+def bump_epoch(store: Store) -> None:
+    """Sessions carry the epoch they were issued in; bumping it invalidates all of them."""
+    store.set("session_epoch", int(store.get("session_epoch", 0)) + 1)
 
 
 def check_password(store: Store, pw: str) -> bool:
@@ -80,19 +86,24 @@ def session_key(data_dir: Path) -> bytes:
 
 
 class Sessions:
-    def __init__(self, key: bytes) -> None:
+    def __init__(self, key: bytes, store: Store) -> None:
         self.s = URLSafeTimedSerializer(key, salt="clipwarden-session")
+        self.store = store
 
     def issue(self, user: str) -> str:
-        return self.s.dumps({"u": user, "csrf": secrets.token_urlsafe(24), "t": int(time.time())})
+        return self.s.dumps({"u": user, "csrf": secrets.token_urlsafe(24), "t": int(time.time()),
+                             "e": int(self.store.get("session_epoch", 0))})
 
     def read(self, token: str | None) -> dict | None:
         if not token:
             return None
         try:
-            return self.s.loads(token, max_age=SESSION_MAX_AGE)
+            data = self.s.loads(token, max_age=SESSION_MAX_AGE)
         except (BadSignature, SignatureExpired):
             return None
+        if data.get("e") != int(self.store.get("session_epoch", 0)):
+            return None  # logged out (or password changed) since this cookie was issued
+        return data
 
 
 class Throttle:

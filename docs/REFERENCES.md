@@ -4,6 +4,11 @@ Generated from `docs/references.json` by `scripts/check_refs.py --write`. Every 
 checked against the claim it supports on the access date shown. Primary sources only (official documentation,
 regulators, statutes). Notes paraphrase what each source says; quotes are short and attributed.
 
+<a id="cc-by-4"></a>
+**[cc-by-4]** Creative Commons. *Creative Commons Attribution 4.0 International, legal code (SPDX copy)*. <https://spdx.org/licenses/CC-BY-4.0.html> (accessed 2026-10-01).
+
+> Section 3(a)(1): retain creator identification and a link to the material, indicate if You modified the Licensed Material, and indicate the license with its text or URI.
+
 <a id="cfr-16-255"></a>
 **[cfr-16-255]** US Federal Trade Commission. *Guides Concerning the Use of Endorsements and Testimonials in Advertising, 16 CFR Part 255* (2023-07-26). <https://www.ecfr.gov/current/title-16/chapter-I/subchapter-B/part-255> (accessed 2026-09-30).
 
@@ -68,6 +73,11 @@ regulators, statutes). Notes paraphrase what each source says; quotes are short 
 **[yt-analytics-metrics]** Google for Developers. *YouTube Analytics and Reporting APIs: Metrics*. <https://developers.google.com/youtube/analytics/metrics> (accessed 2026-09-30).
 
 > averageViewDuration (s), averageViewPercentage, audienceWatchRatio, relativeRetentionPerformance definitions.
+
+<a id="yt-cc"></a>
+**[yt-cc]** YouTube Help. *Creative Commons (adding a CC BY license; attribution when reusing CC BY content)*. <https://support.google.com/youtube/answer/2797468?hl=en> (accessed 2026-10-01).
+
+> YouTube offers the Creative Commons Attribution (CC BY) license; credit should include title, author, source URL and license info, e.g. as text overlay.
 
 <a id="yt-chapters"></a>
 **[yt-chapters]** YouTube Help. *Video chapters*. <https://support.google.com/youtube/answer/9884579?hl=en> (accessed 2026-09-30).
@@ -137,4 +147,4 @@ regulators, statutes). Notes paraphrase what each source says; quotes are short 
 <a id="ytapi-videos"></a>
 **[ytapi-videos]** Google for Developers. *YouTube Data API v3: Videos resource*. <https://developers.google.com/youtube/v3/docs/videos> (accessed 2026-09-30).
 
-> Title max 100 characters, description max 5000 bytes, neither may contain < or >; tags max 500 characters incl. commas; publishAt only when privacyStatus is private.
+> Title max 100 characters, description max 5000 bytes, neither may contain < or >; tags max 500 characters incl. commas; publishAt only when privacyStatus is private. status.license accepts only 'creativeCommon' or 'youtube'.

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import resource
 import subprocess
 import sys
@@ -25,20 +26,27 @@ from pathlib import Path
 JOBS = Path(os.environ.get("CLIPWARDEN_JOBS", "/jobs"))
 TOOLS = {"ffmpeg": "/usr/bin/ffmpeg", "ffprobe": "/usr/bin/ffprobe"}
 TIMEOUT = int(os.environ.get("CLIPWARDEN_JOB_TIMEOUT", "900"))
-FORBIDDEN = ("http:", "https:", "tcp:", "udp:", "rtmp", "rtsp", "ftp:", "concat:", "subfile:", "data:", "pipe:", "unix:")
+FORBIDDEN = ("http:", "https:", "tcp:", "udp:", "rtmp", "rtsp", "ftp:", "concat:", "subfile:", "data:", "pipe:", "unix:",
+             "async:", "cache:", "crypto:", "gopher", "hls:", "srt:", "tls:", "sftp:", "smb:")
+# Every absolute path anywhere in an argument, including inside filter options ("movie=/x",
+# "subtitles=filename=/x:fontsdir=/y") and protocol prefixes ("file:/x").
+_PATHS = re.compile(r"(?:^|[=:,'\s;\[])(/[^:,;'\s\[\]]*)")
 
 
 def valid(job: dict, job_dir: Path) -> list[str] | None:
     tool, args = job.get("tool"), job.get("args")
     if tool not in TOOLS or not isinstance(args, list) or len(args) > 400 or not all(isinstance(a, str) and len(a) < 20000 for a in args):
         return None
+    allowed = (str(job_dir) + "/", "/fonts/")
     for a in args:
-        if a.lower().startswith(FORBIDDEN):
+        low = a.lower()
+        if low.startswith(FORBIDDEN) or any(f"={p}" in low or f":{p}" in low.replace("file:", "") for p in FORBIDDEN if p != "file:"):
             return None
-        if a.startswith("/") and not (a.startswith(str(job_dir) + "/") or a.startswith("/fonts/")):
-            return None  # absolute paths must stay inside this job (or the bundled fonts)
-        if ".." in Path(a).parts:
+        if ".." in a:
             return None
+        for path in _PATHS.findall(a):
+            if not path.startswith(allowed):
+                return None  # absolute paths must stay inside this job (or the bundled fonts)
     return [TOOLS[tool], "-hide_banner", *(["-nostdin"] if tool == "ffmpeg" else []), *args]
 
 
