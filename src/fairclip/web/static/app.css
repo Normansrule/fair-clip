@@ -1,4 +1,4 @@
-/* clipwarden dashboard. Palette and meanings: docs/STYLE.md */
+/* fair-clip dashboard. Palette and meanings: docs/STYLE.md */
 :root {
   --bg: #F7F7F2; --panel: #FFFFFF; --ink: #0B1020; --muted: #5B6478; --grid: #E3E5EA; --line: #D5D9E0;
   --accent: #2563EB; --accent-soft: rgba(37, 99, 235, .14); --highlight: #9A5B00; --on-accent: #FFFFFF;

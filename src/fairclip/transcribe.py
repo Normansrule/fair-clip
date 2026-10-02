@@ -34,7 +34,7 @@ def whisper_transcribe(pcm_s16: np.ndarray, model_size: str = "small", language:
     try:
         from faster_whisper import WhisperModel  # optional dependency: pip install .[asr]
     except ImportError as exc:  # pragma: no cover - depends on optional extra
-        raise RuntimeError("faster-whisper not installed: pip install 'clipwarden[asr]'") from exc
+        raise RuntimeError("faster-whisper not installed: pip install 'fair-clip[asr]'") from exc
     audio = pcm_s16.astype(np.float32) / 32768.0
     model = WhisperModel(model_size, device="auto", compute_type="int8")
     segments, _info = model.transcribe(audio, language=language, word_timestamps=True, vad_filter=True)

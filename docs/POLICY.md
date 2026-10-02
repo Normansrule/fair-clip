@@ -2,11 +2,11 @@
 
 This page maps each outside rule to the code that enforces it. Every rule was checked against its primary source on **30 September 2026**. Citations like [ytapi-insert](REFERENCES.md#ytapi-insert) link to [REFERENCES.md](REFERENCES.md), which records what each source says. Platforms change their rules, and the weekly `links` workflow catches dead links but not changed wording. **Re-read the sources before relying on this page.**
 
-> **Not legal advice.** clipwarden enforces conservative defaults. It can't know your contracts, your jurisdiction, or each affiliate program's terms. You remain responsible for what you publish ([yt-paid-promotion](REFERENCES.md#yt-paid-promotion)).
+> **Not legal advice.** fair-clip enforces conservative defaults. It can't know your contracts, your jurisdiction, or each affiliate program's terms. You remain responsible for what you publish ([yt-paid-promotion](REFERENCES.md#yt-paid-promotion)).
 
 ## At a glance
 
-| Rule (source) | What clipwarden does | Where in code | Gate reason(s) |
+| Rule (source) | What fair-clip does | Where in code | Gate reason(s) |
 |---|---|---|---|
 | Reused content isn't monetizable without significant original commentary or modification, **even with the creator's permission** ([yt-monetization](REFERENCES.md#yt-monetization)) | Every clip needs owner-written value-add on screen for ≥ 25 % of its length (floor: 15 %, set in code), with ≥ 8 words, and < 60 % of its phrases copied from the transcript | `gate.check_value_add` | `VALUE_ADD_*` |
 | "Inauthentic" (formerly "repetitious") content: repetitive or mass-produced, renamed 2025-07-15 ([yt-monetization](REFERENCES.md#yt-monetization)) | Daily cap (default 3, code ceiling 10), max 2 clips per source per day, title-similarity and template-variety checks, near-duplicate detection against your own uploads | `config.HARD_DAILY_CAP`, `gate.check_uniqueness` | `DAILY_CAP_REACHED`, `VARIETY_*`, `DUPLICATE_OF_OWN_UPLOAD` |

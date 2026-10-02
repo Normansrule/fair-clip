@@ -8,11 +8,11 @@ import random
 import numpy as np
 import pytest
 
-from clipwarden import analytics as an
-from clipwarden.gate import union_len
-from clipwarden.media.analyze import rms_db_from_pcm
-from clipwarden.models import Sentence, Transcript, Word
-from clipwarden.scoring import (
+from fairclip import analytics as an
+from fairclip.gate import union_len
+from fairclip.media.analyze import rms_db_from_pcm
+from fairclip.models import Sentence, Transcript, Word
+from fairclip.scoring import (
     FEATURES,
     MAX_STEP,
     MIN_CLIPS_FOR_UPDATE,

@@ -9,9 +9,9 @@ import pytest
 from fastapi.testclient import TestClient
 from test_publish import add_clip
 
-from clipwarden.media import sandbox as sb
-from clipwarden.web import security as sec
-from clipwarden.web.app import create_app
+from fairclip.media import sandbox as sb
+from fairclip.web import security as sec
+from fairclip.web.app import create_app
 
 # ------------------------------------------------------------------------------- sandbox
 
@@ -131,11 +131,11 @@ def test_media_route_serves_only_referenced_hashes(client, store, tmp_path):
     login(client)
     assert client.get(f"/media/{sha}").status_code == 200
     assert client.get("/media/" + "f" * 64).status_code == 404
-    assert client.get("/media/..%2f..%2fclipwarden.sqlite3").status_code == 404
+    assert client.get("/media/..%2f..%2ffairclip.sqlite3").status_code == 404
 
 
 def test_autoescape_blocks_xss(client, store, tmp_path):
-    from clipwarden.models import Metadata
+    from fairclip.models import Metadata
 
     cid, _ = add_clip(store, tmp_path)
     md = Metadata(title="Normal title here", description="safe").model_dump(mode="json")
@@ -148,7 +148,7 @@ def test_autoescape_blocks_xss(client, store, tmp_path):
 
 # ------------------------------------------------------------------------------- worker policy + hostile media
 def test_worker_policy(tmp_path: Path):
-    from clipwarden.media import worker
+    from fairclip.media import worker
 
     j = tmp_path / "job-1"
     ok = worker.valid({"tool": "ffmpeg", "args": ["-i", f"{j}/in/a.mp4", f"{j}/out/b.mp4"]}, j)
@@ -163,15 +163,15 @@ def test_worker_policy(tmp_path: Path):
     assert '"returncode": 98' in (j / "result.json").read_text()
 
 
-@pytest.mark.skipif(not __import__("os").environ.get("CLIPWARDEN_TEST_IMAGE"), reason="set CLIPWARDEN_TEST_IMAGE to a built media image")
+@pytest.mark.skipif(not __import__("os").environ.get("FAIRCLIP_TEST_IMAGE"), reason="set FAIRCLIP_TEST_IMAGE to a built media image")
 def test_hostile_media_is_contained(tmp_path: Path):
     """A file that looks like MP4 but is garbage: decoded only inside the sandbox, rejected, audited."""
     import json as _json
     import os
 
-    from clipwarden.config import Settings
-    from clipwarden.pipeline import Pipeline, PipelineError
-    from clipwarden.store import sha256_file
+    from fairclip.config import Settings
+    from fairclip.pipeline import Pipeline, PipelineError
+    from fairclip.store import sha256_file
 
     evil = tmp_path / "evil.mp4"
     evil.write_bytes(b"\0\0\0\x18ftypisom" + os.urandom(200_000))
@@ -179,7 +179,7 @@ def test_hostile_media_is_contained(tmp_path: Path):
               "source_sha256": sha256_file(evil)}
     (tmp_path / "r.json").write_text(_json.dumps(rights))
     s = Settings(data_dir=str(tmp_path / "d"))
-    s.media.runner, s.media.image = "docker", os.environ["CLIPWARDEN_TEST_IMAGE"]
+    s.media.runner, s.media.image = "docker", os.environ["FAIRCLIP_TEST_IMAGE"]
     p = Pipeline(s)
     with pytest.raises(PipelineError, match="media rejected"):
         p.ingest(evil, tmp_path / "r.json")

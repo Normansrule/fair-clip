@@ -19,7 +19,7 @@
     <dt>Mode</dt><dd>{{ settings.publish.mode }}</dd>
     <dt>Live ready</dt><dd>{{ 'yes' if ready else 'no: ' ~ why }}</dd>
     <dt>OAuth scopes</dt><dd class="mono small">{{ settings.publish.scopes | join(' ') }}</dd>
-    <dt>Token</dt><dd>{% if has_token is none %}vault locked (set CLIPWARDEN_VAULT_PASSPHRASE){% elif has_token %}stored (keychain/encrypted){% else %}none{% endif %}</dd>
+    <dt>Token</dt><dd>{% if has_token is none %}vault locked (set FAIRCLIP_VAULT_PASSPHRASE){% elif has_token %}stored (keychain/encrypted){% else %}none{% endif %}</dd>
     <dt>Daily cap</dt><dd>{{ settings.channel.daily_cap }} clips/day</dd>
   </dl>
   {% if has_token %}
@@ -31,7 +31,7 @@
   <h2>Analytics (read-only)</h2>
   <p class="small">A separate token with only <code>yt-analytics.readonly</code>. It can read numbers; it can't upload or change anything.</p>
   <dl class="kv">
-    <dt>Token</dt><dd>{% if has_analytics is none %}vault locked{% elif has_analytics %}connected{% else %}not connected: run <code>clipwarden analytics connect</code>{% endif %}</dd>
+    <dt>Token</dt><dd>{% if has_analytics is none %}vault locked{% elif has_analytics %}connected{% else %}not connected: run <code>fair-clip analytics connect</code>{% endif %}</dd>
     <dt>Clips usable for tuning</dt><dd>{{ training_n }} of the {{ min_n }} needed (real data, ≥ 50 views each)</dd>
   </dl>
   {% if has_analytics %}

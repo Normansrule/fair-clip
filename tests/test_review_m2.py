@@ -13,19 +13,19 @@ from conftest import base_plan
 from fastapi.testclient import TestClient
 from test_milestone2 import fake_api, ok_resp, published
 
-from clipwarden import cli
-from clipwarden.analytics_api import pull, training_rows
-from clipwarden.gate import numbers
-from clipwarden.media.templates import (
+from fairclip import cli
+from fairclip.analytics_api import pull, training_rows
+from fairclip.gate import numbers
+from fairclip.media.templates import (
     HORIZONTAL_BOX,
     VERTICAL_BOX,
     count_up_frames,
     template_events,
 )
-from clipwarden.models import ValueAddElement, fmt_value
-from clipwarden.scoring import FEATURES
-from clipwarden.web import security as sec
-from clipwarden.web.app import create_app
+from fairclip.models import ValueAddElement, fmt_value
+from fairclip.scoring import FEATURES
+from fairclip.web import security as sec
+from fairclip.web.app import create_app
 
 ROOT = Path(__file__).resolve().parents[1]
 SENT = "x" * 9 + " " + ("word " * 30)[:130]  # 140 characters: the maximum with a template
@@ -62,7 +62,7 @@ def test_app_fails_loudly_when_port_is_taken(tmp_path, monkeypatch):
     squat.bind(("127.0.0.1", 0))
     squat.listen(1)
     port = squat.getsockname()[1]
-    cfg = tmp_path / "clipwarden.toml"
+    cfg = tmp_path / "fairclip.toml"
     cfg.write_text(f'data_dir = "."\n[dashboard]\nhost = "127.0.0.1"\nport = {port}\n')
     opened = []
     monkeypatch.setattr(cli, "_open_browser", opened.append)
@@ -76,15 +76,15 @@ def test_app_fails_loudly_when_port_is_taken(tmp_path, monkeypatch):
 # --------------------------------------------------------------- 3. every command finds the app's data
 def test_config_resolution_order(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("CLIPWARDEN_CONFIG", raising=False)
+    monkeypatch.delenv("FAIRCLIP_CONFIG", raising=False)
     monkeypatch.setattr(cli, "APP_HOME", tmp_path / "apphome")
     assert cli.config_path(None) is None
     (tmp_path / "apphome").mkdir()
-    (tmp_path / "apphome" / "clipwarden.toml").write_text('data_dir = "."\n')
-    assert cli.config_path(None) == tmp_path / "apphome" / "clipwarden.toml"  # e.g. `clipwarden kill on` from ~
-    (tmp_path / "clipwarden.toml").write_text('data_dir = "."\n')
-    assert cli.config_path(None) == Path("clipwarden.toml")
-    monkeypatch.setenv("CLIPWARDEN_CONFIG", "/x/env.toml")
+    (tmp_path / "apphome" / "fairclip.toml").write_text('data_dir = "."\n')
+    assert cli.config_path(None) == tmp_path / "apphome" / "fairclip.toml"  # e.g. `fair-clip kill on` from ~
+    (tmp_path / "fairclip.toml").write_text('data_dir = "."\n')
+    assert cli.config_path(None) == Path("fairclip.toml")
+    monkeypatch.setenv("FAIRCLIP_CONFIG", "/x/env.toml")
     assert cli.config_path(None) == Path("/x/env.toml")
     assert cli.config_path("explicit.toml") == Path("explicit.toml")
 
@@ -92,12 +92,12 @@ def test_config_resolution_order(tmp_path, monkeypatch):
 def test_kill_switch_from_home_reaches_the_app(tmp_path, monkeypatch):
     home = tmp_path / "apphome"
     home.mkdir()
-    (home / "clipwarden.toml").write_text('data_dir = "."\n')
+    (home / "fairclip.toml").write_text('data_dir = "."\n')
     monkeypatch.setattr(cli, "APP_HOME", home)
-    monkeypatch.delenv("CLIPWARDEN_CONFIG", raising=False)
+    monkeypatch.delenv("FAIRCLIP_CONFIG", raising=False)
     monkeypatch.chdir(tmp_path)
     assert cli.main(["kill", "on"]) == 0
-    from clipwarden.store import Store
+    from fairclip.store import Store
     assert Store(home).kill_switch and not (tmp_path / "data").exists()
 
 
@@ -105,11 +105,11 @@ def test_kill_switch_from_home_reaches_the_app(tmp_path, monkeypatch):
 def test_piped_installer_does_not_install_from_cwd(tmp_path):
     """Piped from inside a checkout, it must take the download path (which fails offline here)."""
     script = (ROOT / "scripts" / "install.sh").read_text()
-    env = {"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "CLIPWARDEN_VERSION": "v0.0.0",
-           "CLIPWARDEN_REPO": "invalid.invalid/none"}
+    env = {"HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "FAIRCLIP_VERSION": "v0.0.0",
+           "FAIRCLIP_REPO": "invalid.invalid/none"}
     r = subprocess.run(["bash"], input=script, text=True, capture_output=True, cwd=ROOT / "docs", env=env, timeout=120)
     assert "installing from this checkout" not in r.stdout + r.stderr
-    assert r.returncode != 0 and not (tmp_path / ".local" / "share" / "clipwarden" / "app").exists()
+    assert r.returncode != 0 and not (tmp_path / ".local" / "share" / "fair-clip" / "app").exists()
 
 
 def test_installer_body_runs_only_when_fully_downloaded():
@@ -175,7 +175,7 @@ def test_markets_and_ambiguous_figures_dont_count_up():
         assert count_up_frames(h) == [h]
     plan = base_plan(tags=["markets"], value_add=[_key("$1.9B", 0, 10).model_dump()],
                      markets={"disclaimer_on_screen": True, "disclaimer_in_description": True})
-    from clipwarden.media.overlay import build_ass
+    from fairclip.media.overlay import build_ass
 
     class M:
         duration = 30.0
@@ -254,7 +254,7 @@ def test_store_update_is_atomic_across_connections(tmp_path):
     """Two Store objects = two connections, like the CLI and the dashboard in separate processes."""
     import threading
 
-    from clipwarden.store import Store
+    from fairclip.store import Store
     a, b = Store(tmp_path / "d"), Store(tmp_path / "d")
 
     def bump(s, tag):

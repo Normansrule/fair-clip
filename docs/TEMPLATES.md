@@ -30,7 +30,7 @@ In your plan file, add `template` and `data` to a value-add element. Times are o
 }
 ```
 
-Copy-ready examples of all five live in [`src/clipwarden/media/templates.py`](../src/clipwarden/media/templates.py) (`EXAMPLES`). Preview them over the sample talk with:
+Copy-ready examples of all five live in [`src/fairclip/media/templates.py`](../src/fairclip/media/templates.py) (`EXAMPLES`). Preview them over the sample talk with:
 
 ```bash
 python scripts/render_templates.py            # writes assets/templates/*.png and *.gif

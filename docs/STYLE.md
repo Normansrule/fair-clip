@@ -20,7 +20,7 @@ Every visual in this repo (diagrams, charts, the dashboard, the overlays burned 
 
 ## Type
 
-- **DejaVu Sans** (bundled in `src/clipwarden/data/fonts/`, Bitstream Vera licence) for everything burned into video and for diagrams. Bundling it means a clip renders identically on every machine and inside the sandbox.
+- **DejaVu Sans** (bundled in `src/fairclip/data/fonts/`, Bitstream Vera licence) for everything burned into video and for diagrams. Bundling it means a clip renders identically on every machine and inside the sandbox.
 - The dashboard uses the system UI font stack, so it loads no remote fonts and the Content Security Policy (CSP) stays strict.
 - Code, hashes and reason codes use a monospace font (`DejaVu Sans Mono`).
 

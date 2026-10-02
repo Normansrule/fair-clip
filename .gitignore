@@ -6,7 +6,7 @@ secrets/
 vault.json.enc
 session.key
 client_secret*.json
-clipwarden.toml
+fairclip.toml
 .env
 .env.*
 !.env.example

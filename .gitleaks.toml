@@ -1,5 +1,5 @@
 # gitleaks config: default rules plus project-specific ones.
-title = "clipwarden gitleaks config"
+title = "fair-clip gitleaks config"
 
 [extend]
 useDefault = true

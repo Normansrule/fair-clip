@@ -23,9 +23,9 @@ import sys
 import time
 from pathlib import Path
 
-JOBS = Path(os.environ.get("CLIPWARDEN_JOBS", "/jobs"))
+JOBS = Path(os.environ.get("FAIRCLIP_JOBS", "/jobs"))
 TOOLS = {"ffmpeg": "/usr/bin/ffmpeg", "ffprobe": "/usr/bin/ffprobe"}
-TIMEOUT = int(os.environ.get("CLIPWARDEN_JOB_TIMEOUT", "900"))
+TIMEOUT = int(os.environ.get("FAIRCLIP_JOB_TIMEOUT", "900"))
 FORBIDDEN = ("http:", "https:", "tcp:", "udp:", "rtmp", "rtsp", "ftp:", "concat:", "subfile:", "data:", "pipe:", "unix:",
              "async:", "cache:", "crypto:", "gopher", "hls:", "srt:", "tls:", "sftp:", "smb:")
 # Every absolute path anywhere in an argument, including inside filter options ("movie=/x",
@@ -78,7 +78,7 @@ def run_job(job_dir: Path) -> None:
 
 
 def main() -> int:  # pragma: no cover - long-running service
-    print(f"clipwarden media worker watching {JOBS}", flush=True)
+    print(f"fair-clip media worker watching {JOBS}", flush=True)
     while True:
         for job_dir in sorted(JOBS.glob("job-*")):
             if (job_dir / "job.json").exists() and not (job_dir / "result.json").exists():

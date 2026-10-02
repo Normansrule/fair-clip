@@ -8,7 +8,7 @@ import httpx
 import pytest
 from conftest import base_plan, own_rights
 
-from clipwarden.llm import (
+from fairclip.llm import (
     ModelOutputRejected,
     OpenAICompatibleAdapter,
     injection_signals,
@@ -16,14 +16,14 @@ from clipwarden.llm import (
     sanitize,
     wrap_untrusted,
 )
-from clipwarden.metadata import (
+from fairclip.metadata import (
     MARKETS_DISCLAIMER,
     assemble_description,
     build_metadata,
     chapters_for,
     shorten,
 )
-from clipwarden.models import Sentence
+from fairclip.models import Sentence
 
 
 def S(t, a, b):
@@ -81,7 +81,7 @@ def test_model_cannot_add_fields_or_bypass_schema():
 def test_obedient_model_output_still_has_frame_and_is_caught_by_gate():
     from conftest import make_ctx
 
-    from clipwarden.gate import run_gate
+    from fairclip.gate import run_gate
 
     plan = base_plan()
     md, notes, _summary = build_metadata(plan, SENTS, own_rights(), "", ["bridge", "wind"], llm=ObedientModel())

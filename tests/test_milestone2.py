@@ -13,7 +13,7 @@ from conftest import SHA, base_plan, make_ctx
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from clipwarden.analytics_api import (
+from fairclip.analytics_api import (
     REPORTS_URL,
     AnalyticsError,
     fetch_clip,
@@ -21,13 +21,13 @@ from clipwarden.analytics_api import (
     pull,
     training_rows,
 )
-from clipwarden.gate import load_screen_terms, run_gate
-from clipwarden.media.overlay import build_ass
-from clipwarden.media.templates import EXAMPLES, count_up_frames, template_events
-from clipwarden.models import TemplateKind, ValueAddElement
-from clipwarden.scoring import FEATURES, MAX_STEP, MIN_CLIPS_FOR_UPDATE
-from clipwarden.web import security as sec
-from clipwarden.web.app import create_app
+from fairclip.gate import load_screen_terms, run_gate
+from fairclip.media.overlay import build_ass
+from fairclip.media.templates import EXAMPLES, count_up_frames, template_events
+from fairclip.models import TemplateKind, ValueAddElement
+from fairclip.scoring import FEATURES, MAX_STEP, MIN_CLIPS_FOR_UPDATE
+from fairclip.web import security as sec
+from fairclip.web.app import create_app
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -244,9 +244,9 @@ def test_manifest_served_and_linked(store, settings):
 
 
 def test_package_data_ships_fonts_and_screen_terms():
-    pd = tomllib.loads((ROOT / "pyproject.toml").read_text())["tool"]["setuptools"]["package-data"]["clipwarden"]
+    pd = tomllib.loads((ROOT / "pyproject.toml").read_text())["tool"]["setuptools"]["package-data"]["fairclip"]
     assert "data/fonts/*" in pd and "web/static/*" in pd
-    terms = load_screen_terms(ROOT / "src" / "clipwarden" / "data" / "screen_terms.txt")
+    terms = load_screen_terms(ROOT / "src" / "fairclip" / "data" / "screen_terms.txt")
     assert terms["hard"] and terms["soft"]
 
 
@@ -277,7 +277,7 @@ def test_settings_shows_tuning_progress(store, settings):
 
 def test_published_gate_counts_match_code():
     """README and the Pages site quote the gate size; they must match the registry."""
-    from clipwarden.gate.reasons import REASONS
+    from fairclip.gate.reasons import REASONS
     n = len(REASONS)
     b = sum(1 for v in REASONS.values() if v[1] == "block")
     readme = (ROOT / "README.md").read_text()

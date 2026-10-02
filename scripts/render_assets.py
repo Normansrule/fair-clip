@@ -20,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.gate.reasons import GROUP_ORDER, REASONS  # noqa: E402
-from clipwarden.scoring import FEATURES, normalise, step_toward  # noqa: E402
+from fairclip.gate.reasons import GROUP_ORDER, REASONS  # noqa: E402
+from fairclip.scoring import FEATURES, normalise, step_toward  # noqa: E402
 
 ASSETS = ROOT / "assets"
 SRC = ASSETS / "src"
@@ -258,7 +258,7 @@ def mpl(mode: str):
 
     p = PAL[mode]
     plt.rcParams.update({
-        "svg.hashsalt": "clipwarden", "svg.fonttype": "path", "font.family": "DejaVu Sans", "font.size": 11,
+        "svg.hashsalt": "fair-clip", "svg.fonttype": "path", "font.family": "DejaVu Sans", "font.size": 11,
         "figure.facecolor": p["bg"], "axes.facecolor": p["bg"], "axes.edgecolor": p["line"], "axes.labelcolor": p["ink"],
         "xtick.color": p["muted"], "ytick.color": p["muted"], "text.color": p["ink"], "axes.grid": True, "grid.color": p["grid"],
         "axes.spines.top": False, "axes.spines.right": False, "legend.frameon": False,

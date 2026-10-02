@@ -14,16 +14,16 @@ import pytest
 from conftest import own_rights
 from pydantic import ValidationError
 
-from clipwarden.audit import AuditLog
-from clipwarden.config import Settings, load_settings
-from clipwarden.links import check_links, entry_problems, find_links
-from clipwarden.media.overlay import build_ass, escape
-from clipwarden.media.probe import MediaRejected, parse_probe, sniff_container
-from clipwarden.media.timeline import TimelineMap, keep_intervals
-from clipwarden.models import ClipPlan, RightsRecord, Word
-from clipwarden.redact import redact
-from clipwarden.rights import RightsError, attribution_line, load_rights, rights_problems
-from clipwarden.vault import EncryptedFileVault, VaultError
+from fairclip.audit import AuditLog
+from fairclip.config import Settings, load_settings
+from fairclip.links import check_links, entry_problems, find_links
+from fairclip.media.overlay import build_ass, escape
+from fairclip.media.probe import MediaRejected, parse_probe, sniff_container
+from fairclip.media.timeline import TimelineMap, keep_intervals
+from fairclip.models import ClipPlan, RightsRecord, Word
+from fairclip.redact import redact
+from fairclip.rights import RightsError, attribution_line, load_rights, rights_problems
+from fairclip.vault import EncryptedFileVault, VaultError
 
 # ------------------------------------------------------------------------------------ audit
 
@@ -220,7 +220,7 @@ def test_config_safety_limits(tmp_path: Path, monkeypatch):
         Settings.model_validate({"gate": {"min_value_add_ratio": 0.05}})
     cfg = tmp_path / "c.toml"
     cfg.write_text('[dashboard]\nhost = "0.0.0.0"\n')
-    monkeypatch.delenv("CLIPWARDEN_IN_CONTAINER", raising=False)
+    monkeypatch.delenv("FAIRCLIP_IN_CONTAINER", raising=False)
     with pytest.raises(ValueError, match="only allowed inside"):
         load_settings(cfg)
     with pytest.raises(ValidationError):

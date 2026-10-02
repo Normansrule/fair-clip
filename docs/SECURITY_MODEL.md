@@ -114,7 +114,7 @@ The rules are mapped in [POLICY.md](POLICY.md). In short: a value-add minimum, d
 
 - Bound to `127.0.0.1` by config validation (`0.0.0.0` only inside the compose container, which publishes on the host's loopback).
 - The Host-header allowlist blocks DNS rebinding.
-- First run: `clipwarden dashboard` prints a random password once; `clipwarden app` instead opens a **single-use welcome link** (`/setup?t=…`, 192-bit token held only in memory) to choose one. The link stops working after use, after a restart, or as soon as any password exists. Either way only an scrypt hash is stored. Five failed logins in 15 minutes trigger a lockout.
+- First run: `fair-clip dashboard` prints a random password once; `fair-clip app` instead opens a **single-use welcome link** (`/setup?t=…`, 192-bit token held only in memory) to choose one. The link stops working after use, after a restart, or as soon as any password exists. Either way only an scrypt hash is stored. Five failed logins in 15 minutes trigger a lockout.
 - Cookies are signed, HttpOnly and SameSite=Strict, and expire after 12 h. Every POST needs a CSRF token and a same-origin `Origin` header.
 - `Referrer-Policy: same-origin`, not `no-referrer`. With `no-referrer`, browsers send `Origin: null` on form posts, which would break the Origin check. We found this when rendering the docs' screenshots.
 - CSP: `default-src 'self'`, no inline script, `frame-ancestors 'none'`. Jinja2 autoescaping is on, and a test injects `<script>` through the database.

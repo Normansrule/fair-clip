@@ -43,7 +43,7 @@ HERE = Path(__file__).resolve().parent
 
 def create_app(settings: Settings, store: Store | None = None, extra_hosts: tuple[str, ...] = (),
                setup_token: str | None = None) -> FastAPI:
-    """`setup_token` (from `clipwarden app`): on first run, instead of printing a generated password,
+    """`setup_token` (from `fair-clip app`): on first run, instead of printing a generated password,
     allow ONE visit to /setup?t=<token> to choose it. The token lives only in memory and dies on use."""
     store = store or Store(settings.data_path)
     sessions = sec.Sessions(sec.session_key(store.root), store)
@@ -55,7 +55,7 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     setup_throttle = sec.Throttle()  # separate from login, so a stale setup tab can't lock you out of /login
     first_pw = None if setup["token"] else sec.ensure_password(store)
     if first_pw:
-        print("\n  First run: dashboard password (shown once, change it with `clipwarden set-password`):\n"
+        print("\n  First run: dashboard password (shown once, change it with `fair-clip set-password`):\n"
               f"    {first_pw}\n")
 
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)

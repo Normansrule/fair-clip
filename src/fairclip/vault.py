@@ -4,7 +4,7 @@ Preferred: the operating-system keychain (macOS Keychain, Windows Credential Man
 Secret Service on Linux) via the optional ``keyring`` package.
 
 Fallback: an encrypted file. The key is derived from a passphrase in the environment
-variable CLIPWARDEN_VAULT_PASSPHRASE with scrypt (n=2^15, r=8, p=1), and the token is sealed
+variable FAIRCLIP_VAULT_PASSPHRASE with scrypt (n=2^15, r=8, p=1), and the token is sealed
 with AES-GCM (authenticated, so tampering is detected). Without the passphrase the file is
 useless. Put the passphrase in a secrets manager or your shell's keychain helper, not in .env.
 """
@@ -21,8 +21,8 @@ from typing import Any
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
-SERVICE = "clipwarden"
-PASS_ENV = "CLIPWARDEN_VAULT_PASSPHRASE"  # noqa: S105 - env var name
+SERVICE = "fair-clip"
+PASS_ENV = "FAIRCLIP_VAULT_PASSPHRASE"  # noqa: S105 - env var name
 
 
 class VaultError(RuntimeError):
@@ -43,7 +43,7 @@ def _keyring():  # pragma: no cover - depends on the host OS
 
 
 def passphrase_from_env() -> str | None:
-    """CLIPWARDEN_VAULT_PASSPHRASE, or the contents of the file named by ..._FILE (Docker secrets)."""
+    """FAIRCLIP_VAULT_PASSPHRASE, or the contents of the file named by ..._FILE (Docker secrets)."""
     f = os.environ.get(PASS_ENV + "_FILE")
     if f and Path(f).exists():
         return Path(f).read_text().strip()

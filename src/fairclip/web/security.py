@@ -87,7 +87,7 @@ def session_key(data_dir: Path) -> bytes:
 
 class Sessions:
     def __init__(self, key: bytes, store: Store) -> None:
-        self.s = URLSafeTimedSerializer(key, salt="clipwarden-session")
+        self.s = URLSafeTimedSerializer(key, salt="fair-clip-session")
         self.store = store
 
     def issue(self, user: str) -> str:

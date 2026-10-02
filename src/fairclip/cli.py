@@ -1,4 +1,4 @@
-"""clipwarden command line. Run `clipwarden --help`."""
+"""fair-clip command line. Run `fair-clip --help`."""
 
 from __future__ import annotations
 
@@ -15,19 +15,19 @@ from .config import load_settings
 from .pipeline import Pipeline, PipelineError
 from .rights import RightsError
 
-APP_HOME = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "clipwarden"
+APP_HOME = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "fair-clip"
 
 
 def config_path(arg: str | None) -> Path | None:
-    """One rule for every command, so `clipwarden kill on` stops the same app you launched:
-    --config  >  $CLIPWARDEN_CONFIG  >  ./clipwarden.toml  >  the app's ~/.local/share/clipwarden/clipwarden.toml."""
+    """One rule for every command, so `fair-clip kill on` stops the same app you launched:
+    --config  >  $FAIRCLIP_CONFIG  >  ./fairclip.toml  >  the app's ~/.local/share/fair-clip/fairclip.toml."""
     if arg:
         return Path(arg)
-    if os.environ.get("CLIPWARDEN_CONFIG"):
-        return Path(os.environ["CLIPWARDEN_CONFIG"])
-    if Path("clipwarden.toml").exists():
-        return Path("clipwarden.toml")
-    app = APP_HOME / "clipwarden.toml"
+    if os.environ.get("FAIRCLIP_CONFIG"):
+        return Path(os.environ["FAIRCLIP_CONFIG"])
+    if Path("fairclip.toml").exists():
+        return Path("fairclip.toml")
+    app = APP_HOME / "fairclip.toml"
     return app if app.exists() else None
 
 
@@ -70,7 +70,7 @@ def cmd_publish(a: argparse.Namespace) -> int:
     p = _pipeline(a)
     if a.action == "enable-live":
         if p.s.publish.mode != "live":
-            print("set publish.mode = \"live\" in clipwarden.toml first", file=sys.stderr)
+            print("set publish.mode = \"live\" in fairclip.toml first", file=sys.stderr)
             return 1
         if input("Type ENABLE LIVE to allow real uploads: ").strip() != "ENABLE LIVE":
             return 1
@@ -158,7 +158,7 @@ def cmd_analytics(a: argparse.Namespace) -> int:
     p = _pipeline(a)
     if a.action == "import":
         if not a.file:
-            raise ValueError("usage: clipwarden analytics import FILE.json")
+            raise ValueError("usage: fair-clip analytics import FILE.json")
         return _import_analytics(p, a.file)
     from .publish.youtube import authorize, credentials, revoke
     from .vault import open_vault
@@ -221,7 +221,7 @@ def cmd_dashboard(a: argparse.Namespace) -> int:
     return 0
 
 
-APP_CONFIG = """# clipwarden app config (created on first run). Edit, then restart `clipwarden app`.
+APP_CONFIG = """# fair-clip app config (created on first run). Edit, then restart `fair-clip app`.
 data_dir = "."
 link_allowlist = []
 
@@ -231,7 +231,7 @@ topics = []
 daily_cap = 3
 
 [publish]
-mode = "dry-run"          # nothing leaves your machine until you run `clipwarden publish enable-live`
+mode = "dry-run"          # nothing leaves your machine until you run `fair-clip publish enable-live`
 
 [dashboard]
 host = "127.0.0.1"
@@ -264,7 +264,7 @@ def cmd_app(a: argparse.Namespace) -> int:
     from .store import Store
     from .web.app import create_app
 
-    cfg = config_path(a.config) or APP_HOME / "clipwarden.toml"
+    cfg = config_path(a.config) or APP_HOME / "fairclip.toml"
     if not cfg.exists():
         cfg.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         cfg.write_text(APP_CONFIG)
@@ -284,14 +284,14 @@ def cmd_app(a: argparse.Namespace) -> int:
         time.sleep(0.05)
     if not server.started:
         server.should_exit = True
-        raise RuntimeError(f"could not start on {url}: is clipwarden (or something else) already running there? "
+        raise RuntimeError(f"could not start on {url}: is fair-clip (or something else) already running there? "
                            "Close it, or set [dashboard] port in " + str(cfg))
-    print(f"clipwarden is running at {url}  (localhost only; press Ctrl+C to stop)")
-    print("tip: in Chrome or Edge choose 'Install clipwarden' (or 'Install page as app') to give it its own window")
+    print(f"fair-clip is running at {url}  (localhost only; press Ctrl+C to stop)")
+    print("tip: in Chrome or Edge choose 'Install fair-clip' (or 'Install page as app') to give it its own window")
     target = url + f"setup?t={token}" if token else url
     if token:
         print(f"first run: choose your password at {target}")
-        print("  (closed that tab? stop clipwarden and start it again for a fresh link)")
+        print("  (closed that tab? stop fair-clip and start it again for a fresh link)")
     if not a.no_browser:
         _open_browser(target)
     try:
@@ -319,8 +319,8 @@ def cmd_set_password(a: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     redact.install()
-    ap = argparse.ArgumentParser(prog="clipwarden", description="Security-first clipping pipeline. Automate the labor, never the judgment.")
-    ap.add_argument("--config", default=None, help="path to clipwarden.toml")
+    ap = argparse.ArgumentParser(prog="fair-clip", description="Security-first clipping pipeline. Automate the labor, never the judgment.")
+    ap.add_argument("--config", default=None, help="path to fairclip.toml")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("ingest", help="stages 1-3: rights check, transcribe, rank highlights")
     s.add_argument("video"), s.add_argument("--rights", required=True), s.add_argument("--transcript")

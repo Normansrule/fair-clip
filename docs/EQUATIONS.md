@@ -70,7 +70,7 @@ Sub-examples:
   <img alt="Rank of each of the five candidates as the energy weight moves from 0.05 to 0.6. Ranks 1 to 3 swap at about 0.07 and 0.28; ranks 4 and 5 never change." src="../assets/eq1-sensitivity-light.svg" width="100%">
 </picture>
 
-*Figure 2. What changes when one variable changes: as w_E grows past ≈ 0.28, the louder anchorage segment overtakes the faster cables segment; below ≈ 0.07 the order of #1 and #2 flips. Try every weight live in the [interactive demo](https://normansrule.github.io/clipwarden/demo.html).*
+*Figure 2. What changes when one variable changes: as w_E grows past ≈ 0.28, the louder anchorage segment overtakes the faster cables segment; below ≈ 0.07 the order of #1 and #2 flips. Try every weight live in the [interactive demo](https://normansrule.github.io/fair-clip/demo.html).*
 
 **Limits.** z-scores need at least two candidates and are meaningless when every window is alike (then all z = 0). $R$ is a bag-of-words measure: it can't tell "the bridge didn't fail" from "the bridge failed". The score finds lively, on-topic moments, not *true* or *fair* ones. That is what the value-add rule and the human reviewer are for. Windows always start and end on sentence boundaries, so a clip never starts mid-thought.
 

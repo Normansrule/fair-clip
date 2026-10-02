@@ -1,5 +1,5 @@
-# clipwarden configuration. Copy to clipwarden.toml and edit.
-# Safety-critical limits have hard floors/ceilings in code (see src/clipwarden/config.py).
+# fair-clip configuration. Copy to fairclip.toml and edit.
+# Safety-critical limits have hard floors/ceilings in code (see src/fairclip/config.py).
 
 data_dir = "./data"
 
@@ -26,12 +26,12 @@ max_candidates = 10
 
 [media]
 runner = "auto"             # "docker" = always sandbox; "auto" = sandbox, or host only for pinned trusted demo files
-image = "clipwarden-media:0.2.0"
+image = "fairclip-media:0.2.0"
 memory = "2g"
 cpus = "2"
 
 [publish]
-mode = "dry-run"            # "live" also needs `clipwarden publish enable-live`
+mode = "dry-run"            # "live" also needs `fair-clip publish enable-live`
 require_human_approval = true   # cannot be turned off for markets/affiliate/sponsored clips
 oauth_client_file = "client_secret.json"
 

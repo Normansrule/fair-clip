@@ -1,6 +1,6 @@
 Sample talk "Where does the weight go?" (examples/demo/source.mp4, transcript.json)
 
-Made from scratch by clipwarden contributors with scripts/make_sample.py: slides and a geometric
+Made from scratch by fair-clip contributors with scripts/make_sample.py: slides and a geometric
 narrator drawn in Python, narration synthesized with espeak-ng. No third-party footage, music,
 images or real people.
 

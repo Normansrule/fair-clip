@@ -1,4 +1,4 @@
-# clipwarden media sandbox: FFmpeg + fonts + the job worker. Nothing else.
+# fair-clip media sandbox: FFmpeg + fonts + the job worker. Nothing else.
 # Base pinned by digest (debian:trixie-slim, 2026-09-19 build; see docker-library/repo-info).
 # Dependabot keeps the digest current. For byte-for-byte reproducible apt packages, build with
 #   --build-arg SNAPSHOT=20260919T000000Z   (uses snapshot.debian.org at that instant)
@@ -16,13 +16,13 @@ RUN set -eux; \
     ffmpeg -hide_banner -version | head -1 > /ffmpeg-version.txt; \
     useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin media
 
-COPY src/clipwarden/data/fonts/*.ttf /fonts/
-COPY src/clipwarden/media/worker.py /app/worker.py
+COPY src/fairclip/data/fonts/*.ttf /fonts/
+COPY src/fairclip/media/worker.py /app/worker.py
 
 USER 10001:10001
 WORKDIR /tmp
 # Per-job mode (`docker run ... --entrypoint ffmpeg`) overrides this; compose runs the worker.
 ENTRYPOINT ["python3", "/app/worker.py"]
-LABEL org.opencontainers.image.title="clipwarden-media" \
-      org.opencontainers.image.description="Network-less FFmpeg sandbox for clipwarden" \
+LABEL org.opencontainers.image.title="fairclip-media" \
+      org.opencontainers.image.description="Network-less FFmpeg sandbox for fair-clip" \
       org.opencontainers.image.licenses="Apache-2.0"

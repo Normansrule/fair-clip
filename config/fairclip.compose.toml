@@ -1,4 +1,4 @@
-# Config for docker-compose. `make compose-init` copies this to data/clipwarden.toml.
+# Config for docker-compose. `make compose-init` copies this to data/fairclip.toml.
 data_dir = "/data"
 link_allowlist = []
 

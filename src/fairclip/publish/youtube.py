@@ -47,7 +47,7 @@ def authorize(client_file: Path, scopes: list[str], vault: KeychainVault | Encry
     flow = InstalledAppFlow.from_client_secrets_file(str(client_file), scopes=scopes, autogenerate_code_verifier=True)
     creds = flow.run_local_server(host="127.0.0.1", bind_addr="127.0.0.1", port=0, open_browser=True,
                                   authorization_prompt_message="Opening Google sign-in in your browser...",
-                                  success_message="clipwarden is authorized. You can close this tab.")
+                                  success_message="fair-clip is authorized. You can close this tab.")
     granted = set(getattr(creds, "granted_scopes", None) or creds.scopes or scopes)
     if granted - set(scopes):
         raise PublishError(f"Google granted extra scopes {granted - set(scopes)}; refusing to store them")
@@ -61,8 +61,8 @@ def credentials(client_file: Path, vault: KeychainVault | EncryptedFileVault, to
 
     rec = vault.load(token_name)
     if not rec:
-        raise PublishError("not authorized: run `clipwarden auth login`" if token_name == TOKEN_NAME
-                           else "analytics not connected: run `clipwarden analytics connect`")
+        raise PublishError("not authorized: run `fair-clip auth login`" if token_name == TOKEN_NAME
+                           else "analytics not connected: run `fair-clip analytics connect`")
     client = json.loads(client_file.read_text())
     c = client.get("installed") or client.get("web") or {}
     return Credentials(None, refresh_token=rec["refresh_token"], token_uri=c.get("token_uri", "https://oauth2.googleapis.com/token"),

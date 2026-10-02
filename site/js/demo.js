@@ -1,4 +1,4 @@
-// clipwarden interactive demo. No dependencies, no network beyond this site's own JSON.
+// fair-clip interactive demo. No dependencies, no network beyond this site's own JSON.
 "use strict";
 
 const FEATURES = ["energy", "relevance", "rate", "scene", "silence"];

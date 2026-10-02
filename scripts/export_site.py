@@ -15,9 +15,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.config import load_settings  # noqa: E402
-from clipwarden.pipeline import Pipeline  # noqa: E402
-from clipwarden.store import Store  # noqa: E402
+from fairclip.config import load_settings  # noqa: E402
+from fairclip.pipeline import Pipeline  # noqa: E402
+from fairclip.store import Store  # noqa: E402
 
 SITE = ROOT / "site"
 
@@ -29,7 +29,7 @@ def enc(src: Path, dst: Path, width: int) -> None:
 
 
 def main() -> int:
-    s = load_settings(ROOT / "demo-data" / "clipwarden.toml")
+    s = load_settings(ROOT / "demo-data" / "fairclip.toml")
     st = Store(s.data_path)
     clips = {r["id"]: r for r in st.rows("clips", order="created")}
     ids = list(clips)

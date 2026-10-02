@@ -9,12 +9,12 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.config import Settings  # noqa: E402
-from clipwarden.gate import GateContext, History  # noqa: E402
-from clipwarden.metadata import assemble_description  # noqa: E402
-from clipwarden.models import ClipPlan, Metadata, RightsRecord, ValueAddElement  # noqa: E402
-from clipwarden.publish.body import build_body  # noqa: E402
-from clipwarden.store import Store  # noqa: E402
+from fairclip.config import Settings  # noqa: E402
+from fairclip.gate import GateContext, History  # noqa: E402
+from fairclip.metadata import assemble_description  # noqa: E402
+from fairclip.models import ClipPlan, Metadata, RightsRecord, ValueAddElement  # noqa: E402
+from fairclip.publish.body import build_body  # noqa: E402
+from fairclip.store import Store  # noqa: E402
 
 TRANSCRIPT = ("So what actually threatens a bridge like this? Usually it is not weight. It is wind. "
               "The deck was thin and flexible, so the wind made it flutter.")

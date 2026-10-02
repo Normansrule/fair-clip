@@ -38,8 +38,8 @@ jobs:
         run: |
           export HOME="$RUNNER_TEMP/home" && mkdir -p "$HOME" && unset XDG_DATA_HOME PYTHONPATH
           bash scripts/install.sh --from-checkout
-          "$HOME/.local/bin/clipwarden" --help > /dev/null
-          ( "$HOME/.local/bin/clipwarden" app --no-browser > app.log 2>&1 & ) && sleep 8
+          "$HOME/.local/bin/fair-clip" --help > /dev/null
+          ( "$HOME/.local/bin/fair-clip" app --no-browser > app.log 2>&1 & ) && sleep 8
           curl -fsS http://127.0.0.1:8765/healthz && grep -q "/setup?t=" app.log
 
   secrets:
@@ -63,16 +63,16 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build images (base images pinned by digest)
         run: |
-          docker build -f sandbox/Dockerfile.media -t clipwarden-media:0.2.0 .
-          docker build -t clipwarden-app:0.2.0 .
+          docker build -f sandbox/Dockerfile.media -t fairclip-media:0.2.0 .
+          docker build -t fairclip-app:0.2.0 .
       - name: App image starts (catches missing runtime dependencies)
-        run: docker run --rm --network none clipwarden-app:0.2.0 --help > /dev/null
+        run: docker run --rm --network none fairclip-app:0.2.0 --help > /dev/null
       - name: Sandbox isolation smoke test (no network, read-only, non-root, worker policy)
-        run: bash scripts/sandbox_smoke.sh clipwarden-media:0.2.0
+        run: bash scripts/sandbox_smoke.sh fairclip-media:0.2.0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Hostile-media test through the real sandbox
         run: |
           python -m pip install --require-hashes -r requirements-dev.lock
-          CLIPWARDEN_TEST_IMAGE=clipwarden-media:0.2.0 PYTHONPATH=src python -m pytest -q tests/test_sandbox_and_web.py -k hostile
+          FAIRCLIP_TEST_IMAGE=fairclip-media:0.2.0 PYTHONPATH=src python -m pytest -q tests/test_sandbox_and_web.py -k hostile

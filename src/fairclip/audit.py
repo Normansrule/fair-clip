@@ -5,7 +5,7 @@ every hash after it and `verify()` reports exactly where. SQLite triggers also r
 and DELETE on the table, so the application itself cannot rewrite history by accident.
 
 This is tamper-*evident*, not tamper-*proof*: someone with write access to the database file
-could rebuild the whole chain. Export the head hash (`clipwarden audit head`) to a place the
+could rebuild the whole chain. Export the head hash (`fair-clip audit head`) to a place the
 pipeline can't write (a printed note, a signed commit, an email to yourself) to anchor it.
 """
 

@@ -3,7 +3,7 @@
 {% block body %}
 <h1>Analytics</h1>
 {% if msg %}<p class="flash" role="status">{{ msg }}</p>{% endif %}
-<div class="row-between"><p class="small">Read-only analytics: {% if connected %}connected{% elif connected is none %}vault locked{% else %}not connected (<code>clipwarden analytics connect</code>){% endif %}</p>
+<div class="row-between"><p class="small">Read-only analytics: {% if connected %}connected{% elif connected is none %}vault locked{% else %}not connected (<code>fair-clip analytics connect</code>){% endif %}</p>
 {% if connected %}<form method="post" action="/analytics/pull"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn primary">Pull now</button></form>{% endif %}</div>
 <p class="muted">Retention r(τ) is the share of viewers still watching at each point of the clip. The shaded area ≈ average percentage viewed (APV).</p>
 {% for c in charts %}
@@ -15,6 +15,6 @@
   {% endif %}{% for k, v in c.stats.items() %} · {{ k }} {{ v }}{% endfor %}</p>
 </section>
 {% else %}
-<section class="card"><p>No analytics yet. Connect with <code>clipwarden analytics connect</code> (read-only scope), then press Pull now, or import a Studio export with <code>clipwarden analytics import FILE.json</code>.</p></section>
+<section class="card"><p>No analytics yet. Connect with <code>fair-clip analytics connect</code> (read-only scope), then press Pull now, or import a Studio export with <code>fair-clip analytics import FILE.json</code>.</p></section>
 {% endfor %}
 {% endblock %}

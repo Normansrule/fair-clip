@@ -24,11 +24,11 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.config import load_settings  # noqa: E402
-from clipwarden.store import Store  # noqa: E402
+from fairclip.config import load_settings  # noqa: E402
+from fairclip.store import Store  # noqa: E402
 
 ASSETS = ROOT / "assets"
-FONTS = ROOT / "src" / "clipwarden" / "data" / "fonts"
+FONTS = ROOT / "src" / "fairclip" / "data" / "fonts"
 PAL = json.loads((ASSETS / "src" / "palette.json").read_text())
 D = PAL["dark"]
 L = PAL["light"]
@@ -59,7 +59,7 @@ def callout(d: ImageDraw.ImageDraw, xy: tuple[int, int], text_xy: tuple[int, int
 
 class Demo:
     def __init__(self, data: Path) -> None:
-        self.s = load_settings(data / "clipwarden.toml")
+        self.s = load_settings(data / "fairclip.toml")
         self.store = Store(self.s.data_path)
         self.clips = {r["id"]: r for r in self.store.rows("clips", order="created")}
         ids = list(self.clips)
@@ -165,11 +165,11 @@ def screenshots(data: Path) -> dict:
     import uvicorn
     from playwright.sync_api import sync_playwright
 
-    from clipwarden.publish.publisher import publish_approved
-    from clipwarden.web import security as sec
-    from clipwarden.web.app import create_app
+    from fairclip.publish.publisher import publish_approved
+    from fairclip.web import security as sec
+    from fairclip.web.app import create_app
 
-    s = load_settings(data / "clipwarden.toml")
+    s = load_settings(data / "fairclip.toml")
     s.dashboard.port = free_port()
     store = Store(s.data_path)
     sec.set_password(store, "demo-password-123")
@@ -343,13 +343,13 @@ tmp_global = Path(tempfile.mkdtemp(prefix="cw-media-"))
 
 def main() -> int:
     src = ROOT / "demo-data"
-    if not (src / "clipwarden.sqlite3").exists():
+    if not (src / "fairclip.sqlite3").exists():
         print("run `make demo` first", file=sys.stderr)
         return 1
     work = tmp_global / "demo-data"
     shutil.copytree(src, work)
-    cfg = (work / "clipwarden.toml").read_text()
-    (work / "clipwarden.toml").write_text(cfg)
+    cfg = (work / "fairclip.toml").read_text()
+    (work / "fairclip.toml").write_text(cfg)
     dm = Demo(work)
     before_after(dm, tmp_global)
     disclosures(dm, tmp_global)

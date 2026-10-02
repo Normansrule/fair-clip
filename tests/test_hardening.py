@@ -11,13 +11,13 @@ from conftest import SHA, TRANSCRIPT, base_plan, make_ctx, own_rights
 from pydantic import ValidationError
 from test_publish import add_clip, ok
 
-from clipwarden.approval import ApprovalError, decide
-from clipwarden.gate import numbers, run_gate
-from clipwarden.links import find_links
-from clipwarden.models import Decision, Metadata, ValueAddElement
-from clipwarden.publish.publisher import publish_approved
-from clipwarden.redact import redact
-from clipwarden.store import Store
+from fairclip.approval import ApprovalError, decide
+from fairclip.gate import numbers, run_gate
+from fairclip.links import find_links
+from fairclip.models import Decision, Metadata, ValueAddElement
+from fairclip.publish.publisher import publish_approved
+from fairclip.redact import redact
+from fairclip.store import Store
 
 
 # ------------------------------------------------------------------------- links: obfuscation
@@ -118,7 +118,7 @@ def test_rights_expiring_before_publish_day_blocks_approval(store, settings, tmp
 
 
 def test_auto_approve_never_applies_to_licensed_content(store, settings, tmp_path):
-    from clipwarden.approval import maybe_auto_approve
+    from fairclip.approval import maybe_auto_approve
     settings.publish.require_human_approval = False
     cid, _ = add_clip(store, tmp_path, rights=own_rights(basis="written_permission", evidence="signed-permission.pdf"))
     assert maybe_auto_approve(store, settings, cid) is False
@@ -166,7 +166,7 @@ def test_url_encoded_refresh_token_redacted():
 
 
 def test_frozen_clip_cannot_be_rerendered(store, settings, tmp_path):
-    from clipwarden.pipeline import Pipeline, PipelineError
+    from fairclip.pipeline import Pipeline, PipelineError
     cid, _ = add_clip(store, tmp_path)
     decide(store, settings, Decision(clip_id=cid, approved=True, reviewer="o"))
     with pytest.raises(PipelineError, match="frozen"):

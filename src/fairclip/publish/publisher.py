@@ -38,7 +38,7 @@ def live_ready(store: Store, settings: Settings) -> tuple[bool, str]:
     if settings.publish.mode != "live":
         return False, "publish.mode is dry-run"
     if not store.get("live_enabled", False):
-        return False, "live publishing not switched on (`clipwarden publish enable-live`)"
+        return False, "live publishing not switched on (`fair-clip publish enable-live`)"
     if not store.get("dry_runs_completed", 0):
         return False, "complete at least one dry run first"
     ok, bad = store.audit.verify()

@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="same-origin">
-<title>clipwarden · security-first AI clipping</title>
+<title>fair-clip · security-first AI clipping</title>
 <meta name="description" content="Open-source pipeline that turns rights-cleared long videos into value-adding short clips, with a blocking compliance gate and human approval before YouTube.">
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a class="brand" href="./"><span>◈</span> clipwarden</a>
-  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/clipwarden">GitHub</a></nav>
+  <a class="brand" href="./"><span>◈</span> fair-clip</a>
+  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
   <section class="hero">
     <div class="motto">Automate the labor, never the judgment</div>
     <h1>Short clips that add something real, and never go out without a person saying yes.</h1>
-    <p class="lede">clipwarden turns long videos you have the <strong>rights</strong> to into captioned vertical clips with your own commentary. Every clip passes a <strong>blocking compliance gate</strong> and <strong>human approval</strong> before it reaches YouTube. Self-hosted, dry-run by default, one narrow OAuth scope.</p>
+    <p class="lede">fair-clip turns long videos you have the <strong>rights</strong> to into captioned vertical clips with your own commentary. Every clip passes a <strong>blocking compliance gate</strong> and <strong>human approval</strong> before it reaches YouTube. Self-hosted, dry-run by default, one narrow OAuth scope.</p>
     <div class="cta"><a class="btn primary" href="demo.html">Try the interactive demo →</a><a class="btn" href="#get">Get the app</a></div>
     <figure class="frame"><img src="assets/hero.gif" alt="Animated tour: a long sample video with a rights record goes in, highlights are ranked, a vertical clip with captions and an owner-written context card is rendered, the gate checks pass, a person approves, and the upload is scheduled as private with a publish time." width="960" height="540"></figure>
   </section>
@@ -78,25 +78,25 @@
   </section>
   <section id="get">
     <h2>Get the app</h2>
-    <p class="sub">clipwarden runs on your own computer. There is no hosted service and no account with us. Three ways in, all dry-run until you switch publishing on.</p>
+    <p class="sub">fair-clip runs on your own computer. There is no hosted service and no account with us. Three ways in, all dry-run until you switch publishing on.</p>
     <div class="grid3">
-      <div class="card"><h3>Desktop app (Ubuntu / WSL2)</h3><p>One command installs a checksum-verified release into your home folder and adds clipwarden to your apps menu (the Windows Start menu on WSL2).</p>
-        <pre class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/Normansrule/clipwarden/main/scripts/install.sh | bash
-clipwarden app</code></pre>
-        <p class="note">In Chrome or Edge, choose “Install clipwarden” to give it its own window.</p></div>
+      <div class="card"><h3>Desktop app (Ubuntu / WSL2)</h3><p>One command installs a checksum-verified release into your home folder and adds fair-clip to your apps menu (the Windows Start menu on WSL2).</p>
+        <pre class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/Normansrule/fair-clip/main/scripts/install.sh | bash
+fair-clip app</code></pre>
+        <p class="note">In Chrome or Edge, choose “Install fair-clip” to give it its own window.</p></div>
       <div class="card"><h3>Docker (always-on)</h3><p>The app and a network-less media worker as two containers. The dashboard is published on 127.0.0.1 only.</p>
-        <pre class="cmd"><code>git clone https://github.com/Normansrule/clipwarden.git
-cd clipwarden
+        <pre class="cmd"><code>git clone https://github.com/Normansrule/fair-clip.git
+cd fair-clip
 make compose-init &amp;&amp; make compose-up</code></pre></div>
       <div class="card"><h3>From source (try the demo)</h3><p>Runs the whole pipeline on the bundled CC0 sample, no Google account needed.</p>
-        <pre class="cmd"><code>git clone https://github.com/Normansrule/clipwarden.git
-cd clipwarden
+        <pre class="cmd"><code>git clone https://github.com/Normansrule/fair-clip.git
+cd fair-clip
 make setup &amp;&amp; make demo &amp;&amp; make dashboard</code></pre></div>
     </div>
-    <p class="note spaced">Releases: <a href="https://github.com/Normansrule/clipwarden/releases">GitHub Releases</a> (source archive, SHA-256 checksums and signed build provenance). Verify with <code>sha256sum -c SHA256SUMS</code> and <code>gh attestation verify FILE -R Normansrule/clipwarden</code>.</p>
+    <p class="note spaced">Releases: <a href="https://github.com/Normansrule/fair-clip/releases">GitHub Releases</a> (source archive, SHA-256 checksums and signed build provenance). Verify with <code>sha256sum -c SHA256SUMS</code> and <code>gh attestation verify FILE -R Normansrule/fair-clip</code>.</p>
   </section>
 </main>
 
-<footer><div class="wrap">Apache-2.0 · the sample talk is CC0 · not legal advice: you are responsible for what you publish · <a href="https://github.com/Normansrule/clipwarden/blob/main/docs/POLICY.md">rules &amp; sources</a> · <a href="https://github.com/Normansrule/clipwarden/blob/main/docs/EQUATIONS.md">the math</a></div></footer>
+<footer><div class="wrap">Apache-2.0 · the sample talk is CC0 · not legal advice: you are responsible for what you publish · <a href="https://github.com/Normansrule/fair-clip/blob/main/docs/POLICY.md">rules &amp; sources</a> · <a href="https://github.com/Normansrule/fair-clip/blob/main/docs/EQUATIONS.md">the math</a></div></footer>
 </body>
 </html>

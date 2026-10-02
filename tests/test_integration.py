@@ -9,12 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from clipwarden.approval import decide
-from clipwarden.config import Settings
-from clipwarden.models import Decision
-from clipwarden.pipeline import Pipeline
-from clipwarden.publish.publisher import publish_approved
-from clipwarden.rights import RightsError
+from fairclip.approval import decide
+from fairclip.config import Settings
+from fairclip.models import Decision
+from fairclip.pipeline import Pipeline
+from fairclip.publish.publisher import publish_approved
+from fairclip.rights import RightsError
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "examples" / "demo"
@@ -60,7 +60,7 @@ def test_full_pipeline_dry_run(tmp_path: Path):
     dur = float(info["format"]["duration"])
     assert dur < plan.end - plan.start  # pauses were cut
     assert row["body"]["status"]["containsSyntheticMedia"] is True  # synthetic narrator -> disclosed
-    assert "Sample talk by clipwarden contributors, CC0-1.0" in row["metadata"]["description"]
+    assert "Sample talk by fair-clip contributors, CC0-1.0" in row["metadata"]["description"]
     assert p.store.find_media(row["posters"]["clip"]).suffix == ".jpg"  # review-page poster frame
 
     decide(p.store, s, Decision(clip_id=plan.clip_id, approved=True, reviewer="tester", reason="ok"))

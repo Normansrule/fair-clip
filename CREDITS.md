@@ -2,7 +2,7 @@
 
 | Item | Source | License | Used for |
 |---|---|---|---|
-| DejaVu Sans, DejaVu Sans Bold | DejaVu fonts project (bundled from Debian's `fonts-dejavu-core`) | Bitstream Vera Fonts license + public-domain changes; see `src/clipwarden/data/fonts/LICENSE-DejaVu.txt` | captions/cards burned into clips, figures |
+| DejaVu Sans, DejaVu Sans Bold | DejaVu fonts project (bundled from Debian's `fonts-dejavu-core`) | Bitstream Vera Fonts license + public-domain changes; see `src/fairclip/data/fonts/LICENSE-DejaVu.txt` | captions/cards burned into clips, figures |
 | Sample talk *Where does the weight go?* (`examples/demo/`) | made for this repo by `scripts/make_sample.py` (Pillow drawings, espeak-ng voice) | CC0-1.0 (`examples/demo/LICENSE-SAMPLE.txt`) | demo, tests, README visuals |
 | FFmpeg / FFprobe | ffmpeg.org (installed in the sandbox image, not redistributed in this repo) | LGPL/GPL (per build) | media processing |
 

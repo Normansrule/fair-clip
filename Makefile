@@ -1,9 +1,9 @@
-# clipwarden: every command the README mentions. Run `make help`.
+# fair-clip: every command the README mentions. Run `make help`.
 SHELL := /bin/bash
 PY ?= python3
 VENV ?= .venv
 BIN := $(VENV)/bin
-CW := $(BIN)/python -m clipwarden.cli
+CW := $(BIN)/python -m fairclip.cli
 export PYTHONPATH := $(CURDIR)/src
 
 .PHONY: help setup demo dashboard test lint sandbox sandbox-test sample assets media check site compose-init compose-up secrets clean
@@ -23,7 +23,7 @@ demo: ## run the whole pipeline on the bundled CC0 sample (< 1 minute)
 	$(BIN)/python scripts/demo.py
 
 dashboard: ## open the review dashboard for the demo (http://127.0.0.1:8765)
-	$(CW) --config demo-data/clipwarden.toml dashboard
+	$(CW) --config demo-data/fairclip.toml dashboard
 
 test: ## unit, gate, security, equation and end-to-end tests
 	$(BIN)/python -m pytest -q
@@ -32,11 +32,11 @@ lint: ## ruff (style + bandit security rules)
 	$(BIN)/ruff check src scripts tests
 
 sandbox: ## build the network-less FFmpeg sandbox image
-	docker build -f sandbox/Dockerfile.media -t clipwarden-media:0.2.0 .
+	docker build -f sandbox/Dockerfile.media -t fairclip-media:0.2.0 .
 
 sandbox-test: ## prove the sandbox is isolated (no network, read-only, non-root)
-	bash scripts/sandbox_smoke.sh clipwarden-media:0.2.0
-	CLIPWARDEN_TEST_IMAGE=clipwarden-media:0.2.0 $(BIN)/python -m pytest -q tests/test_sandbox_and_web.py -k hostile
+	bash scripts/sandbox_smoke.sh fairclip-media:0.2.0
+	FAIRCLIP_TEST_IMAGE=fairclip-media:0.2.0 $(BIN)/python -m pytest -q tests/test_sandbox_and_web.py -k hostile
 
 sample: ## regenerate the CC0 sample talk (needs espeak-ng)
 	$(BIN)/python scripts/make_sample.py
@@ -62,8 +62,8 @@ secrets: ## create secrets/vault_passphrase.txt for docker compose (random, chmo
 
 compose-init: secrets ## prepare ./data for docker compose
 	@mkdir -p data/jobs && chmod 777 data/jobs
-	@[ -f data/clipwarden.toml ] || cp config/clipwarden.compose.toml data/clipwarden.toml
-	@echo "edit data/clipwarden.toml, then: make compose-up"
+	@[ -f data/fairclip.toml ] || cp config/fairclip.compose.toml data/fairclip.toml
+	@echo "edit data/fairclip.toml, then: make compose-up"
 
 compose-up: ## build and start app + media containers
 	APP_UID=$$(id -u) APP_GID=$$(id -g) docker compose up -d --build

@@ -2,15 +2,15 @@
 
 <img src="assets/hero.gif" alt="Animated tour: a long sample video with a rights record goes in; highlight candidates are ranked; a vertical clip with captions and an owner-written context card is rendered; the compliance gate checks pass one by one; a person approves; the upload request is scheduled as private with a publish time." width="100%">
 
-# clipwarden
+# fair-clip
 
 **Turn rights-cleared long videos into short clips that add something real. Every clip passes a compliance gate and a human before YouTube sees it.**
 
-[![ci](https://github.com/Normansrule/clipwarden/actions/workflows/ci.yml/badge.svg)](https://github.com/Normansrule/clipwarden/actions/workflows/ci.yml)
-[![codeql](https://github.com/Normansrule/clipwarden/actions/workflows/codeql.yml/badge.svg)](https://github.com/Normansrule/clipwarden/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Normansrule/clipwarden/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Normansrule/clipwarden)
+[![ci](https://github.com/Normansrule/fair-clip/actions/workflows/ci.yml/badge.svg)](https://github.com/Normansrule/fair-clip/actions/workflows/ci.yml)
+[![codeql](https://github.com/Normansrule/fair-clip/actions/workflows/codeql.yml/badge.svg)](https://github.com/Normansrule/fair-clip/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Normansrule/fair-clip/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Normansrule/fair-clip)
 [![license: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-2563EB)](LICENSE)
-[![live demo](https://img.shields.io/badge/live%20demo-GitHub%20Pages-0F766E)](https://normansrule.github.io/clipwarden/)
+[![live demo](https://img.shields.io/badge/live%20demo-GitHub%20Pages-0F766E)](https://normansrule.github.io/fair-clip/)
 
 *Automate the labor, never the judgment.*
 
@@ -18,7 +18,7 @@
 
 > **Status: v0.2.0 (milestone 2).** Everything in the MVP (rights intake, captions, the full compliance gate, the approval dashboard, the audit log, dry-run and private uploads), plus **five animated value-add templates**, a **read-only YouTube Analytics pull** feeding bounded weight proposals, and a **one-command desktop install**. The affiliate and markets *gate rules* are live; their editing UIs are milestones 3–4. See [Roadmap](#roadmap).
 >
-> **Two ways in:** the [web demo](https://normansrule.github.io/clipwarden/) runs in your browser with sample footage, nothing to install · the [app](#install-the-app-ubuntu--wsl2) runs the real pipeline on your own computer.
+> **Two ways in:** the [web demo](https://normansrule.github.io/fair-clip/) runs in your browser with sample footage, nothing to install · the [app](#install-the-app-ubuntu--wsl2) runs the real pipeline on your own computer.
 
 ## Contents
 
@@ -49,7 +49,7 @@ On Ubuntu (including WSL2). You need Git, Make, Python 3.11 or newer, and FFmpeg
 
 ```bash
 sudo apt update && sudo apt install -y git make python3-venv ffmpeg
-git clone https://github.com/Normansrule/clipwarden.git && cd clipwarden
+git clone https://github.com/Normansrule/fair-clip.git && cd fair-clip
 make setup        # creates .venv and installs hash-pinned dependencies
 make demo         # runs the whole pipeline on the bundled CC0 sample, no network, no Google account
 ```
@@ -57,12 +57,12 @@ make demo         # runs the whole pipeline on the bundled CC0 sample, no networ
 Expected output (scores can differ slightly between FFmpeg versions):
 
 ```text
-[1-3] ingested src-2ece24ffd63c: 5 ranked candidates (backend: local-trusted)
+[1-3] ingested src-5348585bf807: 5 ranked candidates (backend: local-trusted)
       #1  80.9-105.8s S=+1.140 So what actually threatens a bridge like this? Usually it is…
       ...
-[4-7] clip A clip-0109-cb094e: PASSED -> awaiting approval
-[4-7] clip B clip-0043-610fa0: BLOCKED: VALUE_ADD_MISSING
-[4-7] clip C clip-0082-14855d: PASSED -> awaiting approval
+[4-7] clip A clip-0109-635006: PASSED -> awaiting approval
+[4-7] clip B clip-0043-488e58: BLOCKED: VALUE_ADD_MISSING
+[4-7] clip C clip-0082-c53956: PASSED -> awaiting approval
 [audit] 7 entries, chain intact
 done in 45s. Review and approve at the dashboard:
 ```
@@ -73,7 +73,7 @@ Then review the clips like a real owner would:
 make dashboard    # prints a one-time password, serves http://127.0.0.1:8765
 ```
 
-Open **http://127.0.0.1:8765**, log in, open clip A, and approve it with a reason. Then run `.venv/bin/python -m clipwarden.cli --config demo-data/clipwarden.toml publish`. Nothing leaves your machine: the demo is **dry-run**, and the exact request that *would* be sent lands in `demo-data/dry-run/<clip>.json`.
+Open **http://127.0.0.1:8765**, log in, open clip A, and approve it with a reason. Then run `.venv/bin/python -m fairclip.cli --config demo-data/fairclip.toml publish`. Nothing leaves your machine: the demo is **dry-run**, and the exact request that *would* be sent lands in `demo-data/dry-run/<clip>.json`.
 
 <details><summary>Why does the demo say <code>backend: local-trusted</code>?</summary>
 
@@ -82,15 +82,15 @@ Untrusted media must run in the network-less Docker sandbox. The demo's sample i
 
 ## Install the app (Ubuntu / WSL2)
 
-For day-to-day use, install clipwarden as an app instead of running it from a clone. The installer downloads the latest release, **checks its SHA-256** (and its signed build provenance if you have `gh` logged in), installs hash-pinned dependencies into a private environment, and adds a `clipwarden` command plus a launcher in your apps menu. On WSL2 with WSLg, that launcher appears in the Windows Start menu. No `sudo`, no build step.
+For day-to-day use, install fair-clip as an app instead of running it from a clone. The installer downloads the latest release, **checks its SHA-256** (and its signed build provenance if you have `gh` logged in), installs hash-pinned dependencies into a private environment, and adds a `fair-clip` command plus a launcher in your apps menu. On WSL2 with WSLg, that launcher appears in the Windows Start menu. No `sudo`, no build step.
 
 ```bash
 sudo apt update && sudo apt install -y python3-venv ffmpeg curl
-curl -fsSL https://raw.githubusercontent.com/Normansrule/clipwarden/main/scripts/install.sh | bash
-clipwarden app        # starts the dashboard and opens it in your browser
+curl -fsSL https://raw.githubusercontent.com/Normansrule/fair-clip/main/scripts/install.sh | bash
+fair-clip app        # starts the dashboard and opens it in your browser
 ```
 
-The first launch opens a **one-time welcome link** where you choose your password (the link lives only in memory and dies after one use). Your config and data live in `~/.local/share/clipwarden/`. In Chrome or Edge, choose **Install clipwarden** (or *Install page as app*) to give the dashboard its own window. Update by running the installer again; remove with `bash ~/.local/share/clipwarden/app/install.sh --uninstall` (your data is kept).
+The first launch opens a **one-time welcome link** where you choose your password (the link lives only in memory and dies after one use). Your config and data live in `~/.local/share/fair-clip/`. In Chrome or Edge, choose **Install fair-clip** (or *Install page as app*) to give the dashboard its own window. Update by running the installer again; remove with `bash ~/.local/share/fair-clip/app/install.sh --uninstall` (your data is kept).
 
 Always-on instead? `make compose-init && make compose-up` runs the same app in Docker with a separate network-less media container (see [Walkthrough](#walkthrough-your-own-video)).
 
@@ -104,10 +104,10 @@ Always-on instead? `make compose-init && make compose-up` runs the same app in D
 *Figure 2. One clip's journey. It can't pass stage 7 with any block, or stage 8 without a person.*
 
 ### 1 · Rights intake (hard stop)
-Every source needs a **rights record**: your own content, written permission, a license, or public domain / Creative Commons with attribution. No record means the file is never stored, probed or transcribed (`ingest_refused` in the audit log). If the record names a file hash, the file must match it. Non-commercial licenses on a monetized channel, and "no derivatives" licenses, are refused, because a clip is a derivative. → [`rights.py`](src/clipwarden/rights.py)
+Every source needs a **rights record**: your own content, written permission, a license, or public domain / Creative Commons with attribution. No record means the file is never stored, probed or transcribed (`ingest_refused` in the audit log). If the record names a file hash, the file must match it. Non-commercial licenses on a monetized channel, and "no derivatives" licenses, are refused, because a clip is a derivative. → [`rights.py`](src/fairclip/rights.py)
 
 ### 2 · Transcription
-Word-level timestamps come from either a transcript the rights holder supplies, or local **faster-whisper**. The audio is decoded *inside the sandbox* first, so the model only ever sees a NumPy array. → [`transcribe.py`](src/clipwarden/transcribe.py)
+Word-level timestamps come from either a transcript the rights holder supplies, or local **faster-whisper**. The audio is decoded *inside the sandbox* first, so the model only ever sees a NumPy array. → [`transcribe.py`](src/fairclip/transcribe.py)
 
 ### 3 · Highlight detection
 Every run of whole sentences lasting 20–60 s is scored, and overlapping windows are thinned out (non-maximum suppression):
@@ -126,7 +126,7 @@ The terms are energy (dBFS), relevance to your channel's topics (0–1), speech 
 *Figure 3. Why each real candidate ranked where it did.*
 
 ### 4 · Editing
-A 9:16 reframe: either the whole frame over a blurred fill (slides) or a smart crop that follows on-screen motion (a talking head). Pauses longer than 0.6 s are cut, but only between words and only when the audio is truly quiet. A **2-second hook** shows a *verbatim* quote, never an invented one. Word-by-word burned-in captions, a lower third and the attribution line are drawn in one pass from an escaped ASS subtitle file. → [`media/`](src/clipwarden/media)
+A 9:16 reframe: either the whole frame over a blurred fill (slides) or a smart crop that follows on-screen motion (a talking head). Pauses longer than 0.6 s are cut, but only between words and only when the audio is truly quiet. A **2-second hook** shows a *verbatim* quote, never an invented one. Word-by-word burned-in captions, a lower third and the attribution line are drawn in one pass from an escaped ASS subtitle file. → [`media/`](src/fairclip/media)
 
 ### 5 · Value-add layer (required)
 YouTube treats permission and originality as separate things: reused content needs significant original commentary or modification, *even with the creator's permission* ([yt-monetization](docs/REFERENCES.md#yt-monetization)). So owner-written cards (context, commentary, analysis, explainer) must be on screen for **≥ 25 %** of the clip, with at least 8 words, and less than 60 % of their phrases copied from the transcript. AI drafts don't count until you approve them. [EQUATIONS.md §5](docs/EQUATIONS.md#5-value-add-coverage-and-originality)
@@ -138,10 +138,10 @@ Besides the plain card there are five **animated templates**: a key number that 
 *Figure 3b. The five templates, each drawn by the same escaped ASS renderer as the captions.*
 
 ### 6 · Metadata
-The title is the clip's most on-topic sentence. Tags come from its words. The description *frame* (disclosures first, then summary, credit, links, sources) is assembled by code. An optional model, preferably local, may propose the title and summary, but its output is parsed as untrusted data. → [`metadata.py`](src/clipwarden/metadata.py), [`llm.py`](src/clipwarden/llm.py)
+The title is the clip's most on-topic sentence. Tags come from its words. The description *frame* (disclosures first, then summary, credit, links, sources) is assembled by code. An optional model, preferably local, may propose the title and summary, but its output is parsed as untrusted data. → [`metadata.py`](src/fairclip/metadata.py), [`llm.py`](src/fairclip/llm.py)
 
 ### 7 · Compliance gate (hard stop)
-52 checks in 11 groups, all run every time and all reported. **43 block** the clip; **9 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/clipwarden/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
+52 checks in 11 groups, all run every time and all reported. **43 block** the clip; **9 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/fairclip/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
 
 <!-- gate-mermaid:start -->
 ```mermaid
@@ -211,7 +211,7 @@ The review page shows before/after video, the full report and the exact request 
 Uploads go through YouTube Data API v3 using **one scope, `youtube.upload`**. Privacy and the scheduled `publishAt` time are set in the same insert call, so the broad "manage your account" scope is never needed ([POLICY.md](docs/POLICY.md)). Dry-run is the default. Going live takes a config change, a typed confirmation, at least one completed dry run and an intact audit chain.
 
 ### 10 · Analytics
-`clipwarden analytics connect` asks Google for **one read-only scope** (`yt-analytics.readonly`), stored as a *separate* token from the upload one. Then **Pull now** on the Analytics page (or `clipwarden analytics pull`) fetches views, watch time, average view duration and percentage, and the retention curve for every published clip. Impressions and click-through rate aren't in that API, so import them from a Studio export with `clipwarden analytics import`. The dashboard shows r(τ) and the area under it (≈ average % viewed), and, once **10 clips with ≥ 50 real views** each exist, can *propose* new highlight weights from them (**Propose from live analytics**). Nothing changes until you approve; each approved update moves any single weight by at most 0.05. [EQUATIONS.md §3–4](docs/EQUATIONS.md#3-retention-curve)
+`fair-clip analytics connect` asks Google for **one read-only scope** (`yt-analytics.readonly`), stored as a *separate* token from the upload one. Then **Pull now** on the Analytics page (or `fair-clip analytics pull`) fetches views, watch time, average view duration and percentage, and the retention curve for every published clip. Impressions and click-through rate aren't in that API, so import them from a Studio export with `fair-clip analytics import`. The dashboard shows r(τ) and the area under it (≈ average % viewed), and, once **10 clips with ≥ 50 real views** each exist, can *propose* new highlight weights from them (**Propose from live analytics**). Nothing changes until you approve; each approved update moves any single weight by at most 0.05. [EQUATIONS.md §3–4](docs/EQUATIONS.md#3-retention-curve)
 
 <img src="assets/dashboard-analytics-light.png" alt="Analytics page: an illustrative retention curve for the demo clip with two numbered markers, the steepest drop after the hook and a rewatch bump, and the area under the curve shown as 70 percent." width="100%">
 
@@ -225,7 +225,7 @@ Uploads go through YouTube Data API v3 using **one scope, `youtube.upload`**. Pr
 
 ## Walkthrough: your own video
 
-1. **Configure.** `cp clipwarden.example.toml clipwarden.toml`, then set `channel.name` and `channel.topics`. ✔ `clipwarden --help` runs.
+1. **Configure.** `cp fairclip.example.toml fairclip.toml`, then set `channel.name` and `channel.topics`. ✔ `fair-clip --help` runs.
 2. **Build the sandbox.** `make sandbox && make sandbox-test`. ✔ Six green checks: no network, read-only, non-root, and more.
 3. **Write a rights record** (`rights.json`). The `source_sha256` line is optional but recommended: get the value with `sha256sum talk.mp4`.
    ```json
@@ -233,20 +233,20 @@ Uploads go through YouTube Data API v3 using **one scope, `youtube.upload`**. Pr
     "rights_holder": "Me", "evidence": "recorded by me on 2026-09-12",
     "source_sha256": "<output of: sha256sum talk.mp4>"}
    ```
-4. **Ingest.** `clipwarden ingest talk.mp4 --rights rights.json` (add `--transcript t.json` if you have one; otherwise `pip install '.[asr]'` for faster-whisper). ✔ It prints ranked candidates with their scores.
-5. **Plan a clip.** Copy [`examples/demo/plan.json`](examples/demo/plan.json), write *your own* context or commentary, then run `clipwarden plan <candidate-id> --plan-file plan.json`. ✔ It prints `planned clip-…`.
-6. **Render and gate.** `clipwarden render <clip-id>`. ✔ You see a pass/warn/block line for every check; exit code 2 means blocked.
-7. **Review.** `clipwarden dashboard`, open the clip, and approve or reject. ✔ The audit log shows your decision with the clip and request hashes.
-8. **Publish (dry run).** `clipwarden publish`. ✔ `data/dry-run/<clip>.json` holds the exact request.
-9. **Go live, later.** Follow [SETUP_YOUTUBE.md](docs/SETUP_YOUTUBE.md): separate Cloud project, 2-Step Verification, Desktop OAuth client, `clipwarden auth login`, `publish enable-live`.
+4. **Ingest.** `fair-clip ingest talk.mp4 --rights rights.json` (add `--transcript t.json` if you have one; otherwise `pip install '.[asr]'` for faster-whisper). ✔ It prints ranked candidates with their scores.
+5. **Plan a clip.** Copy [`examples/demo/plan.json`](examples/demo/plan.json), write *your own* context or commentary, then run `fair-clip plan <candidate-id> --plan-file plan.json`. ✔ It prints `planned clip-…`.
+6. **Render and gate.** `fair-clip render <clip-id>`. ✔ You see a pass/warn/block line for every check; exit code 2 means blocked.
+7. **Review.** `fair-clip dashboard`, open the clip, and approve or reject. ✔ The audit log shows your decision with the clip and request hashes.
+8. **Publish (dry run).** `fair-clip publish`. ✔ `data/dry-run/<clip>.json` holds the exact request.
+9. **Go live, later.** Follow [SETUP_YOUTUBE.md](docs/SETUP_YOUTUBE.md): separate Cloud project, 2-Step Verification, Desktop OAuth client, `fair-clip auth login`, `publish enable-live`.
 
 Prefer containers? `make compose-init && make compose-up` runs the dashboard in one container and FFmpeg in a second, network-less one. They share only `data/jobs`, and the app never gets the Docker socket.
 
 ## Project layout
 
 ```text
-clipwarden/
-├── src/clipwarden/
+fair-clip/
+├── src/fairclip/
 │   ├── models.py          # strict schemas for every stage (unknown fields = reject)
 │   ├── rights.py          # stage 1: rights records (hard stop)
 │   ├── transcribe.py      # stage 2: sidecar or faster-whisper (fed PCM from the sandbox)
@@ -303,11 +303,11 @@ clipwarden/
 | `refused: refusing to process untrusted media on the host without the Docker sandbox` | Only the pinned demo file may skip the sandbox | `make sandbox` (Docker must be running), then retry |
 | `ffmpeg: not found` or `FileNotFoundError: 'ffprobe'` | FFmpeg isn't installed | `sudo apt install -y ffmpeg` |
 | `bad host` (HTTP 400) in the browser | You opened the dashboard by LAN IP or hostname; it only answers on loopback | Use `http://127.0.0.1:8765` |
-| `invalid_grant` when publishing, about a week after `auth login` | Your OAuth app is in Testing mode, so refresh tokens expire after 7 days | `clipwarden auth login` again, or move the app to production ([SETUP_YOUTUBE.md](docs/SETUP_YOUTUBE.md)) |
+| `invalid_grant` when publishing, about a week after `auth login` | Your OAuth app is in Testing mode, so refresh tokens expire after 7 days | `fair-clip auth login` again, or move the app to production ([SETUP_YOUTUBE.md](docs/SETUP_YOUTUBE.md)) |
 | Scheduled uploads stay private forever | Unaudited API projects (created after 28 July 2020) can only upload private | Approve as Private and publish in Studio, or complete Google's API audit |
-| `clipwarden: command not found` right after installing | `~/.local/bin` isn't on your `PATH` yet | `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc` |
-| `clipwarden app` opens nothing on WSL2 | No Windows browser bridge found | Open the printed `http://127.0.0.1:8765/…` link yourself (Windows forwards localhost to WSL2) |
-| Analytics: `refused the request (403)` | The analytics token was revoked or never granted | `clipwarden analytics connect` again |
+| `fair-clip: command not found` right after installing | `~/.local/bin` isn't on your `PATH` yet | `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc` |
+| `fair-clip app` opens nothing on WSL2 | No Windows browser bridge found | Open the printed `http://127.0.0.1:8765/…` link yourself (Windows forwards localhost to WSL2) |
+| Analytics: `refused the request (403)` | The analytics token was revoked or never granted | `fair-clip analytics connect` again |
 | `ERROR: THESE PACKAGES DO NOT MATCH THE HASHES` | An interrupted download, or an unsupported Python version | `rm -rf .venv && make setup` with Python 3.11–3.13 |
 
 ## References and further learning

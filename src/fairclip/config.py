@@ -62,7 +62,7 @@ class MediaConfig(_S):
     # auto:   docker if the image exists; otherwise only the pinned trusted demo files may run on the host
     runner: Literal["docker", "auto", "worker"] = "auto"
     jobs_dir: str = ""  # worker mode: the shared volume path (same path in both containers)
-    image: str = "clipwarden-media:0.2.0"
+    image: str = "fairclip-media:0.2.0"
     memory: str = "2g"
     cpus: str = "2"
     pids: Annotated[int, Field(ge=32, le=4096)] = 256
@@ -107,13 +107,13 @@ class Settings(_S):
 
 
 def load_settings(path: str | os.PathLike[str] | None = None) -> Settings:
-    p = Path(path or os.environ.get("CLIPWARDEN_CONFIG", "clipwarden.toml"))
+    p = Path(path or os.environ.get("FAIRCLIP_CONFIG", "fairclip.toml"))
     if not p.exists():
         return Settings()
     with p.open("rb") as fh:
         raw = tomllib.load(fh)
     s = Settings.model_validate(raw)
-    if s.dashboard.host == "0.0.0.0" and os.environ.get("CLIPWARDEN_IN_CONTAINER") != "1":  # noqa: S104
+    if s.dashboard.host == "0.0.0.0" and os.environ.get("FAIRCLIP_IN_CONTAINER") != "1":  # noqa: S104
         raise ValueError("dashboard.host 0.0.0.0 is only allowed inside the compose container")
     if not Path(s.data_dir).is_absolute():
         s.data_dir = str((p.parent / s.data_dir).resolve())

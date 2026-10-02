@@ -38,7 +38,7 @@ from .scoring import default_topics, rank_candidates
 from .store import Store, now, sha256_file
 from .transcribe import load_sidecar, whisper_transcribe
 
-log = logging.getLogger("clipwarden")
+log = logging.getLogger("fair-clip")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_DATA = Path(__file__).resolve().parent / "data"
 STAGES = ["rights", "transcribe", "highlights", "edit", "value_add", "metadata", "gate", "approval", "publish", "analytics"]
@@ -269,7 +269,7 @@ class Pipeline:
         return report
 
     def screen_terms_path(self) -> Path:
-        """Your own list in the data folder overrides the bundled default (src/clipwarden/data)."""
+        """Your own list in the data folder overrides the bundled default (src/fairclip/data)."""
         own = self.store.root / "screen_terms.txt"
         return own if own.exists() else PACKAGE_DATA / "screen_terms.txt"
 

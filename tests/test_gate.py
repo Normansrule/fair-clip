@@ -7,10 +7,10 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 from conftest import SHA, TRANSCRIPT, base_plan, make_ctx, own_rights
 
-from clipwarden.config import Settings
-from clipwarden.gate import History, run_gate
-from clipwarden.gate.reasons import REASONS
-from clipwarden.models import Severity
+from fairclip.config import Settings
+from fairclip.gate import History, run_gate
+from fairclip.gate.reasons import REASONS
+from fairclip.models import Severity
 
 NOW = datetime.now(UTC)
 VA = [{"kind": "context_card", "text": "Flutter is a feedback loop where each twist feeds the next one.", "start": 1.0, "end": 12.0}]
@@ -147,6 +147,6 @@ def test_injected_link_from_transcript_is_blocked_in_metadata():
 
 
 def test_ass_override_in_value_add_cannot_hide_disclosure():
-    from clipwarden.media.overlay import escape
+    from fairclip.media.overlay import escape
 
     assert "{" not in escape(r"{\alpha&HFF&}hidden") and "\\" not in escape(r"a\Nb")

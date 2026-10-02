@@ -3,7 +3,7 @@ requires = ["setuptools==84.0.0", "wheel==0.48.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "clipwarden"
+name = "fair-clip"
 version = "0.2.0"
 description = "Security-first AI clipping pipeline: rights-cleared long video in, value-adding short clips out, every clip through a compliance gate and human approval before YouTube."
 readme = "README.md"
@@ -43,13 +43,13 @@ dev = [
 ]
 
 [project.scripts]
-clipwarden = "clipwarden.cli:main"
+fair-clip = "fairclip.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-clipwarden = ["web/templates/*.html", "web/static/*", "data/*", "data/fonts/*"]
+fairclip = ["web/templates/*.html", "web/static/*", "data/*", "data/fonts/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

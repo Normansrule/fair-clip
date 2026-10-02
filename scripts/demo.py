@@ -5,7 +5,7 @@ Creates ./demo-data with:
   clip A  top-ranked moment + owner commentary      -> passes the gate, awaits YOUR approval
   clip B  second moment, no value-add               -> BLOCKED (VALUE_ADD_MISSING)
   clip C  affiliate example with full disclosures   -> passes, awaits approval (human-only)
-Then open the dashboard to approve or reject:  clipwarden --config demo-data/clipwarden.toml dashboard
+Then open the dashboard to approve or reject:  fair-clip --config demo-data/fairclip.toml dashboard
 Nothing is uploaded: the demo config is dry-run and has no OAuth token.
 """
 
@@ -21,8 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.config import load_settings  # noqa: E402
-from clipwarden.pipeline import Pipeline  # noqa: E402
+from fairclip.config import load_settings  # noqa: E402
+from fairclip.pipeline import Pipeline  # noqa: E402
 
 DEMO = ROOT / "examples" / "demo"
 DATA = ROOT / "demo-data"
@@ -82,8 +82,8 @@ def main() -> int:
     if DATA.exists():
         shutil.rmtree(DATA)
     DATA.mkdir()
-    (DATA / "clipwarden.toml").write_text(CONFIG)
-    p = Pipeline(load_settings(DATA / "clipwarden.toml"))
+    (DATA / "fairclip.toml").write_text(CONFIG)
+    p = Pipeline(load_settings(DATA / "fairclip.toml"))
     sid = p.ingest(DEMO / "source.mp4", DEMO / "rights.json", DEMO / "transcript.json", actor="demo")
     ranked = p.store.rows("candidates", "source_id=?", (sid,), order="rank")
     print(f"[1-3] ingested {sid}: {len(ranked)} ranked candidates (backend: {p.runner.last_backend})")
@@ -107,7 +107,7 @@ def main() -> int:
     ok, _ = p.store.audit.verify()
     print(f"[audit] {len(p.store.audit.entries(limit=1000))} entries, chain {'intact' if ok else 'BROKEN'}")
     print(f"done in {time.time() - t0:.0f}s. Review and approve at the dashboard:\n"
-          f"  clipwarden --config demo-data/clipwarden.toml dashboard")
+          f"  fair-clip --config demo-data/fairclip.toml dashboard")
     return 0
 
 

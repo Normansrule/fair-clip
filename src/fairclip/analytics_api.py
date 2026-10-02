@@ -8,7 +8,7 @@
   average view duration and percentage) and the audience-retention curve
   (``audienceWatchRatio`` by ``elapsedVideoTimeRatio``).
 * Impressions and thumbnail click-through rate are not pulled here: they come from YouTube
-  Studio (import them with ``clipwarden analytics import``). Shorts in the Shorts feed have no
+  Studio (import them with ``fair-clip analytics import``). Shorts in the Shorts feed have no
   thumbnail click anyway.
 * Everything the API returns is treated as untrusted numbers: parsed to float, range-checked,
   capped in size. Nothing here can change a video.
@@ -47,7 +47,7 @@ def _get(http: httpx.Client, token: str, params: dict[str, Any]) -> dict[str, An
         raise AnalyticsError("YouTube Analytics quota reached; try again tomorrow")
     if r.status_code in (401, 403):
         raise AnalyticsError(f"YouTube Analytics refused the request ({r.status_code}): reconnect with "
-                             "`clipwarden analytics connect`")
+                             "`fair-clip analytics connect`")
     if r.status_code != 200:
         raise AnalyticsError(f"YouTube Analytics error {r.status_code}: {redact(r.text[:200])}")
     try:

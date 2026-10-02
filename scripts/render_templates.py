@@ -4,7 +4,7 @@
     python scripts/render_templates.py            # assets/templates/<name>.png + .gif, gallery.png
     python scripts/render_templates.py --only bar
 
-Draws each example from clipwarden.media.templates.EXAMPLES over a real 9:16 frame of the bundled
+Draws each example from fairclip.media.templates.EXAMPLES over a real 9:16 frame of the bundled
 CC0 sample talk, with the same ASS renderer the pipeline uses. The sample is our own pinned file,
 so it runs locally without the sandbox (like `make demo`).
 """
@@ -22,13 +22,13 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from clipwarden.media import overlay  # noqa: E402
-from clipwarden.media.templates import EXAMPLES  # noqa: E402
-from clipwarden.models import ClipPlan  # noqa: E402
+from fairclip.media import overlay  # noqa: E402
+from fairclip.media.templates import EXAMPLES  # noqa: E402
+from fairclip.models import ClipPlan  # noqa: E402
 
 SRC = ROOT / "examples" / "demo" / "source.mp4"
 OUT = ROOT / "assets" / "templates"
-FONTS = ROOT / "src" / "clipwarden" / "data" / "fonts"
+FONTS = ROOT / "src" / "fairclip" / "data" / "fonts"
 SEEK = 94.0  # the "Tacoma Narrows" slide
 SECONDS = 9.0
 W, H = 1080, 1920

@@ -28,8 +28,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "examples" / "demo"
-FONT = ROOT / "src" / "clipwarden" / "data" / "fonts" / "DejaVuSans.ttf"
-FONT_B = ROOT / "src" / "clipwarden" / "data" / "fonts" / "DejaVuSans-Bold.ttf"
+FONT = ROOT / "src" / "fairclip" / "data" / "fonts" / "DejaVuSans.ttf"
+FONT_B = ROOT / "src" / "fairclip" / "data" / "fonts" / "DejaVuSans-Bold.ttf"
 W, H, FPS, SR = 1280, 720, 25, 22050
 
 INK, PAPER, BLUE, AMBER, SLATE, GREEN = "#0B1020", "#F7F7F2", "#2563EB", "#FFB000", "#64748B", "#16A34A"
@@ -203,7 +203,7 @@ def main() -> int:
         mouth = 6 + int(min(1.0, lvl * 9) * 46)
         d.rounded_rectangle([cx - 42, cy + 30 + bob, cx + 42, cy + 30 + mouth + bob], radius=10, fill=INK)
         d.text((cx - 95, cy + 150), "synthetic narrator", font=f_small, fill=SLATE)
-        d.text((60, H - 40), "Sample talk · CC0 · made by clipwarden contributors for the demo", font=f_small, fill=SLATE)
+        d.text((60, H - 40), "Sample talk · CC0 · made by fair-clip contributors for the demo", font=f_small, fill=SLATE)
         ff.stdin.write(img.tobytes())
     ff.stdin.close()
     ff.wait()
@@ -218,8 +218,8 @@ def main() -> int:
         "basis": "creative_commons",
         "cc_license": "CC0-1.0",
         "source_title": "Where does the weight go? (sample talk)",
-        "rights_holder": "clipwarden contributors",
-        "attribution": "Sample talk by clipwarden contributors",
+        "rights_holder": "fair-clip contributors",
+        "attribution": "Sample talk by fair-clip contributors",
         "evidence": "examples/demo/LICENSE-SAMPLE.txt",
         "source_sha256": sha,
         "synthetic_or_altered": True,

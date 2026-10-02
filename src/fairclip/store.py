@@ -61,7 +61,7 @@ class Store:
         self.root = Path(data_dir)
         (self.root / "media").mkdir(parents=True, exist_ok=True)
         (self.root / "work").mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.root / "clipwarden.sqlite3", check_same_thread=False, timeout=30)
+        self.conn = sqlite3.connect(self.root / "fairclip.sqlite3", check_same_thread=False, timeout=30)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA foreign_keys=ON")
         self.conn.executescript(SCHEMA)

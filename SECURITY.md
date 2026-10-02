@@ -12,4 +12,4 @@ Only the latest release gets fixes during the 0.x series.
 
 ## What we already do
 
-See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the threat model and mitigations. Releases are built by CI from version tags and published with SHA-256 checksums and a build-provenance attestation. Verify them with `sha256sum -c SHA256SUMS` and `gh attestation verify <file> -R <owner>/clipwarden`.
+See [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the threat model and mitigations. Releases are built by CI from version tags and published with SHA-256 checksums and a build-provenance attestation. Verify them with `sha256sum -c SHA256SUMS` and `gh attestation verify <file> -R <owner>/fair-clip`.

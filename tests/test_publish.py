@@ -11,12 +11,12 @@ import httpx
 import pytest
 from conftest import base_plan, own_rights
 
-from clipwarden.approval import ApprovalError, decide, maybe_auto_approve
-from clipwarden.models import CheckResult, Decision, GateReport, Metadata, Severity
-from clipwarden.publish.body import body_hash, build_body
-from clipwarden.publish.publisher import publish_approved
-from clipwarden.publish.youtube import PublishError, QuotaError, revoke, upload
-from clipwarden.vault import EncryptedFileVault
+from fairclip.approval import ApprovalError, decide, maybe_auto_approve
+from fairclip.models import CheckResult, Decision, GateReport, Metadata, Severity
+from fairclip.publish.body import body_hash, build_body
+from fairclip.publish.publisher import publish_approved
+from fairclip.publish.youtube import PublishError, QuotaError, revoke, upload
+from fairclip.vault import EncryptedFileVault
 
 
 def add_clip(store, tmp_path: Path, cid="clip-a-0001", plan=None, warn=False, block=False, rights=None):

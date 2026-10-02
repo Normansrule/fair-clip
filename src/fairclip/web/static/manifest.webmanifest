@@ -1,6 +1,6 @@
 {
-  "name": "clipwarden",
-  "short_name": "clipwarden",
+  "name": "fair-clip",
+  "short_name": "fair-clip",
   "description": "Review, approve and publish rights-cleared clips. Runs on your own machine.",
   "start_url": "/",
   "scope": "/",

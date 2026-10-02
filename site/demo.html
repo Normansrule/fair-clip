@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="same-origin">
-<title>clipwarden · interactive demo</title>
+<title>fair-clip · interactive demo</title>
 <link rel="stylesheet" href="css/site.css">
 <script src="js/demo.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="wrap">
-  <a class="brand" href="./"><span>◈</span> clipwarden</a>
-  <nav><a href="#rank">Rank</a><a href="#clip">Clip</a><a href="#gate">Gate</a><a href="https://github.com/Normansrule/clipwarden">GitHub</a></nav>
+  <a class="brand" href="./"><span>◈</span> fair-clip</a>
+  <nav><a href="#rank">Rank</a><a href="#clip">Clip</a><a href="#gate">Gate</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
   <section class="hero">
     <div class="motto">Interactive demo · sample footage (CC0)</div>
     <h1>Play with the real numbers from the sample run.</h1>
-    <p class="lede">Everything below comes from running clipwarden on a 2-minute synthetic talk made for this repo. Move the weights and watch the ranking change. Then try to sneak a clip past the gate.</p>
+    <p class="lede">Everything below comes from running fair-clip on a 2-minute synthetic talk made for this repo. Move the weights and watch the ranking change. Then try to sneak a clip past the gate.</p>
   </section>
 
   <section id="rank">
     <h2>1 · Rank the moments</h2>
-    <p class="sub">S = w<sub>E</sub>·z(E) + w<sub>R</sub>·R + w<sub>r</sub>·z(r) + w<sub>D</sub>·D − w<sub>Q</sub>·Q. Weights are kept in [0.02, 0.60] and rescaled to sum to 1, the same projection the Python code uses. <a href="https://github.com/Normansrule/clipwarden/blob/main/docs/EQUATIONS.md#1-highlight-score">What each term means →</a></p>
+    <p class="sub">S = w<sub>E</sub>·z(E) + w<sub>R</sub>·R + w<sub>r</sub>·z(r) + w<sub>D</sub>·D − w<sub>Q</sub>·Q. Weights are kept in [0.02, 0.60] and rescaled to sum to 1, the same projection the Python code uses. <a href="https://github.com/Normansrule/fair-clip/blob/main/docs/EQUATIONS.md#1-highlight-score">What each term means →</a></p>
     <div class="demo-grid">
       <div class="card" id="weights">
         <div class="slider"><label for="w-energy">Energy w<sub>E</sub></label><input id="w-energy" data-k="energy" type="range" min="0" max="100" value="25"><output id="o-energy">0.25</output></div>
@@ -54,7 +54,7 @@
 
   <section id="gate">
     <h2>3 · Try to get past the gate</h2>
-    <p class="sub">A simplified mirror of a few real checks. The full gate has 52 (<a href="https://github.com/Normansrule/clipwarden/blob/main/src/clipwarden/gate/reasons.py">registry</a>). Untick things and see which reason codes fire.</p>
+    <p class="sub">A simplified mirror of a few real checks. The full gate has 52 (<a href="https://github.com/Normansrule/fair-clip/blob/main/src/fairclip/gate/reasons.py">registry</a>). Untick things and see which reason codes fire.</p>
     <div class="demo-grid">
       <div class="card toggles" id="sim">
         <label><input type="checkbox" data-f="rights" checked> A rights record covers this source</label>
@@ -91,6 +91,6 @@
     <div class="card"><div class="tabs" id="tabs" role="tablist"></div><p class="verdict" id="rv"></p><ul class="codes" id="rcodes"></ul></div>
   </section>
 </main>
-<footer><div class="wrap">Sample talk: CC0, made by clipwarden contributors with espeak-ng and Pillow · <a href="./">overview</a></div></footer>
+<footer><div class="wrap">Sample talk: CC0, made by fair-clip contributors with espeak-ng and Pillow · <a href="./">overview</a></div></footer>
 </body>
 </html>
