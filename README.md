@@ -16,7 +16,7 @@
 
 </div>
 
-> **Status: v0.2.0 (milestone 2).** Everything in the MVP (rights intake, captions, the full compliance gate, the approval dashboard, the audit log, dry-run and private uploads), plus **five animated value-add templates**, a **read-only YouTube Analytics pull** feeding bounded weight proposals, and a **one-command desktop install**. The affiliate and markets *gate rules* are live; their editing UIs are milestones 3–4. See [Roadmap](#roadmap).
+> **Status: v0.3.0 (milestone 3).** Everything in the MVP (rights intake, captions, the full compliance gate, the approval dashboard, the audit log, dry-run and private uploads), five animated value-add templates, a read-only YouTube Analytics pull, a one-command desktop install, and now the **affiliate module**: a registry of the programs you joined, the products you actually tested and their exact links, an editor on every clip, and **spoken-disclosure detection timed against the transcript**. The markets *gate rules* are live; its editing UI is milestone 4. See [Roadmap](#roadmap).
 >
 > **Two ways in:** the [web demo](https://normansrule.github.io/fair-clip/) runs in your browser with sample footage, nothing to install · the [app](#install-the-app-ubuntu--wsl2) runs the real pipeline on your own computer.
 
@@ -24,7 +24,7 @@
 
 1. [What you'll see](#what-youll-see)
 2. [Quick start (≈ 5 minutes)](#quick-start--5-minutes) · [Install the app](#install-the-app-ubuntu--wsl2)
-3. [How it works](#how-it-works)
+3. [How it works](#how-it-works) · [Affiliate links](#affiliate-links-honestly)
 4. [Walkthrough: your own video](#walkthrough-your-own-video)
 5. [Project layout](#project-layout)
 6. [Security](#security)
@@ -63,7 +63,7 @@ Expected output (scores can differ slightly between FFmpeg versions):
 [4-7] clip A clip-0109-635006: PASSED -> awaiting approval
 [4-7] clip B clip-0043-488e58: BLOCKED: VALUE_ADD_MISSING
 [4-7] clip C clip-0082-c53956: PASSED -> awaiting approval
-[audit] 7 entries, chain intact
+[audit] 8 entries, chain intact
 done in 45s. Review and approve at the dashboard:
 ```
 
@@ -141,7 +141,7 @@ Besides the plain card there are five **animated templates**: a key number that 
 The title is the clip's most on-topic sentence. Tags come from its words. The description *frame* (disclosures first, then summary, credit, links, sources) is assembled by code. An optional model, preferably local, may propose the title and summary, but its output is parsed as untrusted data. → [`metadata.py`](src/fairclip/metadata.py), [`llm.py`](src/fairclip/llm.py)
 
 ### 7 · Compliance gate (hard stop)
-52 checks in 11 groups, all run every time and all reported. **43 block** the clip; **9 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/fairclip/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
+60 checks in 11 groups, all run every time and all reported. **47 block** the clip; **13 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/fairclip/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
 
 <!-- gate-mermaid:start -->
 ```mermaid
@@ -164,8 +164,8 @@ flowchart TD
   G3 -.->|warn| W3["⚠#160;PAID_PROMOTION_STUDIO_STEP"]
   G4{"Affiliate"}
   G4 -->|pass| G5
-  G4 -->|block| B4["✕#160;AFFILIATE_PLAN_MISSING<br/>✕#160;AFFILIATE_START_DISCLOSURE_MISSING<br/>✕#160;AFFILIATE_CARD_MISSING<br/>✕#160;AFFILIATE_RECOMMENDATION_UNMARKED<br/>✕#160;AFFILIATE_DESCRIPTION_ORDER<br/>✕#160;AFFILIATE_WEAK_WORDING<br/>✕#160;AFFILIATE_UNEVALUATED_PRODUCT<br/>✕#160;AFFILIATE_FABRICATED_CLAIM<br/>✕#160;AFFILIATE_KIDS"]
-  G4 -.->|warn| W4["⚠#160;AFFILIATE_SINGLE_CHANNEL"]
+  G4 -->|block| B4["✕#160;AFFILIATE_PLAN_MISSING<br/>✕#160;AFFILIATE_START_DISCLOSURE_MISSING<br/>✕#160;AFFILIATE_CARD_MISSING<br/>✕#160;AFFILIATE_RECOMMENDATION_UNMARKED<br/>✕#160;AFFILIATE_DESCRIPTION_ORDER<br/>✕#160;AFFILIATE_WEAK_WORDING<br/>✕#160;AFFILIATE_UNEVALUATED_PRODUCT<br/>✕#160;AFFILIATE_FABRICATED_CLAIM<br/>✕#160;AFFILIATE_LINK_OUTSIDE_PLAN<br/>✕#160;AFFILIATE_PROGRAM_UNKNOWN<br/>✕#160;AFFILIATE_LINK_UNREGISTERED<br/>✕#160;AFFILIATE_REQUIRED_WORDING_MISSING<br/>✕#160;AFFILIATE_KIDS"]
+  G4 -.->|warn| W4["⚠#160;AFFILIATE_SINGLE_CHANNEL<br/>⚠#160;AFFILIATE_SPOKEN_NOT_HEARD<br/>⚠#160;AFFILIATE_SPOKEN_UNCONFIRMED<br/>⚠#160;AFFILIATE_SPOKEN_TOO_LATE<br/>⚠#160;AFFILIATE_TERMS_STALE"]
   G5{"Links"}
   G5 -->|pass| G6
   G5 -->|block| B5["✕#160;LINK_NOT_ALLOWLISTED<br/>✕#160;LINK_CLOAKED"]
@@ -217,6 +217,20 @@ Uploads go through YouTube Data API v3 using **one scope, `youtube.upload`**. Pr
 
 *Figure 5. Annotated retention chart (illustrative sample data, labelled as such in the app).*
 
+### Affiliate links, honestly
+
+The **Affiliate** page holds what's true: the programs you joined (with their terms and when you last re-read them), the products you actually evaluated (in your own words), and the exact links you were given. A clip can only carry registered links, and the gate checks four things:
+- the program is active;
+- the link is the one you registered for that product;
+- the program's required wording is in your disclosure;
+- the disclosure is shown or *said* in the first 10 seconds.
+
+"Said" is checked against the clip's timed transcript and counts only once you confirm it's your disclosure. Denials like "not sponsored by" never count. Guide: [docs/AFFILIATE.md](docs/AFFILIATE.md).
+
+<img src="assets/dashboard-affiliate-editor-light.png" alt="A clip's affiliate editor: the registered bridge-kit link ticked, the plain-words disclosure, the start-card time range, recommendation times, and the spoken-disclosure section built from the timed transcript." width="100%">
+
+*Figure 6a. Adding a registered link to a clip. Saving re-renders the clip with disclosure cards and re-runs the gate.*
+
 ### Disclosures, done properly
 
 <img src="assets/disclosures.png" alt="Three panels from the demo's affiliate example: a yellow disclosure card near the start, the same card at the moment of the recommendation, and the description with the disclosure line above the first link; plus the recommended spoken line." width="100%">
@@ -267,15 +281,16 @@ fair-clip/
 │   ├── publish/           # stage 9: request body, OAuth, uploader, publisher
 │   ├── analytics.py       # stage 10: Eq. 2–3 metrics
 │   ├── analytics_api.py   # read-only YouTube Analytics pull + live weight-proposal input
+│   ├── affiliate.py       # affiliate registry (programs, evaluated products, links) + spoken-disclosure detection
 │   ├── data/              # bundled fonts and the default screen-terms list
 │   ├── audit.py           # append-only hash-chained log
 │   ├── vault.py · redact.py
 │   └── web/               # dashboard (FastAPI + Jinja2, no inline JS) + app manifest/icons
-├── tests/                 # 240+ tests: every gate reason, security, equations, templates, end-to-end
+├── tests/                 # 280+ tests: every gate reason, security, equations, templates, affiliate, end-to-end
 ├── scripts/               # install.sh (the app), demo, asset/template renderers, sandbox smoke test
 ├── examples/demo/         # CC0 sample talk, transcript, rights record, plan
 ├── assets/                # generated visuals (sources: scripts/ + assets/src/)
-├── docs/                  # POLICY, SECURITY_MODEL, EQUATIONS, TEMPLATES, STYLE, SETUP_YOUTUBE, REFERENCES
+├── docs/                  # POLICY, SECURITY_MODEL, EQUATIONS, TEMPLATES, AFFILIATE, STYLE, SETUP_YOUTUBE, REFERENCES
 ├── site/                  # GitHub Pages: overview + interactive demo
 ├── sandbox/Dockerfile.media · Dockerfile · docker-compose.yml
 └── .github/               # CI, CodeQL, Scorecard, Pages, links, release, Dependabot
@@ -337,7 +352,7 @@ All sources are primary and verified: [docs/REFERENCES.md](docs/REFERENCES.md). 
 
 1. ✅ **MVP:** own and licensed content, dry-run and private uploads, rights intake, captions, compliance gate, approval UI, audit log.
 2. ✅ **Value-add templates** (five animated explainers), **YouTube Analytics pull** (read-only scope, separate token), **weight proposals from live data**, one-command app install.
-3. Affiliate module UI: per-program terms, spoken-disclosure detection timed against the transcript.
+3. ✅ **Affiliate module:** a registry of programs (terms, review dates, link prefixes, required wording), evaluated products and exact links; a per-clip editor that re-renders; spoken-disclosure detection timed against the transcript.
 4. Markets module UI: data-source connectors with timestamps, mandatory review flow.
 5. Hardening: ✅ first independent review fixed (link obfuscation, hidden characters, in-video paid disclosure, upload race, audit-chain concurrency; see [CHANGELOG](CHANGELOG.md)); next, fuzzing of media inputs and prompt injection.
 

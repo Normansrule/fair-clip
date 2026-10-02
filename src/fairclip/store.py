@@ -185,6 +185,28 @@ class Store:
                     (id_, *enc.values()),
                 )
 
+    def set_if_status(self, table: str, id_: str, expected: set[str], **fields: Any) -> bool:
+        """Update a row only if its status is still one of `expected` (checked and written in one
+        write transaction). Returns False if someone else changed it first."""
+        assert table == "clips"
+        with self.lock:
+            if self.conn.in_transaction:
+                self.conn.commit()
+            self.conn.execute("BEGIN IMMEDIATE")
+            try:
+                cur = self.conn.execute("SELECT status FROM clips WHERE id=?", (id_,)).fetchone()
+                if cur is None or cur[0] not in expected:
+                    self.conn.rollback()
+                    return False
+                enc = {k: (json.dumps(v, default=str) if not isinstance(v, str | int | float | type(None)) else v) for k, v in fields.items()}
+                sets = ", ".join(f"{c}=?" for c in enc)
+                self.conn.execute(f"UPDATE clips SET {sets} WHERE id=?", (*enc.values(), id_))  # noqa: S608 (columns are code constants)
+                self.conn.commit()
+            except BaseException:
+                self.conn.rollback()
+                raise
+        return True
+
     # ------------------------------------------------------------------ stage status for dashboard
     def stage(self, source_id: str, stage: str, status: str, log: str = "") -> None:
         with self.lock:

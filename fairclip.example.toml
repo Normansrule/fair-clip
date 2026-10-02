@@ -26,7 +26,7 @@ max_candidates = 10
 
 [media]
 runner = "auto"             # "docker" = always sandbox; "auto" = sandbox, or host only for pinned trusted demo files
-image = "fairclip-media:0.2.0"
+image = "fairclip-media:0.3.0"
 memory = "2g"
 cpus = "2"
 

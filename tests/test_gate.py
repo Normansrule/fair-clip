@@ -7,6 +7,7 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 from conftest import SHA, TRANSCRIPT, base_plan, make_ctx, own_rights
 
+from fairclip.affiliate import AffiliateRegistry
 from fairclip.config import Settings
 from fairclip.gate import History, run_gate
 from fairclip.gate.reasons import REASONS
@@ -30,14 +31,51 @@ def mk(**kw):
     return base | kw
 
 
-def aff_ctx(transcript=TRANSCRIPT + " I earn a commission on this kit.", **kw):
-    return make_ctx(plan=base_plan(tags=["affiliate"], affiliate=aff(**kw)), transcript=transcript)
+def aff_ctx(transcript=TRANSCRIPT + " I earn a commission on this kit.", settings=None, **kw):
+    return make_ctx(plan=base_plan(tags=["affiliate"], affiliate=aff(**kw)), transcript=transcript, settings=settings)
 
 
 def mk_ctx(transcript=TRANSCRIPT, va=None, **kw):
     # Data-source links appear in the description, so they must be allowlisted like any other link.
     s = Settings(link_allowlist=["https://example.com/kits/bridge-kit", "https://exchange.example.com/x"])
     return make_ctx(plan=base_plan(tags=["markets"], markets=mk(**kw), value_add=va or VA), transcript=transcript, settings=s)
+
+
+def reg(program=None, products=None, links=None):
+    """A registry matching aff(): program example-kits, product 'Kit', its one link."""
+    today = NOW.date()
+    prog = {"id": "example-kits", "name": "Example Kits", "terms_url": "https://example.com/kits/terms",
+            "joined_on": "2026-01-05", "terms_reviewed_on": today.isoformat(), "link_prefixes": ["https://example.com/kits/"]}
+    return AffiliateRegistry.model_validate({
+        "programs": [prog | (program or {})],
+        "products": products if products is not None else [{"name": "Kit", "evaluated_on": "2026-02-01",
+                                                            "how_evaluated": "Built it twice with my class and timed the assembly."}],
+        "links": links if links is not None else [{"url": "https://example.com/kits/bridge-kit", "program_id": "example-kits",
+                                                   "product": "Kit", "added_on": "2026-02-02"}]})
+
+
+def said(text, start=0.5, step=0.4):
+    return [(start + i * step, start + i * step + 0.3, w) for i, w in enumerate(text.split())]
+
+
+def _outside():
+    """A second registered link sits in a value-add card, but the plan only lists the first."""
+    r = reg(links=[{"url": "https://example.com/kits/bridge-kit", "program_id": "example-kits", "product": "Kit", "added_on": "2026-02-02"},
+                   {"url": "https://example.com/kits/truss-kit", "program_id": "example-kits", "product": "Kit", "added_on": "2026-02-02"}])
+    va = [VA[0] | {"text": "The truss kit I used is at https://example.com/kits/truss-kit for anyone curious."}]
+    ctx = make_ctx(plan=base_plan(tags=["affiliate"], affiliate=aff(), value_add=va), transcript=TRANSCRIPT + " I earn a commission on this kit.")
+    ctx.registry = r
+    return ctx
+
+
+def reg_ctx(registry=None, words=None, rights=None, **kw):
+    ctx = aff_ctx(**kw)
+    ctx.registry = registry or reg()
+    if words is not None:
+        ctx.words = words
+    if rights is not None:
+        ctx.rights = rights
+    return ctx
 
 
 BIG_DESC = "é" * 2600  # 2600 characters but 5200 bytes: over YouTube's 5000-byte limit
@@ -73,6 +111,14 @@ TRIGGERS = {
     "AFFILIATE_UNEVALUATED_PRODUCT": lambda: aff_ctx(products_evaluated=[]),
     "AFFILIATE_FABRICATED_CLAIM": lambda: make_ctx(plan=base_plan(tags=["affiliate"], affiliate=aff(),
                                                    value_add=[VA[0] | {"text": "Only 3 left in stock, so grab this bridge kit today before it goes."}])),
+    "AFFILIATE_PROGRAM_UNKNOWN": lambda: reg_ctx(registry=reg(program={"active": False})),
+    "AFFILIATE_LINK_UNREGISTERED": lambda: reg_ctx(registry=reg(links=[])),
+    "AFFILIATE_TERMS_STALE": lambda: reg_ctx(registry=reg(program={"terms_reviewed_on": (NOW - timedelta(days=400)).date().isoformat()})),
+    "AFFILIATE_REQUIRED_WORDING_MISSING": lambda: reg_ctx(registry=reg(program={"required_wording": "As an Example Kits partner I earn from purchases"})),
+    "AFFILIATE_SPOKEN_NOT_HEARD": lambda: reg_ctx(words=said("so what threatens a bridge it is wind")),
+    "AFFILIATE_SPOKEN_TOO_LATE": lambda: reg_ctx(start_card=None, spoken_disclosure_at=None, words=said("I earn a commission on this kit", start=14.0)),
+    "AFFILIATE_SPOKEN_UNCONFIRMED": lambda: reg_ctx(spoken_disclosure_at=None, words=said("I earn a commission on this kit")),
+    "AFFILIATE_LINK_OUTSIDE_PLAN": lambda: _outside(),
     "AFFILIATE_KIDS": lambda: make_ctx(plan=base_plan(tags=["affiliate"], affiliate=aff(), made_for_kids=True)),
     "LINK_NOT_ALLOWLISTED": lambda: make_ctx(description="See evil-deals.net/buy for more."),
     "LINK_CLOAKED": lambda: make_ctx(settings=Settings(link_allowlist=["https://bit.ly/abc123"]), description="Link: https://bit.ly/abc123"),
@@ -150,3 +196,24 @@ def test_ass_override_in_value_add_cannot_hide_disclosure():
     from fairclip.media.overlay import escape
 
     assert "{" not in escape(r"{\alpha&HFF&}hidden") and "\\" not in escape(r"a\Nb")
+
+
+def test_clean_registry_affiliate_clip_passes():
+    rep = run_gate(reg_ctx(), SHA)
+    assert rep.passed and not rep.warnings, [(r.code, r.message) for r in rep.results if r.severity is not Severity.PASS]
+
+
+def test_heard_disclosure_never_counts_until_confirmed():
+    """Said at 0.9 s, but nobody confirmed it's the owner's disclosure: warn, and don't count it."""
+    rep = run_gate(reg_ctx(spoken_disclosure_at=None, words=said("hi I earn a commission on this kit")), SHA)
+    assert "AFFILIATE_SPOKEN_UNCONFIRMED" in {r.code for r in rep.warnings}
+    assert "AFFILIATE_SINGLE_CHANNEL" in {r.code for r in rep.warnings}  # only the card counts
+    ok = run_gate(reg_ctx(spoken_disclosure_at=0.9, words=said("hi I earn a commission on this kit")), SHA)
+    assert ok.passed and not ok.warnings
+
+
+def test_registered_links_are_allowlisted_and_others_are_not():
+    ctx = reg_ctx(settings=Settings(link_allowlist=[]))
+    assert "LINK_NOT_ALLOWLISTED" not in {r.code for r in run_gate(ctx, SHA).results}
+    ctx.registry = reg(program={"active": False})
+    assert "LINK_NOT_ALLOWLISTED" in {r.code for r in run_gate(ctx, SHA).blocks}

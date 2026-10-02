@@ -13,6 +13,7 @@ import numpy as np
 from pydantic import ValidationError
 
 from . import rights as rights_mod
+from .affiliate import detect_spoken, load_registry
 from .approval import maybe_auto_approve
 from .config import Settings
 from .gate import GateContext, History, load_screen_terms, run_gate, shingles
@@ -35,7 +36,7 @@ from .models import (
 )
 from .publish.body import build_body
 from .scoring import default_topics, rank_candidates
-from .store import Store, now, sha256_file
+from .store import CLIP_STATES, Store, now, sha256_file
 from .transcribe import load_sidecar, whisper_transcribe
 
 log = logging.getLogger("fair-clip")
@@ -148,11 +149,43 @@ class Pipeline:
 
     def save_plan(self, plan: ClipPlan, actor: str = "cli") -> None:
         existing = self.store.row("clips", plan.clip_id)
-        if existing and existing.get("status") in {"approved", "uploading", "published", "dry_run_published"}:
+        if existing and existing.get("status") in self.FROZEN:
             raise PipelineError("clip already approved/published; plans are frozen after approval")
-        self.store.upsert("clips", plan.clip_id, source_id=plan.source_id, created=now(), plan=plan.model_dump(mode="json"), status="planned")
+        fields = {"plan": plan.model_dump(mode="json"), "status": "planned"}
+        if existing:  # checked and written together, so an approval can't slip in between
+            if not self.store.set_if_status("clips", plan.clip_id, set(CLIP_STATES) - self.FROZEN, **fields):
+                raise PipelineError("clip was approved while you edited it; plans are frozen after approval")
+        else:
+            self.store.upsert("clips", plan.clip_id, source_id=plan.source_id, created=now(), **fields)
         self.store.audit.append(actor, "plan", plan.clip_id, {"start": plan.start, "end": plan.end, "template": plan.template,
                                                                "value_add": len(plan.value_add), "tags": plan.tags})
+
+    def edit_plan(self, clip_id: str, changes: dict[str, Any], actor: str) -> GateReport:
+        """Change part of a clip's plan (e.g. its affiliate section from the dashboard), then render
+        and gate it again. Frozen (approved/published) clips refuse, like everywhere else."""
+        row = self.store.row("clips", clip_id)
+        if row is None:
+            raise PipelineError(f"no clip {clip_id}")
+        if row.get("status") in self.FROZEN:
+            raise PipelineError(f"clip is '{row['status']}': approved/published clips are frozen")
+        plan = ClipPlan.model_validate(row["plan"] | changes)
+        self.save_plan(plan, actor=actor)
+        self.store.audit.append(actor, "plan_edit", clip_id, {"fields": sorted(changes)})
+        return self.render_and_gate(clip_id, actor=actor)
+
+    def heard_disclosures(self, clip_id: str) -> list[tuple[float, str]]:
+        """Disclosure phrases actually said in this clip, on the clip's own timeline."""
+        row = self.store.row("clips", clip_id)
+        if row is None:
+            raise PipelineError(f"no clip {clip_id}")
+        plan = ClipPlan.model_validate(row["plan"])
+        src = self.store.row("sources", plan.source_id) or {}
+        if not src.get("transcript"):
+            return []
+        tr = Transcript.model_validate(src["transcript"])
+        rms = np.load(self.analysis_dir(plan.source_id) / "rms_db.npy")
+        words, tmap, _ = self._window(plan, tr, rms)
+        return detect_spoken([(tmap.clamp_to_clip(w.start), tmap.clamp_to_clip(w.end), w.text) for w in words])
 
     # ------------------------------------------------------------------ stage 4-7
     FROZEN = {"approved", "uploading", "published", "dry_run_published", "deferred_quota"}
@@ -248,7 +281,7 @@ class Pipeline:
         ctx = GateContext(plan=plan, rights=rec, metadata=md, body=body, transcript_text=" ".join(w.text for w in words),
                           clip_duration=tmap.duration, fingerprint=fp, settings=self.s, history=self.history(plan, clip_id),
                           kill_switch=self.store.kill_switch, screen_terms=load_screen_terms(self.screen_terms_path()),
-                          media_sha256=src["media_sha"], summary=summary,
+                          media_sha256=src["media_sha"], summary=summary, registry=load_registry(self.store),
                           words=[(tmap.clamp_to_clip(w.start), tmap.clamp_to_clip(w.end), w.text) for w in words])
         report = run_gate(ctx, clip_sha)
         if extra:

@@ -93,5 +93,47 @@
 </section>
 </div>
 
+<section class="card" id="affiliate">
+  <h2>Affiliate links &amp; disclosures</h2>
+  {% if row.status in ('awaiting_approval', 'blocked', 'planned', 'rendered', 'rejected') %}
+    {% if registry.links %}
+    <form method="post" action="/clips/{{ row.id }}/affiliate" class="formgrid">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <fieldset class="wide"><legend>Links to put in the description (registered only)</legend>
+        {% for l in registry.links %}
+        <label class="check"><input type="checkbox" name="link" value="{{ l.url }}" {{ 'checked' if l.url in chosen }} {{ 'disabled' if l.url not in usable }}>
+          <span><strong>{{ l.product }}</strong> · {{ l.program_id }} · <span class="mono small">{{ l.url }}</span>{% if l.url not in usable %} <span class="badge">program paused or product retired</span>{% endif %}</span></label>
+        {% endfor %}
+      </fieldset>
+      {% set af = plan.affiliate %}
+      {% set req = [] %}{% for l in registry.links if l.url in chosen %}{% set p = registry.program(l.program_id) %}{% if p and p.required_wording and p.required_wording not in req %}{% set _ = req.append(p.required_wording) %}{% endif %}{% endfor %}
+      <label class="wide">Disclosure, in plain words (shown on screen and above the first link)
+        <input name="disclosure_text" maxlength="200" required value="{{ af.disclosure_text if af else 'I earn a commission if you buy through these links.' }}">
+        {% if req %}<span class="small">Your program requires: <em>{{ req | join(' · ') }}</em></span>{% endif %}</label>
+      <label>On-screen card near the start (seconds, from-to)<input name="start_card" placeholder="0.3-5" value="{% if af and af.start_card %}{{ af.start_card[0] }}-{{ af.start_card[1] }}{% endif %}"></label>
+      <label>Recommendation times (seconds, comma-separated)<input name="recommendation_times" placeholder="17, 32.5" value="{{ (af.recommendation_times | join(', ')) if af else '' }}"></label>
+      <fieldset class="wide"><legend>Spoken disclosure (from the timed transcript)</legend>
+        {% if heard %}
+          {% for t, phrase in heard %}
+          <label class="check"><input type="radio" name="spoken_at" value="{{ t }}" {{ 'checked' if af and af.spoken_disclosure_at == t }}>
+            <span>Heard “{{ phrase }}” at <strong>{{ '%.1f'|format(t) }} s</strong>{% if t > 10 %} <span class="bad small">(after the first 10 s)</span>{% endif %}</span></label>
+          {% endfor %}
+          <label class="check"><input type="radio" name="spoken_at" value="" {{ 'checked' if not af or af.spoken_disclosure_at is none }}> <span>Don't count a spoken disclosure</span></label>
+          <p class="small muted">Nothing counts until you tick it. Tick a line only if it's <em>your</em> disclosure for these links (not a guest's, and not about something else). It must be said within the first 10 s.</p>
+        {% else %}
+          <p class="small muted">No disclosure phrase is said in this clip, so it relies on the on-screen cards. Saying it as well (“I earn a commission if you buy through my links”) is clearer for viewers.</p>
+        {% endif %}
+      </fieldset>
+      <p class="small muted wide">A disclosure card is added automatically at each recommendation (0.5 s before to 3.5 s after). Saving re-renders the clip and runs the gate again.</p>
+      <button class="btn primary">Save, re-render and re-check</button>
+    </form>
+    {% else %}
+    <p class="muted">No registered links yet. Add the program you joined, the product you evaluated and its exact link on the <a href="/affiliate">Affiliate page</a>.</p>
+    {% endif %}
+  {% elif plan.affiliate %}
+    <p class="small">{{ plan.affiliate.links | length }} link(s); frozen because the clip is {{ row.status.replace('_',' ') }}.</p>
+  {% else %}<p class="muted small">No affiliate links.</p>{% endif %}
+</section>
+
 <details class="card"><summary>Clip log</summary><pre class="log">{{ (row.logs or []) | join('\n') }}</pre></details>
 {% endblock %}

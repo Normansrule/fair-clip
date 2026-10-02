@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Affiliate{% endblock %}
+{% block body %}
+<h1>Affiliate registry</h1>
+<p class="muted">The gate only accepts affiliate links you register here: under a program you joined, for a product you actually evaluated. Registered links of active programs are allowlisted automatically. Every change is in the audit log.</p>
+{% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+
+<section class="card">
+  <h2>1 · Programs you joined</h2>
+  {% if reg.programs %}
+  <table class="tbl">
+    <tr><th>Program</th><th>Terms</th><th>Last re-read</th><th>Links must start with</th><th>Required wording</th><th></th></tr>
+    {% for p in reg.programs %}{% set age = p.terms_age_days(today) %}
+    <tr class="{{ '' if p.active else 'dim' }}">
+      <td><strong>{{ p.name }}</strong><br><span class="mono small">{{ p.id }}</span>{% if not p.active %} <span class="badge">paused</span>{% endif %}</td>
+      <td><a href="{{ p.terms_url }}" rel="noopener noreferrer" target="_blank">terms ↗</a></td>
+      <td>{{ p.terms_reviewed_on }}{% if age > stale_days %}<br><span class="bad small">⚠ {{ age }} days ago: re-read them</span>{% endif %}</td>
+      <td class="mono small">{% for x in p.link_prefixes %}{{ x }}<br>{% endfor %}</td>
+      <td class="small">{{ p.required_wording or '—' }}</td>
+      <td class="actions-col">
+        <form method="post" action="/affiliate/terms-reviewed" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ p.id }}"><button class="btn small">I re-read the terms today</button></form>
+        <form method="post" action="/affiliate/pause" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ p.id }}"><button class="btn small">{{ 'Pause' if p.active else 'Resume' }}</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No programs yet.</p>{% endif %}
+  <details class="edit"><summary>Add or update a program</summary>
+    <form method="post" action="/affiliate/program" class="formgrid">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>ID (lowercase, e.g. <code>example-kits</code>)<input name="id" required pattern="[a-z0-9_\-]{2,40}"></label>
+      <label>Name<input name="name" required maxlength="200"></label>
+      <label>Terms URL (https)<input name="terms_url" type="url" required placeholder="https://…"></label>
+      <label>Joined on<input name="joined_on" type="date"></label>
+      <label class="wide">Link prefixes, one per line (each must include the "/" after the host)<textarea name="link_prefixes" rows="2" required placeholder="https://shop.example/"></textarea></label>
+      <label class="wide">Wording the program requires in your disclosure (copy it from their terms; optional)<input name="required_wording" maxlength="200"></label>
+      <label class="wide">Notes<input name="notes" maxlength="1000"></label>
+      <button class="btn primary">Save program</button>
+    </form>
+  </details>
+</section>
+
+<section class="card">
+  <h2>2 · Products you evaluated</h2>
+  <p class="small muted">Only recommend what you actually tried. "How you evaluated it" is your own words (30+ characters); fair-clip never writes it for you, and never invents reviews, results or prices.</p>
+  {% if reg.products %}
+  <table class="tbl">
+    <tr><th>Product</th><th>Evaluated</th><th>How</th><th></th></tr>
+    {% for p in reg.products %}
+    <tr class="{{ 'dim' if p.retired else '' }}">
+      <td><strong>{{ p.name }}</strong>{% if p.retired %} <span class="badge">retired</span>{% endif %}</td>
+      <td>{{ p.evaluated_on }}</td><td class="small">{{ p.how_evaluated }}</td>
+      <td><form method="post" action="/affiliate/retire" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="name" value="{{ p.name }}"><button class="btn small">{{ 'Un-retire' if p.retired else 'Retire' }}</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No products yet.</p>{% endif %}
+  <details class="edit"><summary>Add or update a product</summary>
+    <form method="post" action="/affiliate/product" class="formgrid">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>Product name<input name="name" required maxlength="200"></label>
+      <label>Evaluated on<input name="evaluated_on" type="date"></label>
+      <label class="wide">How you evaluated it (your words)<textarea name="how_evaluated" rows="2" minlength="30" maxlength="1000" required></textarea></label>
+      <button class="btn primary">Save product</button>
+    </form>
+  </details>
+</section>
+
+<section class="card">
+  <h2>3 · Links</h2>
+  <p class="small muted">Exact URLs only. Shorteners and redirect parameters are refused, so viewers can see where a link goes.</p>
+  {% if reg.links %}
+  <table class="tbl">
+    <tr><th>Link</th><th>Program</th><th>Product</th><th>Added</th><th></th></tr>
+    {% for l in reg.links %}
+    <tr><td class="mono small">{{ l.url }}</td><td>{{ l.program_id }}</td><td>{{ l.product }}</td><td>{{ l.added_on }}</td>
+      <td><form method="post" action="/affiliate/unlink" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="url" value="{{ l.url }}"><button class="btn small danger">Remove</button></form></td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No links yet.</p>{% endif %}
+  {% if reg.programs and reg.products %}
+  <details class="edit"><summary>Register a link</summary>
+    <form method="post" action="/affiliate/link" class="formgrid">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="wide">Exact URL<input name="url" type="url" required placeholder="https://…"></label>
+      <label>Program<select name="program_id">{% for p in reg.programs if p.active %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></label>
+      <label>Product<select name="product">{% for p in reg.products if not p.retired %}<option>{{ p.name }}</option>{% endfor %}</select></label>
+      <button class="btn primary">Register link</button>
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}

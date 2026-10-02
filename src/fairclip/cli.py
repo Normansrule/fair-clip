@@ -189,6 +189,53 @@ def cmd_analytics(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_affiliate(a: argparse.Namespace) -> int:
+    """show | import FILE | review-terms PROGRAM_ID | heard CLIP_ID (milestone 3, docs/AFFILIATE.md)."""
+    from datetime import UTC, datetime
+
+    from .affiliate import TERMS_STALE_DAYS, import_registry, load_registry, update_registry
+
+    p = _pipeline(a)
+    who = getpass.getuser()
+    if a.action == "import":
+        if not a.arg:
+            raise ValueError("usage: fair-clip affiliate import registry.json")
+        r = import_registry(p.store, json.loads(Path(a.arg).read_text()), who)
+        print(f"registry saved: {len(r.programs)} program(s), {len(r.products)} product(s), {len(r.links)} link(s)")
+    elif a.action == "review-terms":
+        today = datetime.now(UTC).date()
+
+        def mark(reg):  # type: ignore[no-untyped-def]
+            prog = reg.program(a.arg or "")
+            if prog is None:
+                raise ValueError(f"no program '{a.arg}'")
+            prog.terms_reviewed_on = today
+            return reg
+        update_registry(p.store, mark, who, "terms_reviewed", {"program": a.arg, "on": today.isoformat()})
+        print(f"{a.arg}: terms marked as re-read on {today}")
+    elif a.action == "heard":
+        if not a.arg:
+            raise ValueError("usage: fair-clip affiliate heard CLIP_ID")
+        heard = p.heard_disclosures(a.arg)
+        for t, phrase in heard:
+            print(f"  {t:6.1f} s  '{phrase}'")
+        print(f"{len(heard)} spoken disclosure(s) in {a.arg}" if heard else f"no spoken disclosure in {a.arg}")
+    else:  # show
+        r = load_registry(p.store)
+        today = datetime.now(UTC).date()
+        for prog in r.programs:
+            age = prog.terms_age_days(today)
+            flag = "  ⚠ re-read terms" if age > TERMS_STALE_DAYS else ""
+            print(f"program {prog.id:<16} {'active' if prog.active else 'PAUSED':<7} terms read {age:>3} d ago{flag}  {prog.terms_url}")
+        for prod in r.products:
+            print(f"product {prod.name:<30} evaluated {prod.evaluated_on}{'  (retired)' if prod.retired else ''}")
+        for lk in r.links:
+            print(f"link    {lk.url}  [{lk.program_id} / {lk.product}]")
+        if not (r.programs or r.products or r.links):
+            print("empty registry: add programs on the dashboard's Affiliate page, or `fair-clip affiliate import FILE`")
+    return 0
+
+
 def cmd_weights(a: argparse.Namespace) -> int:
     """Propose bounded weights from live analytics (--from-analytics) or a rows file:
     {"rows": [{"z": {...5 features...}, "outcome": APV}, ...]}. A person applies it in Settings."""
@@ -347,6 +394,9 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("analytics", help="stage 10: connect (read-only), pull, import FILE, disconnect")
     s.add_argument("action", choices=["import", "connect", "pull", "disconnect"]), s.add_argument("file", nargs="?")
     s.set_defaults(fn=cmd_analytics)
+    s = sub.add_parser("affiliate", help="affiliate registry: show, import FILE, review-terms ID, heard CLIP_ID")
+    s.add_argument("action", choices=["show", "import", "review-terms", "heard"]), s.add_argument("arg", nargs="?")
+    s.set_defaults(fn=cmd_affiliate)
     s = sub.add_parser("weights", help="propose bounded highlight-weight update (needs approval)")
     s.add_argument("action", choices=["propose"]), s.add_argument("file", nargs="?")
     s.add_argument("--from-analytics", action="store_true", help="use pulled YouTube Analytics (>= 10 clips, >= 50 views each)")

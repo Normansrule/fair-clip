@@ -63,16 +63,16 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build images (base images pinned by digest)
         run: |
-          docker build -f sandbox/Dockerfile.media -t fairclip-media:0.2.0 .
-          docker build -t fairclip-app:0.2.0 .
+          docker build -f sandbox/Dockerfile.media -t fairclip-media:0.3.0 .
+          docker build -t fairclip-app:0.3.0 .
       - name: App image starts (catches missing runtime dependencies)
-        run: docker run --rm --network none fairclip-app:0.2.0 --help > /dev/null
+        run: docker run --rm --network none fairclip-app:0.3.0 --help > /dev/null
       - name: Sandbox isolation smoke test (no network, read-only, non-root, worker policy)
-        run: bash scripts/sandbox_smoke.sh fairclip-media:0.2.0
+        run: bash scripts/sandbox_smoke.sh fairclip-media:0.3.0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Hostile-media test through the real sandbox
         run: |
           python -m pip install --require-hashes -r requirements-dev.lock
-          FAIRCLIP_TEST_IMAGE=fairclip-media:0.2.0 PYTHONPATH=src python -m pytest -q tests/test_sandbox_and_web.py -k hostile
+          FAIRCLIP_TEST_IMAGE=fairclip-media:0.3.0 PYTHONPATH=src python -m pytest -q tests/test_sandbox_and_web.py -k hostile

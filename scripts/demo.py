@@ -85,6 +85,12 @@ def main() -> int:
     (DATA / "fairclip.toml").write_text(CONFIG)
     p = Pipeline(load_settings(DATA / "fairclip.toml"))
     sid = p.ingest(DEMO / "source.mp4", DEMO / "rights.json", DEMO / "transcript.json", actor="demo")
+    # The affiliate registry (milestone 3): a fictional program, the product the owner tested, its exact link.
+    from fairclip.affiliate import import_registry
+    reg = json.loads((DEMO / "affiliate.json").read_text())
+    for prog in reg["programs"]:  # the demo owner "re-read" the terms today, so the demo never goes stale
+        prog["terms_reviewed_on"] = time.strftime("%Y-%m-%d", time.gmtime())
+    import_registry(p.store, reg, "demo")
     ranked = p.store.rows("candidates", "source_id=?", (sid,), order="rank")
     print(f"[1-3] ingested {sid}: {len(ranked)} ranked candidates (backend: {p.runner.last_backend})")
     for r in ranked:

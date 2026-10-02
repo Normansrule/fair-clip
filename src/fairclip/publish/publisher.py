@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ..affiliate import load_registry, registry_problems
 from ..config import Settings
 from ..models import ClipPlan, Decision, GateReport, Metadata, RightsRecord
 from ..rights import rights_problems
@@ -91,6 +92,9 @@ def _publish_one(store: Store, settings: Settings, row: dict[str, Any], uploader
     rec = RightsRecord.model_validate(src["rights"])
     md = Metadata.model_validate(row["metadata"])
 
+    # Affiliate links must still be usable in the registry right now.
+    if plan.affiliate and (reg_probs := registry_problems(plan.affiliate, load_registry(store))):
+        raise PublishError("affiliate registry changed after approval: " + "; ".join(reg_probs))
     # Rights must still hold now AND on the scheduled publish day.
     when = dec.publish_at.astimezone(UTC).date() if dec.publish_at else datetime.now(UTC).date()
     for day in {datetime.now(UTC).date(), when}:

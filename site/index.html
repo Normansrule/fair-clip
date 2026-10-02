@@ -12,7 +12,7 @@
 <body>
 <header class="site"><div class="wrap">
   <a class="brand" href="./"><span>◈</span> fair-clip</a>
-  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
+  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#affiliate">Affiliate</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
@@ -50,11 +50,11 @@
 
   <section id="gate">
     <h2>The compliance gate</h2>
-    <p class="sub">52 checks in 11 groups. Every one runs, and every reason is reported: 43 block the clip, 9 are warnings a person must acknowledge. The chart is generated from the code that enforces it.</p>
+    <p class="sub">60 checks in 11 groups. Every one runs, and every reason is reported: 47 block the clip, 13 are warnings a person must acknowledge. The chart is generated from the code that enforces it.</p>
     <div class="grid3">
       <div class="card"><h3>Rights &amp; originality</h3><p>No rights record, no processing. Licenses that forbid edits or commercial use are refused. Value-add coverage, length and originality are measured.</p></div>
       <div class="card"><h3>Disclosures</h3><p>The synthetic-content flag is set from the rights record (when unsure, disclose). Paid promotion goes private-only plus a Studio step, because the API can't set that flag.</p></div>
-      <div class="card"><h3>Affiliate &amp; markets</h3><p>Disclosure at the start, at each recommendation and above the first link; allowlisted links only; no fake urgency. Securities promotion needs payer + amount; numbers need fresh sources; pump language blocks.</p></div>
+      <div class="card"><h3>Affiliate &amp; markets</h3><p>Disclosure said or shown at the start, at each recommendation and above the first link; only links you registered, for products you tested; no fake urgency. Securities promotion needs payer + amount; numbers need fresh sources; pump language blocks.</p></div>
     </div>
     <figure class="spaced"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gate-flow-dark.svg"><img src="assets/gate-flow-light.svg" alt="Compliance gate flowchart listing every block and warning code by group." width="1200"></picture></figure>
   </section>
@@ -63,6 +63,12 @@
     <h2>Disclosures where viewers actually see them</h2>
     <p class="sub">On screen near the start, on screen at the recommendation, and in the description above the first link, all checked before upload.</p>
     <figure class="frame"><img src="assets/disclosures.png" alt="Three disclosure placements rendered from the demo's affiliate example." width="1600" height="1000"></figure>
+  </section>
+
+  <section id="affiliate">
+    <h2>Affiliate links, honestly</h2>
+    <p class="sub">Keep a registry of what's true: the programs you joined (and when you last re-read their terms), the products you actually tested, in your own words, and the exact links you were given. A clip can only carry registered links. A spoken disclosure counts only where the timed transcript says it's said. <a href="demo.html#disclose">Try the disclosure checker →</a></p>
+    <figure class="frame"><img src="assets/dashboard-affiliate-light.png" alt="The Affiliate page: a program with its terms link, last re-read date and link prefix; an evaluated product with how it was tested; and its one registered link." width="1360" height="956" loading="lazy"></figure>
   </section>
 
   <section id="security">

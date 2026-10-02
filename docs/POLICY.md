@@ -22,14 +22,14 @@ This page maps each outside rule to the code that enforces it. Every rule was ch
 | Chapters: first at 0:00, ≥ 3, each ≥ 10 s ([yt-chapters](REFERENCES.md#yt-chapters)) | Chapters are generated only when all three rules hold (never for Shorts) | `metadata.chapters_for` | n/a |
 | Shorts: vertical/square up to 3 minutes ([yt-shorts](REFERENCES.md#yt-shorts)) | Clip plans are limited to 5–180 s | `models.ClipPlan` | n/a |
 
-## Affiliate marketing (milestone 3 adds the UI; the gate rules are live now)
+## Affiliate marketing (registry and editor: [AFFILIATE.md](AFFILIATE.md))
 
 What the Federal Trade Commission (FTC) asks, and how it maps to checks:
 
 | FTC guidance | Check |
 |---|---|
 | Disclose a material connection "clearly and conspicuously" ([cfr-16-255](REFERENCES.md#cfr-16-255) §255.5) | an affiliate plan is required for any clip tagged `affiliate` (`AFFILIATE_PLAN_MISSING`) |
-| Put the disclosure **in the video**, not just the description; audio + video together is more noticeable ([ftc-disclosures-101](REFERENCES.md#ftc-disclosures-101); [cfr-16-255](REFERENCES.md#cfr-16-255) §255.0(f)) | spoken (the transcript must contain the disclosure words) or on-screen, starting within the first 10 s, else **block** (`AFFILIATE_START_DISCLOSURE_MISSING`); only one of the two gives a warning (`AFFILIATE_SINGLE_CHANNEL`) |
+| Put the disclosure **in the video**, not just the description; audio + video together is more noticeable ([ftc-disclosures-101](REFERENCES.md#ftc-disclosures-101); [cfr-16-255](REFERENCES.md#cfr-16-255) §255.0(f)) | spoken or on-screen, starting within the first 10 s, else **block** (`AFFILIATE_START_DISCLOSURE_MISSING`); only one of the two gives a warning (`AFFILIATE_SINGLE_CHANNEL`). "Spoken" is checked against the **timed transcript**: the words must be said where the plan claims (`AFFILIATE_SPOKEN_NOT_HEARD`). A spoken disclosure counts only after the owner confirms it, and only if it's said within 1.5 s of the confirmed time and inside the first 10 s. An unconfirmed one is flagged (`AFFILIATE_SPOKEN_UNCONFIRMED`), and so is one said later (`AFFILIATE_SPOKEN_TOO_LATE`). Denials ("not sponsored by") never count |
 | Place it with the endorsement ([ftc-disclosures-101](REFERENCES.md#ftc-disclosures-101)) | a disclosure card within ±3 s of every marked recommendation (`AFFILIATE_CARD_MISSING`, `AFFILIATE_RECOMMENDATION_UNMARKED`) |
 | Not only behind "more" ([ftc-disclosures-101](REFERENCES.md#ftc-disclosures-101)) | in the description, the disclosure sits **above the first link** (`AFFILIATE_DESCRIPTION_ORDER`). The code builds the description frame, so a model can't reorder it |
 | "Affiliate link" alone is not enough; say you earn money ([ftc-endorsement-faq](REFERENCES.md#ftc-endorsement-faq)) | the wording must mention commission, payment or earning (`AFFILIATE_WEAK_WORDING`) |
@@ -37,11 +37,13 @@ What the Federal Trade Commission (FTC) asks, and how it maps to checks:
 
 Rules of our own (stricter than the law requires; ethical by construction):
 
-- **Only products you evaluated:** every linked product must be in `products_evaluated` (`AFFILIATE_UNEVALUATED_PRODUCT`).
+- **Every affiliate link comes with its disclosures:** a registered or program-prefixed link anywhere in a clip must be listed in that clip's affiliate plan (`AFFILIATE_LINK_OUTSIDE_PLAN`). Approval and upload re-check the registry, so pausing a program stops clips that already passed.
+- **Only programs you joined:** every link names a program in your registry that you haven't paused (`AFFILIATE_PROGRAM_UNKNOWN`), and must be the exact URL you registered for that program and product (`AFFILIATE_LINK_UNREGISTERED`). Registered links must start with one of the program's link prefixes.
+- **Only products you evaluated:** every linked product must be in your registry with the date and, in your own words, how you evaluated it (`AFFILIATE_UNEVALUATED_PRODUCT`). Retired products can't be linked.
 - **No fabricated urgency, reviews or results:** "only 3 left", "selling out", "customers love", "clinically proven", "lose 10 lbs in" and similar block the clip (`AFFILIATE_FABRICATED_CLAIM`). The tool has no feature that generates reviews, testimonials, prices or scarcity.
 - **No affiliate content aimed at children:** a made-for-kids clip can't carry affiliate links (`AFFILIATE_KIDS`). YouTube's made-for-kids rules rest on the Children's Online Privacy Protection Act (COPPA) and an FTC agreement ([yt-kids](REFERENCES.md#yt-kids)).
 - **No cloaking:** links must match the allowlist exactly. Shorteners, redirect parameters, `user@host` tricks and punycode hosts are refused (`LINK_NOT_ALLOWLISTED`, `LINK_CLOAKED`).
-- **Honor each program's terms:** document each program you join in your config notes. Some programs restrict where and how links may appear.
+- **Honor each program's terms:** each program records its terms URL and when you last re-read them; after 180 days the gate warns (`AFFILIATE_TERMS_STALE`). If a program requires specific wording in your disclosure, store it with the program and the gate blocks a disclosure without it (`AFFILIATE_REQUIRED_WORDING_MISSING`). Copy the wording from the program's own current terms (for example, Amazon's Associates help explains its required statement: <https://affiliate-program.amazon.com/help/node/topic/GHQNZAU6669EZS98>).
 
 ## Markets (financial) content (milestone 4 adds the UI; the gate rules are live now)
 

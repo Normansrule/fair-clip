@@ -21,6 +21,15 @@ from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
+from ..affiliate import (
+    TERMS_STALE_DAYS,
+    AffiliateRegistry,
+    Product,
+    Program,
+    RegisteredLink,
+    load_registry,
+    update_registry,
+)
 from ..analytics import area_under_retention, biggest_drop
 from ..analytics_api import ANALYTICS_TOKEN, propose_from_analytics, pull, training_rows
 from ..approval import ApprovalError, decide, human_required
@@ -39,6 +48,24 @@ from . import security as sec
 from .charts import retention_svg, score_bars_svg
 
 HERE = Path(__file__).resolve().parent
+
+
+def parse_times(text: str) -> list[float]:
+    """'17, 32.5' -> [17.0, 32.5] (clip seconds, at most 10)."""
+    out = [float(x) for x in re.split(r"[,\s]+", text.strip()) if x]
+    if len(out) > 10 or any(not 0 <= t <= 3600 for t in out):
+        raise ValueError("recommendation times: up to 10 numbers of seconds, e.g. '17, 32.5'")
+    return out
+
+
+def parse_span(text: str) -> list[float] | None:
+    """'0.3-5' -> [0.3, 5.0]; empty -> None."""
+    if not text.strip():
+        return None
+    m = re.fullmatch(r"\s*(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*", text)
+    if not m or float(m.group(2)) <= float(m.group(1)):
+        raise ValueError("start card: write it as 'from-to' in seconds, e.g. '0.3-5'")
+    return [float(m.group(1)), float(m.group(2))]
 
 
 def create_app(settings: Settings, store: Store | None = None, extra_hosts: tuple[str, ...] = (),
@@ -191,9 +218,119 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
         grouped: dict[str, list] = {g: [] for g in GROUP_ORDER}
         for r in gate.results if gate else []:
             grouped.setdefault(r.check, []).append(r)
+        reg = load_registry(store)
+        try:
+            heard = pipeline.heard_disclosures(cid)
+        except (PipelineError, OSError, ValueError):
+            heard = []
         return page(request, "clip.html", s, row=row, plan=plan, gate=gate, grouped=grouped,
                     paid=paid_promotion_required(plan), human_only=human_required(plan, settings),
-                    visibilities=[v.value for v in Visibility], error=request.query_params.get("error"))
+                    visibilities=[v.value for v in Visibility], error=request.query_params.get("error"),
+                    registry=reg, usable=set(reg.usable_links()), heard=heard,
+                    chosen={lk.url for lk in (plan.affiliate.links if plan.affiliate else [])})
+
+    @app.post("/clips/{cid}/affiliate")
+    async def clip_affiliate(request: Request, cid: str) -> Response:
+        """Edit the clip's affiliate section from registered links, then re-render and re-gate."""
+        s = need(request)
+        form = await request.form()
+        if not sec.csrf_ok(s, str(form.get("csrf", ""))):
+            raise HTTPException(status_code=403, detail="CSRF token missing or wrong")
+        reg = load_registry(store)
+        try:
+            spoken = str(form.get("spoken_at", "") or "")
+            urls = [str(u) for u in form.getlist("link")][:10]
+            links = []
+            for u in urls:
+                lk = reg.link(u)
+                if lk is None:
+                    raise ValueError(f"{u} isn't a registered link")
+                links.append({"program_id": lk.program_id, "url": lk.url, "product": lk.product})
+            rec_times = parse_times(str(form.get("recommendation_times", "")))
+            changes: dict[str, Any] = {
+                "tags": sorted(set(ClipPlan.model_validate(store.row("clips", cid)["plan"]).tags) | {"affiliate"}),
+                "affiliate": {
+                    "links": links,
+                    "disclosure_text": str(form.get("disclosure_text", "")).strip()[:200],
+                    "start_card": parse_span(str(form.get("start_card", ""))),
+                    "spoken_disclosure_at": float(spoken) if spoken else None,  # only what the owner ticked
+                    "recommendation_times": rec_times,
+                    # one readable card per recommendation: from 0.5 s before to 3.5 s after
+                    "recommendation_cards": [[max(0.0, t - 0.5), t + 3.5] for t in rec_times],
+                },
+            }
+            await run_in_threadpool(pipeline.edit_plan, cid, changes, s["u"])
+        except (PipelineError, ValidationError, ValueError, KeyError, TypeError) as exc:
+            msg = exc.errors()[0]["msg"] if isinstance(exc, ValidationError) else str(exc)
+            return RedirectResponse(f"/clips/{cid}?error={quote(redact(msg)[:200])}", status_code=303)
+        return RedirectResponse(f"/clips/{cid}#affiliate", status_code=303)
+
+    # ------------------------------------------------------------------ affiliate registry
+    @app.get("/affiliate", response_class=HTMLResponse)
+    def affiliate_page(request: Request) -> HTMLResponse:
+        s = need(request)
+        today = datetime.now(UTC).date()
+        return page(request, "affiliate.html", s, reg=load_registry(store), today=today, stale_days=TERMS_STALE_DAYS,
+                    error=request.query_params.get("error", "")[:300])
+
+    @app.post("/affiliate/{action}")
+    async def affiliate_change(request: Request, action: str) -> Response:
+        s = need(request)
+        form = {k: (str(v).strip() if isinstance(v, str) else v) for k, v in (await need_csrf(request, s)).items()}
+        today = datetime.now(UTC).date()
+
+        def change(reg: AffiliateRegistry) -> AffiliateRegistry:
+            if action == "program":
+                # Editing keeps what only the dedicated buttons may change: paused state and the
+                # "terms re-read" date. A NEW program counts as read today (you just joined it).
+                old = reg.program(str(form.get("id", "")))
+                prog = Program.model_validate({
+                    "id": form.get("id", ""), "name": form.get("name", ""), "terms_url": form.get("terms_url", ""),
+                    "joined_on": form.get("joined_on") or (old.joined_on.isoformat() if old else today.isoformat()),
+                    "terms_reviewed_on": old.terms_reviewed_on.isoformat() if old else today.isoformat(),
+                    "active": old.active if old else True,
+                    "link_prefixes": [x.strip() for x in str(form.get("link_prefixes", "")).splitlines() if x.strip()],
+                    "required_wording": form.get("required_wording", ""), "notes": form.get("notes", "")})
+                reg.programs = [p for p in reg.programs if p.id != prog.id] + [prog]
+            elif action == "terms-reviewed":
+                prog = reg.program(str(form.get("id", "")))
+                if prog is None:
+                    raise ValueError("no such program")
+                prog.terms_reviewed_on = today
+            elif action == "pause":
+                prog = reg.program(str(form.get("id", "")))
+                if prog is None:
+                    raise ValueError("no such program")
+                prog.active = not prog.active
+            elif action == "product":
+                old_p = reg.product(str(form.get("name", "")))
+                prod = Product.model_validate({
+                    "name": form.get("name", ""),
+                    "evaluated_on": form.get("evaluated_on") or (old_p.evaluated_on.isoformat() if old_p else today.isoformat()),
+                    "how_evaluated": form.get("how_evaluated", ""), "retired": old_p.retired if old_p else False})
+                reg.products = [p for p in reg.products if p.name.lower() != prod.name.lower()] + [prod]
+            elif action == "retire":
+                prod = reg.product(str(form.get("name", "")))
+                if prod is None:
+                    raise ValueError("no such product")
+                prod.retired = not prod.retired
+            elif action == "link":
+                lk = RegisteredLink.model_validate({"url": form.get("url", ""), "program_id": form.get("program_id", ""),
+                                                    "product": form.get("product", ""), "added_on": today.isoformat()})
+                reg.links = [x for x in reg.links if x.url != lk.url] + [lk]
+            elif action == "unlink":
+                reg.links = [x for x in reg.links if x.url != form.get("url")]
+            else:
+                raise HTTPException(404)
+            return reg
+
+        try:
+            update_registry(store, change, s["u"], action.replace("-", "_"),
+                            {k: v for k, v in form.items() if k in {"id", "name", "url", "program_id", "product"}})
+        except (ValidationError, ValueError) as exc:
+            msg = "; ".join(e["msg"] for e in exc.errors()[:2]) if isinstance(exc, ValidationError) else str(exc)
+            return RedirectResponse("/affiliate?error=" + quote(msg[:300]), status_code=303)
+        return RedirectResponse("/affiliate", status_code=303)
 
     @app.post("/clips/{cid}/decide")
     async def clip_decide(request: Request, cid: str) -> Response:

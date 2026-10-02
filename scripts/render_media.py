@@ -215,6 +215,12 @@ def screenshots(data: Path) -> dict:
                 pg.screenshot(path=str(ASSETS / "dashboard-analytics-light.png"), full_page=False)
                 pg.goto(f"{base}/clips/{clips[1]}")
                 pg.screenshot(path=str(tmp_global / "blocked.png"), full_page=False)
+                # Milestone 3: the affiliate registry and clip C's affiliate editor.
+                pg.goto(base + "/affiliate")
+                pg.evaluate("document.querySelectorAll('details.edit').forEach(d => d.open = false)")
+                pg.screenshot(path=str(ASSETS / "dashboard-affiliate-light.png"), full_page=True)
+                pg.goto(f"{base}/clips/{clips[2]}#affiliate")
+                pg.locator("#affiliate").screenshot(path=str(ASSETS / "dashboard-affiliate-editor-light.png"))
                 out["when"] = when
             ctx.close()
         br.close()

@@ -73,3 +73,41 @@ def test_full_pipeline_dry_run(tmp_path: Path):
     plan2 = p.plan_from_candidate(cands[0]["id"], **(json.loads((DEMO / "plan.json").read_text()) | {"clip_id": "clip-again-01"}))
     rep2 = p.render_and_gate(plan2.clip_id)
     assert "DUPLICATE_OF_OWN_UPLOAD" in {r.code for r in rep2.blocks}
+
+
+def test_affiliate_editor_end_to_end(tmp_path: Path):
+    """Owner registers a link, then adds it to a clip from the review page: re-render + re-gate."""
+    from fastapi.testclient import TestClient
+
+    from fairclip.affiliate import import_registry
+    from fairclip.web import security as sec
+    from fairclip.web.app import create_app
+
+    s = Settings(data_dir=str(tmp_path / "d"))
+    s.channel.topics = ["bridge", "cable", "tension", "wind", "deck"]
+    p = Pipeline(s)
+    sid = p.ingest(DEMO / "source.mp4", DEMO / "rights.json", DEMO / "transcript.json")
+    cand = p.store.rows("candidates", "source_id=?", (sid,), order="rank")[2]
+    plan = p.plan_from_candidate(cand["id"], **json.loads((DEMO / "plan.json").read_text()))
+    assert p.render_and_gate(plan.clip_id).passed
+    import_registry(p.store, json.loads((DEMO / "affiliate.json").read_text()), "owner")
+
+    sec.set_password(p.store, "correct horse battery staple")
+    c = TestClient(create_app(s, p.store, extra_hosts=("testserver",)))
+    c.post("/login", data={"password": "correct horse battery staple"})
+    page = c.get(f"/clips/{plan.clip_id}").text
+    assert "Affiliate links &amp; disclosures" in page and "bridge-kit" in page
+    csrf = page.split('name="csrf" value="')[1].split('"')[0]
+    form = {"csrf": csrf, "link": "https://example.com/kits/bridge-kit", "start_card": "0.3-5",
+            "disclosure_text": "I earn a commission if you buy the kit through my link.", "recommendation_times": "14"}
+    r = c.post(f"/clips/{plan.clip_id}/affiliate", data=form, follow_redirects=False)
+    assert r.status_code == 303 and "error" not in r.headers["location"], r.headers["location"]
+    row = p.store.row("clips", plan.clip_id)
+    assert row["status"] == "awaiting_approval" and "affiliate" in row["plan"]["tags"]
+    assert row["plan"]["affiliate"]["recommendation_cards"] == [[13.5, 17.5]]
+    desc = row["metadata"]["description"]
+    assert desc.index("I earn a commission") < desc.index("https://example.com/kits/bridge-kit")
+
+    # An unregistered link is refused before anything is rendered.
+    r = c.post(f"/clips/{plan.clip_id}/affiliate", data=form | {"link": "https://example.com/kits/other"}, follow_redirects=False)
+    assert "isn" in r.headers["location"] and "registered" in r.headers["location"]

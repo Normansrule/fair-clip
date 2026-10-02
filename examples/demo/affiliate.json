@@ -1,0 +1,29 @@
+{
+  "programs": [
+    {
+      "id": "example-kits",
+      "name": "Example Kits partner program (fictional)",
+      "terms_url": "https://example.com/kits/partner-terms",
+      "joined_on": "2026-08-01",
+      "terms_reviewed_on": "2026-09-30",
+      "link_prefixes": ["https://example.com/kits/"],
+      "required_wording": "",
+      "notes": "Fictional program for the demo. example.com is reserved for documentation (RFC 2606)."
+    }
+  ],
+  "products": [
+    {
+      "name": "Example bridge-building kit",
+      "evaluated_on": "2026-09-12",
+      "how_evaluated": "Built the suspension model twice with a group of students, then loaded the deck with coins until a hanger slipped."
+    }
+  ],
+  "links": [
+    {
+      "url": "https://example.com/kits/bridge-kit",
+      "program_id": "example-kits",
+      "product": "Example bridge-building kit",
+      "added_on": "2026-09-12"
+    }
+  ]
+}

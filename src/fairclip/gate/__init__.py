@@ -13,12 +13,20 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from ..affiliate import (
+    PLAIN_DISCLOSURE,
+    TERMS_STALE_DAYS,
+    AffiliateRegistry,
+    detect_spoken,
+    says_paid,
+)
 from ..config import Settings
 from ..links import check_links, find_links
 from ..llm import injection_signals
 from ..media.analyze import hamming
 from ..metadata import MARKETS_DISCLAIMER
 from ..models import (
+    AffiliatePlan,
     Author,
     CheckResult,
     ClipPlan,
@@ -67,6 +75,14 @@ class GateContext:
     now: datetime = field(default_factory=lambda: datetime.now(UTC))
     summary: str = ""  # the model/extractive part of the description (the rest is code-assembled)
     words: list[tuple[float, float, str]] = field(default_factory=list)  # (start, end, text) on the clip timeline
+    registry: AffiliateRegistry | None = None  # the owner's affiliate registry (None: plan-only checks, e.g. unit tests)
+
+    def allowlist(self) -> list[str]:
+        """Config allowlist, plus registered links of active programs, but ONLY those this clip's
+        affiliate plan lists (so a registered link can't ride along in a clip with no disclosures)."""
+        planned = {lk.url for lk in self.plan.affiliate.links} if self.plan.affiliate else set()
+        usable = set(self.registry.usable_links()) if self.registry else set()
+        return list(self.settings.link_allowlist) + sorted(planned & usable)
 
     def owner_text(self) -> str:
         """Everything a person or model wrote: title, summary, tags, value-add. Checked hardest."""
@@ -160,13 +176,17 @@ def _card_ok(card: tuple[float, float] | None, duration: float, start_by: float)
 PAID_SPOKEN = re.compile(r"\b(?:sponsored|paid promotion|paid partnership|paid (?:me|us) to|thanks to \w+ for sponsoring)\b", re.I)
 
 
+SPOKEN_TOLERANCE = 1.5  # s: the phrase must start this close to the time the plan claims
+
+
 def _spoken(c: GateContext, at: float | None, rx: re.Pattern[str]) -> bool:
-    """A spoken disclosure must be in the transcript where the plan says it is (±10 s)."""
+    """A confirmed spoken disclosure counts only if the timed transcript has the phrase starting
+    within ±1.5 s of the claimed time AND inside the first 10 s. Denials ("not sponsored") don't count."""
     if at is None or at > AFFILIATE_START_WINDOW:
         return False
     if c.words:
-        return bool(rx.search(c.said_between(at - 1.0, at + 10.0)))
-    return bool(rx.search(c.transcript_text))  # no word timings available (e.g. unit tests)
+        return any(t <= AFFILIATE_START_WINDOW and abs(t - at) <= SPOKEN_TOLERANCE for t, _ in detect_spoken(c.words, rx))
+    return says_paid(c.transcript_text, rx)  # no word timings available (e.g. unit tests)
 
 
 def check_disclosures(c: GateContext) -> list[CheckResult]:
@@ -188,8 +208,6 @@ def check_disclosures(c: GateContext) -> list[CheckResult]:
     return out
 
 
-# Plain words that say "I get paid". Bare "paid"/"earn" are not enough ("I paid nothing", "earnings").
-PLAIN_DISCLOSURE = re.compile(r"\b(?:commissions?|i (?:earn|get|make) (?:a |money|paid|commission)|paid (?:link|promotion|partnership)|sponsored|compensated)\b", re.I)
 FABRICATED = [
     r"only \d+ (?:left|remaining|in stock)", r"selling out", r"almost gone", r"limited time", r"last chance",
     r"(?:ends|expires) (?:today|tonight|soon)", r"guaranteed (?:results?|to work)", r"\d+% off (?:today|now) only",
@@ -209,6 +227,24 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
     D = c.clip_duration
     spoken = _spoken(c, af.spoken_disclosure_at, PLAIN_DISCLOSURE)
     shown = _card_ok(af.start_card, D, AFFILIATE_START_WINDOW)
+    heard = detect_spoken(c.words) if c.words else []
+    early = [h for h in heard if h[0] <= AFFILIATE_START_WINDOW]
+    if af.spoken_disclosure_at is not None and not spoken and c.words:
+        if af.spoken_disclosure_at > AFFILIATE_START_WINDOW:
+            where = " (that's after the first 10 s)"
+        elif heard:
+            where = "; the transcript has it at " + ", ".join(f"{t:.1f} s" for t, _ in heard[:3])
+        else:
+            where = "; the transcript has no disclosure phrase"
+        out.append(_r("AFFILIATE_SPOKEN_NOT_HEARD", f"plan says you say it at {af.spoken_disclosure_at:.1f} s{where}"))
+    if spoken:
+        out.append(_ok("Affiliate", f"spoken disclosure confirmed at {af.spoken_disclosure_at:.1f} s and found in the timed transcript"))
+    elif af.spoken_disclosure_at is None and early:
+        # Never counted automatically: a guest, a co-host or the source speaker may be the one
+        # talking, and the words might be about something else. The owner confirms it.
+        out.append(_r("AFFILIATE_SPOKEN_UNCONFIRMED", f"'{early[0][1]}' is said at {early[0][0]:.1f} s; confirm it in the plan if it's your disclosure"))
+    elif af.spoken_disclosure_at is None and heard and not shown:
+        out.append(_r("AFFILIATE_SPOKEN_TOO_LATE", f"first said at {heard[0][0]:.1f} s"))
     if not (spoken or shown):
         out.append(_r("AFFILIATE_START_DISCLOSURE_MISSING"))
     elif not (spoken and shown):
@@ -227,12 +263,15 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
         pos = desc.find(af.disclosure_text)
         if pos < 0 or pos > first:
             out.append(_r("AFFILIATE_DESCRIPTION_ORDER"))
-    if not PLAIN_DISCLOSURE.search(af.disclosure_text):
+    if not says_paid(af.disclosure_text):
         out.append(_r("AFFILIATE_WEAK_WORDING", f"'{af.disclosure_text}' doesn't say you get paid"))
-    evaluated = {x.lower() for x in af.products_evaluated}
-    for link in af.links:
-        if link.product.lower() not in evaluated:
-            out.append(_r("AFFILIATE_UNEVALUATED_PRODUCT", f"'{link.product}' is not in products_evaluated"))
+    if c.registry is None:  # plan-only mode (no registry loaded)
+        evaluated = {x.lower() for x in af.products_evaluated}
+        for link in af.links:
+            if link.product.lower() not in evaluated:
+                out.append(_r("AFFILIATE_UNEVALUATED_PRODUCT", f"'{link.product}' is not in products_evaluated"))
+    else:
+        out += _check_registry(c, af)
     owner_text = c.owner_text() + "\n" + desc
     for rx in _FAB:
         m = rx.search(owner_text)
@@ -245,11 +284,43 @@ def check_affiliate(c: GateContext) -> list[CheckResult]:
     return out
 
 
+def _check_registry(c: GateContext, af: AffiliatePlan) -> list[CheckResult]:
+    """Each link must be one you registered, under a program you joined (active, terms re-read
+    recently), for a product you evaluated; the program's required wording must be in the disclosure."""
+    reg, out, warned = c.registry, [], set()
+    assert reg is not None
+    today = c.now.date()
+    for link in af.links:
+        prog, prod, entry = reg.program(link.program_id), reg.product(link.product), reg.link(link.url)
+        if prog is None or not prog.active:
+            out.append(_r("AFFILIATE_PROGRAM_UNKNOWN", f"'{link.program_id}' is not an active program in your registry"))
+            continue
+        if entry is None or entry.program_id != prog.id or entry.product.lower() != link.product.lower():
+            out.append(_r("AFFILIATE_LINK_UNREGISTERED", f"{link.url} isn't registered for {prog.id} / '{link.product}'"))
+        if prod is None or prod.retired:
+            out.append(_r("AFFILIATE_UNEVALUATED_PRODUCT", f"'{link.product}' is not an evaluated product in your registry"))
+        if prog.id not in warned:
+            warned.add(prog.id)
+            if prog.terms_age_days(today) > TERMS_STALE_DAYS:
+                out.append(_r("AFFILIATE_TERMS_STALE", f"{prog.name}: terms last reviewed {prog.terms_reviewed_on} ({prog.terms_age_days(today)} days ago)"))
+            if prog.required_wording and prog.required_wording.lower() not in af.disclosure_text.lower():
+                out.append(_r("AFFILIATE_REQUIRED_WORDING_MISSING", f"{prog.name} requires: '{prog.required_wording}'"))
+    return out
+
+
 def check_links_(c: GateContext) -> list[CheckResult]:
     text = "\n".join([c.metadata.description, c.owner_text()])
-    bad, cloaked = check_links(text, c.settings.link_allowlist)
+    out_of_plan = []
+    if c.registry:  # anything that looks like an affiliate link must be declared in the plan
+        planned = {lk.url for lk in c.plan.affiliate.links} if c.plan.affiliate else set()
+        registered = {lk.url for lk in c.registry.links}
+        prefixes = [px.lower() for prog in c.registry.programs for px in prog.link_prefixes]
+        for u in find_links(text):
+            if u not in planned and (u in registered or any(u.lower().startswith(px) for px in prefixes)):
+                out_of_plan.append(_r("AFFILIATE_LINK_OUTSIDE_PLAN", f"'{u}' is an affiliate link but this clip's affiliate plan doesn't list it"))
+    bad, cloaked = check_links(text, c.allowlist())
     bad = [u for u in bad if not SYSTEM_LINK.match(u)]
-    out = [_r("LINK_NOT_ALLOWLISTED", f"'{u}' is not on the allowlist (exact match required)") for u in bad]
+    out = out_of_plan + [_r("LINK_NOT_ALLOWLISTED", f"'{u}' is not on the allowlist (exact match required)") for u in bad]
     out += [_r("LINK_CLOAKED", f"'{u}': {why}") for u, why in cloaked]
     return out or [_ok("Links", f"{len(find_links(text))} link(s), all allowlisted")]
 

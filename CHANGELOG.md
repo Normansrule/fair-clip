@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.3.0 (milestone 3: the affiliate module; renamed to fair-clip)
+
+**Renamed.** The project is now **fair-clip**:
+- Python package `fairclip`, command `fair-clip`.
+- Repo `Normansrule/fair-clip`, config `fairclip.toml`, environment variables `FAIRCLIP_*`.
+- Images `fairclip-app` / `fairclip-media`, app data in `~/.local/share/fair-clip`.
+
+The sample talk was regenerated with the new credit line (same timings, new SHA-256).
+
+**Added**
+- **Affiliate registry** (dashboard **Affiliate** page, or `fair-clip affiliate show | import | review-terms`):
+  - **Programs you joined:** terms URL, date last re-read, link prefixes, optional required wording.
+  - **Products you evaluated:** date, plus how you evaluated them, in your own words.
+  - **Exact links:** shorteners and redirect parameters are refused.
+
+  It is validated as a whole, written atomically and audited.
+  - A registered link is allowlisted only for a clip whose affiliate plan lists it.
+  - Approval and upload re-check the registry.
+- **Per-clip affiliate editor** on the review page: pick registered links, write the disclosure, set the start card and recommendation times (cards are drawn automatically), then save to re-render and re-gate.
+- **Spoken-disclosure detection timed against the transcript** (`fair-clip affiliate heard CLIP_ID`, and on the review page):
+  - Nothing counts until you confirm it, so a guest's words or a denial can't stand in for your disclosure.
+  - A confirmed disclosure must really be said there (±1.5 s), inside the first 10 s.
+- 8 new gate reasons (60 in total: 47 block, 13 warn): `AFFILIATE_PROGRAM_UNKNOWN`, `AFFILIATE_LINK_UNREGISTERED`, `AFFILIATE_LINK_OUTSIDE_PLAN`, `AFFILIATE_REQUIRED_WORDING_MISSING` (block); `AFFILIATE_TERMS_STALE`, `AFFILIATE_SPOKEN_NOT_HEARD`, `AFFILIATE_SPOKEN_UNCONFIRMED`, `AFFILIATE_SPOKEN_TOO_LATE` (warn).
+- [docs/AFFILIATE.md](docs/AFFILIATE.md). The demo registers a fictional program, an evaluated product and its link.
+
+**Changed**
+- Disclosure wording detection is stricter and denial-aware: "I earn a commission" counts. These no longer count: "I earn a living", "out of commission", "this video is not sponsored by anyone", "we don't earn a commission".
+- Links: a URL in any query parameter (any case, percent-encoded) and non-ASCII hosts are refused.
+- Approving is a compare-and-set, so a clip edited mid-decision can't be approved with stale hashes.
+
+**Upgrading from clipwarden** (only if you installed 0.2.0 under the old name):
+```bash
+mv ~/.local/share/clipwarden ~/.local/share/fair-clip && mv ~/.local/share/fair-clip/clipwarden.toml ~/.local/share/fair-clip/fairclip.toml
+mv ~/.local/share/fair-clip/clipwarden.sqlite3 ~/.local/share/fair-clip/fairclip.sqlite3 2>/dev/null
+rm -f ~/.local/bin/clipwarden ~/.local/share/applications/clipwarden.desktop
+```
+Then rerun the installer. Sign in to YouTube again (`fair-clip auth login`), because the keychain entry has a new name.
+- Image tags are now `0.3.0`: rebuild the sandbox with `make sandbox`.
+
 ## 0.2.0 (milestone 2: templates, live analytics, the app)
 
 **Added**

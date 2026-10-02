@@ -101,8 +101,9 @@ Template text (headlines, steps, column items, bar labels) is owner input like a
 | Append-only, hash-chained audit log: who approved what, when, which rights record, which disclosures | `audit.py` |
 | Dry-run by default. Going live needs config + a typed confirmation + at least one completed dry run + an intact audit chain | `publisher.live_ready` |
 | A global kill switch, checked before rendering and before each upload | `store.kill_switch` |
+| Affiliate links only from the owner's registry (program joined, product evaluated in the owner's words, exact URL); every registry change is validated as a whole, written atomically and audited, so a link can't be slipped in through a plan file or a model's output | `affiliate.py`, `gate._check_registry` |
 
-*Residual risk:* the owner can still lie in a rights record. The audit log makes that attributable, not impossible.
+*Residual risk:* the owner can still lie in a rights record or claim to have evaluated a product. The audit log makes that attributable, not impossible.
 
 ### 6. Platform-policy strikes
 

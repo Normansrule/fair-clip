@@ -84,3 +84,5 @@ pre.cmd { background: var(--bg); border: 1px solid var(--line); border-radius: 8
 pre.cmd code { font: inherit; }
 .grid3 > *, .tpl-grid > * { min-width: 0; }
 @media (max-width: 640px) { header.site .wrap { height: auto; padding-block: 8px; row-gap: 4px; } header nav { margin-left: 0; max-width: 100%; overflow-x: auto; white-space: nowrap; gap: 14px; } }
+.toggles label.stack { display: flex; flex-direction: column; gap: 6px; border-bottom: 0; }
+.toggles label.stack textarea, .toggles label.stack input { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; box-sizing: border-box; }

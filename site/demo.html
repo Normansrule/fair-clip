@@ -8,6 +8,7 @@
 <title>fair-clip · interactive demo</title>
 <link rel="stylesheet" href="css/site.css">
 <script src="js/demo.js" defer></script>
+<script src="js/disclosure.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="wrap">
@@ -54,7 +55,7 @@
 
   <section id="gate">
     <h2>3 · Try to get past the gate</h2>
-    <p class="sub">A simplified mirror of a few real checks. The full gate has 52 (<a href="https://github.com/Normansrule/fair-clip/blob/main/src/fairclip/gate/reasons.py">registry</a>). Untick things and see which reason codes fire.</p>
+    <p class="sub">A simplified mirror of a few real checks. The full gate has 60 (<a href="https://github.com/Normansrule/fair-clip/blob/main/src/fairclip/gate/reasons.py">registry</a>). Untick things and see which reason codes fire.</p>
     <div class="demo-grid">
       <div class="card toggles" id="sim">
         <label><input type="checkbox" data-f="rights" checked> A rights record covers this source</label>
@@ -85,8 +86,33 @@
     </div>
   </section>
 
+  <section id="disclose">
+    <h2>4 · Check an affiliate disclosure</h2>
+    <p class="sub">fair-clip reads the clip's <strong>timed transcript</strong> to find where a disclosure is actually said. Type the opening words, confirm (or don't) that it's your disclosure, and see what the gate says. Try "this video is not sponsored by anyone". The phrase rules are the same ones the Python gate uses; a test keeps them identical.</p>
+    <div class="demo-grid">
+      <div class="card toggles" id="dc">
+        <label for="dc-said" class="stack">What's said at the start of the clip
+          <textarea id="dc-said" rows="3">Quick note before we start: I earn a commission if you buy the kit through my link.</textarea></label>
+        <div class="slider"><label for="dc-at">Speech starts at</label><input id="dc-at" type="range" min="0" max="20" step="0.5" value="0.5"><output id="o-dc-at">0.5 s</output></div>
+        <label><input type="checkbox" id="dc-confirm" checked> That's <em>my</em> disclosure for these links (I confirm it)</label>
+        <label><input type="checkbox" id="dc-card" checked> On-screen disclosure card near the start</label>
+        <div class="slider"><label for="dc-card-at">Card shows at</label><input id="dc-card-at" type="range" min="0" max="20" step="0.5" value="0.5"><output id="o-dc-card-at">0.5 s</output></div>
+        <label for="dc-text" class="stack">Disclosure sentence (card and description)
+          <input id="dc-text" value="I earn a commission if you buy through my links."></label>
+        <label for="dc-req" class="stack">Wording the program requires (optional)
+          <input id="dc-req" placeholder="copy it from the program's terms"></label>
+      </div>
+      <div class="card">
+        <p class="verdict pass" id="dc-verdict"></p>
+        <p class="note" id="dc-heard"></p>
+        <ul class="codes" id="dc-codes"></ul>
+        <p class="note">Speech is timed here at about 2.9 words per second; in the app the times come from the real transcript.</p>
+      </div>
+    </div>
+  </section>
+
   <section>
-    <h2>4 · The real reports from the sample run</h2>
+    <h2>5 · The real reports from the sample run</h2>
     <p class="sub">Exactly what the Python gate produced for the three demo clips.</p>
     <div class="card"><div class="tabs" id="tabs" role="tablist"></div><p class="verdict" id="rv"></p><ul class="codes" id="rcodes"></ul></div>
   </section>

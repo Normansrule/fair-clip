@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from .affiliate import load_registry, registry_problems
 from .config import Settings
 from .models import ClipPlan, Decision, GateReport, RightsBasis, RightsRecord, Visibility
 from .publish.body import paid_promotion_required
@@ -53,6 +54,10 @@ def decide(store: Store, settings: Settings, d: Decision) -> dict:
             probs = rights_problems(rec, media_sha256=src.get("media_sha"), monetized=settings.channel.monetized, today=day)
             if probs:
                 raise ApprovalError(f"rights won't cover this clip on {day}: " + "; ".join(m for _, m in probs))
+        if plan.affiliate:  # the registry may have changed since the gate ran (program paused, ...)
+            reg_probs = registry_problems(plan.affiliate, load_registry(store))
+            if reg_probs:
+                raise ApprovalError("affiliate registry changed since the gate ran: " + "; ".join(reg_probs) + ". Re-render the clip.")
         if paid_promotion_required(plan) and d.visibility is not Visibility.PRIVATE:
             raise ApprovalError("paid-promotion clips upload private: tick 'includes paid promotion' in "
                                 "YouTube Studio, then publish from Studio")
@@ -69,7 +74,8 @@ def decide(store: Store, settings: Settings, d: Decision) -> dict:
         "metadata_sha256": gate.metadata_sha256,
     }
     status = "approved" if d.approved else "rejected"
-    store.upsert("clips", d.clip_id, status=status, decision=record)
+    if not store.set_if_status("clips", d.clip_id, {"awaiting_approval"}, status=status, decision=record):
+        raise ApprovalError("the clip changed while you were deciding (re-rendered or decided elsewhere); reload and review again")
     store.audit.append(d.reviewer, "approve" if d.approved else "reject", d.clip_id, {
         "reason": d.reason, "visibility": d.visibility.value, "publish_at": record["publish_at"],
         "clip_sha256": gate.clip_sha256, "metadata_sha256": gate.metadata_sha256,

@@ -87,3 +87,16 @@ form.inline { display: inline; }
 .edit input, .edit textarea { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; margin: 4px 0 10px; }
 .flash { padding: 8px 12px; border-radius: 8px; background: var(--grid); }
 .proposal table { border-collapse: collapse; margin: 6px 0; } .proposal td, .proposal th { padding: 2px 10px 2px 0; text-align: left; }
+
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.tbl tr.dim td { opacity: .55; }
+.actions-col form { margin: 0 0 4px; }
+.btn.small { padding: 3px 8px; font-size: 12px; }
+.formgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 14px; align-items: end; }
+.formgrid .wide, .formgrid fieldset { grid-column: 1 / -1; }
+.formgrid label { display: flex; flex-direction: column; gap: 4px; }
+.formgrid label.check { flex-direction: row; align-items: flex-start; gap: 8px; }
+.formgrid input, .formgrid textarea, .formgrid select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; box-sizing: border-box; }
+.formgrid label.check input { width: auto; margin-top: 4px; }
+.formgrid fieldset { border: 1px solid var(--grid); border-radius: 8px; padding: 8px 12px; }

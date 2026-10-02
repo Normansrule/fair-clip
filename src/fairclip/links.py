@@ -69,10 +69,16 @@ def entry_problems(url: str) -> list[str]:
         out.append("URL shortener hides the destination (cloaking)")
     if host.startswith("xn--") or ".xn--" in host:
         out.append("punycode host can imitate another domain")
-    qs = parse_qs(p.query)
+    if not host.isascii():
+        out.append("non-ASCII host can imitate another domain (e.g. a Cyrillic 'о')")
+    qs = parse_qs(p.query)  # values come back percent-decoded
     for k, vals in qs.items():
-        if k.lower() in REDIRECT_PARAMS and any(v.startswith(("http", "//")) for v in vals):
-            out.append(f"redirect parameter '{k}' points somewhere else (cloaking)")
+        for v in vals:
+            low = v.strip().lower()
+            # Any parameter that carries another URL is a redirect, whatever its name or case.
+            if low.startswith(("http:", "https:", "//", "\\\\")) or (k.lower() in REDIRECT_PARAMS and "." in low):
+                out.append(f"redirect parameter '{k}' points somewhere else (cloaking)")
+                break
     return out
 
 

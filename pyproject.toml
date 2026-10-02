@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fair-clip"
-version = "0.2.0"
+version = "0.3.0"
 description = "Security-first AI clipping pipeline: rights-cleared long video in, value-adding short clips out, every clip through a compliance gate and human approval before YouTube."
 readme = "README.md"
 license = "Apache-2.0"
