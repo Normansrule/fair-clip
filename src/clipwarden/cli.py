@@ -8,15 +8,31 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import redact
 from .config import load_settings
 from .pipeline import Pipeline, PipelineError
 from .rights import RightsError
 
+APP_HOME = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "clipwarden"
+
+
+def config_path(arg: str | None) -> Path | None:
+    """One rule for every command, so `clipwarden kill on` stops the same app you launched:
+    --config  >  $CLIPWARDEN_CONFIG  >  ./clipwarden.toml  >  the app's ~/.local/share/clipwarden/clipwarden.toml."""
+    if arg:
+        return Path(arg)
+    if os.environ.get("CLIPWARDEN_CONFIG"):
+        return Path(os.environ["CLIPWARDEN_CONFIG"])
+    if Path("clipwarden.toml").exists():
+        return Path("clipwarden.toml")
+    app = APP_HOME / "clipwarden.toml"
+    return app if app.exists() else None
+
 
 def _pipeline(args: argparse.Namespace) -> Pipeline:
-    return Pipeline(load_settings(args.config))
+    return Pipeline(load_settings(config_path(args.config)))
 
 
 def cmd_ingest(a: argparse.Namespace) -> int:
@@ -120,7 +136,7 @@ def _import_analytics(p: Pipeline, file: str) -> int:
     raw = json.loads(Path(file).read_text())
     if not isinstance(raw, dict) or len(raw) > 1000:
         raise ValueError("analytics file must be an object of at most 1000 clips")
-    clean = dict(p.store.get("analytics") or {})
+    clean: dict[str, Any] = {}
     for cid, v in raw.items():
         tau, ratio = [float(x) for x in v["tau"]], [float(x) for x in v["ratio"]]
         if len(tau) != len(ratio) or not 2 <= len(tau) <= 1000 or any(not 0 <= t <= 1 for t in tau):
@@ -128,7 +144,7 @@ def _import_analytics(p: Pipeline, file: str) -> int:
         clean[str(cid)[:64]] = {"tau": tau, "ratio": ratio, "stats": {str(k)[:40]: v2 for k, v2 in (v.get("stats") or {}).items()},
                                 "notes": [[float(n[0]), str(n[1])[:60]] for n in v.get("notes", [])][:5],
                                 "illustrative": bool(v.get("illustrative", False))}
-    p.store.set("analytics", clean)
+    p.store.update("analytics", lambda cur: dict(cur or {}) | clean)  # atomic, even against a running dashboard
     p.store.audit.append(getpass.getuser(), "analytics_import", "analytics", {"clips": len(raw)})
     print(f"imported analytics for {len(raw)} clip(s)")
     return 0
@@ -198,14 +214,13 @@ def cmd_dashboard(a: argparse.Namespace) -> int:
 
     from .web.app import create_app
 
-    s = load_settings(a.config)
+    s = load_settings(config_path(a.config))
     app = create_app(s)
     print(f"dashboard on http://{s.dashboard.host}:{s.dashboard.port} (localhost only)")
     uvicorn.run(app, host=s.dashboard.host, port=s.dashboard.port, log_level="warning", server_header=False)
     return 0
 
 
-APP_HOME = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "clipwarden"
 APP_CONFIG = """# clipwarden app config (created on first run). Edit, then restart `clipwarden app`.
 data_dir = "."
 link_allowlist = []
@@ -240,44 +255,43 @@ def _open_browser(url: str) -> None:
 
 def cmd_app(a: argparse.Namespace) -> int:
     """The desktop way in: create a config on first run, start the dashboard, open it in a browser."""
+    import secrets
     import threading
     import time
 
-    import httpx
     import uvicorn
 
+    from .store import Store
     from .web.app import create_app
 
-    cfg = Path(a.config) if a.config else (Path("clipwarden.toml") if Path("clipwarden.toml").exists() else APP_HOME / "clipwarden.toml")
+    cfg = config_path(a.config) or APP_HOME / "clipwarden.toml"
     if not cfg.exists():
         cfg.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         cfg.write_text(APP_CONFIG)
         print(f"first run: wrote {cfg} (dry-run mode)")
-    import secrets
-
     s = load_settings(cfg)
-    token = secrets.token_urlsafe(24)
+    first = not Store(s.data_path).get("dashboard_pw")
+    token = secrets.token_urlsafe(24) if first else None
     app = create_app(s, setup_token=token)
     url = f"http://{s.dashboard.host}:{s.dashboard.port}/"
     server = uvicorn.Server(uvicorn.Config(app, host=s.dashboard.host, port=s.dashboard.port, log_level="warning", server_header=False))
     t = threading.Thread(target=server.run, daemon=True)
     t.start()
-    for _ in range(100):
-        try:
-            if httpx.get(url + "healthz", timeout=0.5).status_code == 200:
-                break
-        except httpx.HTTPError:
-            time.sleep(0.1)
-    else:
-        raise RuntimeError(f"dashboard did not start on {url} (is the port in use?)")
+    # Trust only OUR server: wait until it has bound the port, and give up if its thread dies (port
+    # taken). A health probe alone could be answered by whatever else owns the port.
+    deadline = time.monotonic() + 15
+    while not server.started and t.is_alive() and time.monotonic() < deadline:
+        time.sleep(0.05)
+    if not server.started:
+        server.should_exit = True
+        raise RuntimeError(f"could not start on {url}: is clipwarden (or something else) already running there? "
+                           "Close it, or set [dashboard] port in " + str(cfg))
     print(f"clipwarden is running at {url}  (localhost only; press Ctrl+C to stop)")
     print("tip: in Chrome or Edge choose 'Install clipwarden' (or 'Install page as app') to give it its own window")
-    from .store import Store
-
-    first = not Store(s.data_path).get("dashboard_pw")
-    target = url + f"setup?t={token}" if first else url
-    if first:
+    target = url + f"setup?t={token}" if token else url
+    if token:
         print(f"first run: choose your password at {target}")
+        print("  (closed that tab? stop clipwarden and start it again for a fresh link)")
     if not a.no_browser:
         _open_browser(target)
     try:

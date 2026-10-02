@@ -271,7 +271,7 @@ clipwarden/
 │   ├── audit.py           # append-only hash-chained log
 │   ├── vault.py · redact.py
 │   └── web/               # dashboard (FastAPI + Jinja2, no inline JS) + app manifest/icons
-├── tests/                 # 210+ tests: every gate reason, security, equations, templates, end-to-end
+├── tests/                 # 240+ tests: every gate reason, security, equations, templates, end-to-end
 ├── scripts/               # install.sh (the app), demo, asset/template renderers, sandbox smoke test
 ├── examples/demo/         # CC0 sample talk, transcript, rights record, plan
 ├── assets/                # generated visuals (sources: scripts/ + assets/src/)

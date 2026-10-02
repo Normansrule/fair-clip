@@ -176,20 +176,32 @@ class TemplateKind(StrEnum):
 
 
 TplText = Annotated[str, Field(min_length=1, max_length=60)]
+ColText = Annotated[str, Field(min_length=1, max_length=28)]
+TEMPLATE_TEXT_MAX = 140  # characters of owner sentence that fit under a template's graphic
 
 
 class Bar(Strict):
     label: Annotated[str, Field(min_length=1, max_length=40)]
-    value: Annotated[float, Field(ge=0.0, le=1e15)]
+    value: Annotated[float, Field(ge=0.0, le=1e12)]
+
+    @field_validator("value")
+    @classmethod
+    def _readable(cls, v: float) -> float:
+        if 0 < v < 1e-6:
+            raise ValueError("bar values below 0.000001 aren't readable on screen; change the unit instead")
+        if len(fmt_value(v).replace(",", "").replace(".", "")) > 12:
+            raise ValueError("bar value has too many digits to read on screen; round it or change the unit")
+        return v
 
 
 class TemplateData(Strict):
     headline: Annotated[str, Field(max_length=40)] = ""  # key_number: "42 m/s"; definition: the term
     items: list[TplText] = Field(default_factory=list, max_length=5)  # steps
-    left_title: Annotated[str, Field(max_length=30)] = ""
-    right_title: Annotated[str, Field(max_length=30)] = ""
-    left: list[TplText] = Field(default_factory=list, max_length=4)
-    right: list[TplText] = Field(default_factory=list, max_length=4)
+    # Compare columns are half the panel wide, so their text is shorter.
+    left_title: Annotated[str, Field(max_length=20)] = ""
+    right_title: Annotated[str, Field(max_length=20)] = ""
+    left: list[ColText] = Field(default_factory=list, max_length=4)
+    right: list[ColText] = Field(default_factory=list, max_length=4)
     bars: list[Bar] = Field(default_factory=list, max_length=5)
     unit: Annotated[str, Field(max_length=12)] = ""
 
@@ -205,8 +217,13 @@ class TemplateData(Strict):
 
 
 def fmt_value(v: float) -> str:
-    """Bar values as shown on screen (and checked by the gate): 12, 3.5, 1250."""
-    return f"{v:,.0f}" if v >= 100 or v == int(v) else f"{v:.3g}"
+    """Bar values exactly as the owner typed them, shown on screen AND read by the gate:
+    12, 3.5, 1,234.5, 0.00001. Shortest round-trip digits (repr), never exponent notation
+    (the gate would read "1e-05" as the number 05), never float noise."""
+    from decimal import Decimal
+
+    d = Decimal(repr(float(v))).normalize()
+    return format(d, ",f") if d != 0 else "0"
 
 
 class ValueAddElement(Strict):
@@ -235,6 +252,14 @@ class ValueAddElement(Strict):
         }
         if not need.get(t, True):
             raise ValueError(f"template '{t.value}' is missing its data (see docs/TEMPLATES.md)")
+        # Layout budget: the panel holds the graphic AND your sentence (docs/TEMPLATES.md).
+        if t is not TemplateKind.CARD and len(self.text) > TEMPLATE_TEXT_MAX:
+            raise ValueError(f"with a template, keep your sentence to {TEMPLATE_TEXT_MAX} characters (it has {len(self.text)}); "
+                             "split it across two elements")
+        if t is TemplateKind.KEY_NUMBER and len(d.headline) > 14:
+            raise ValueError("key_number headline: 14 characters at most (e.g. '$1.9B', '853 m')")
+        if t is TemplateKind.DEFINITION and len(d.headline) > 24:
+            raise ValueError("definition headline: 24 characters at most")
         if t is TemplateKind.STEPS and self.end - self.start < 1.2 * len(d.items):
             raise ValueError("steps need at least 1.2 s on screen per step")
         return self

@@ -78,7 +78,14 @@ def _shape(layer: int, a: float, b: float, x: int, y: int, w: int, h: int, colou
 
 def _text(layer: int, a: float, b: float, x: int, y: int, text: str, size: int, colour: str = PAPER,
           bold: bool = False, an: int = 7, fade: str = "\\fad(200,200)", extra: str = "") -> str:
-    return _dlg(layer, a, b, text, f"\\an{an}\\pos({x},{y})\\fs{size}\\b{int(bold)}\\bord0\\shad0\\1c{colour}{fade}{extra}")
+    # \q2: no automatic wrapping; lines break only where we put \N, so layout stays predictable.
+    return _dlg(layer, a, b, text, f"\\an{an}\\pos({x},{y})\\q2\\fs{max(12, size)}\\b{int(bold)}\\bord0\\shad0\\1c{colour}{fade}{extra}")
+
+
+def fit(size: int, width_px: int, text: str, em: float = 0.58) -> int:
+    """Largest font size <= `size` at which `text` fits `width_px` on one line (DejaVu Sans averages
+    ~0.55 em per character; 0.58 leaves a margin for wide letters and bold)."""
+    return max(14, min(size, int(width_px / (em * max(1, len(text))))))
 
 
 def _wrapped(text: str, width: int) -> str:
@@ -93,7 +100,11 @@ LABELS = {
     TemplateKind.BAR: "COMPARED",
 }
 
-NUM = re.compile(r"^(.*?)(-?\d[\d,]*(?:\.\d+)?)(.*)$")
+# Count up only plain figures: optional currency/sign prefix, ONE number, a suffix with no digits
+# ("$1.9B", "853 m", "37%"). "COVID-19 cases", "10/7" or "2 of 3" just appear, unanimated.
+NUM = re.compile(r"^([$€£+~≈]?)(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(\D*)$")
+COUNT_UP_SECONDS = 0.5  # the exact figure is on screen from here to the element's end
+MIN_FINAL_SECONDS = 0.8
 
 
 def count_up_frames(headline: str, steps: int = 8) -> list[str]:
@@ -110,6 +121,8 @@ def count_up_frames(headline: str, steps: int = 8) -> list[str]:
         target = float(num.replace(",", ""))
     except ValueError:
         return [headline]
+    if target < 10:  # counting 0 -> 3 is noise, not emphasis
+        return [headline]
     decimals = len(num.split(".")[1]) if "." in num else 0
     commas = "," in num
     out = []
@@ -121,8 +134,11 @@ def count_up_frames(headline: str, steps: int = 8) -> list[str]:
     return out
 
 
-def template_events(va: ValueAddElement, aspect: str, duration: float, label: str) -> list[str]:
-    """ASS events for one value-add element drawn with a template (anything but CARD)."""
+def template_events(va: ValueAddElement, aspect: str, duration: float, label: str, *, count_up: bool = True) -> list[str]:
+    """ASS events for one value-add element drawn with a template (anything but CARD).
+
+    `count_up=False` (markets clips) shows the exact figure from the first frame: intermediate
+    numbers would be figures on screen that no data source backs."""
     B = box_for(aspect)
     a, b = min(va.start, duration), min(va.end, duration)
     if b <= a or va.template is TemplateKind.CARD or va.data is None:
@@ -145,19 +161,25 @@ def template_events(va: ValueAddElement, aspect: str, duration: float, label: st
     t = va.template
 
     if t is TemplateKind.KEY_NUMBER:
-        big = min(int(B.font * 3.2), int(area_h * 0.7))
-        frames = count_up_frames(d.headline)
-        step = min(0.06, max(0.03, (b - a) / 40))
+        # Fit the figure on one line: ~0.62 em per character in DejaVu Sans Bold.
+        big = max(24, min(int(B.font * 3.2), int(area_h * 0.7), int(inner / (0.62 * max(1, len(d.headline))))))
+        frames = count_up_frames(d.headline) if count_up else [d.headline]
+        # The exact (gated) text must hold the screen for the end of the element, however short.
+        if len(frames) > 1 and (b - a) >= COUNT_UP_SECONDS + MIN_FINAL_SECONDS:
+            step = COUNT_UP_SECONDS / (len(frames) - 1)
+        else:
+            frames, step = [d.headline], 0.0
         for i, f in enumerate(frames):
+            last = i == len(frames) - 1
             fa = a + i * step
-            fb = b if i == len(frames) - 1 else a + (i + 1) * step
+            fb = b if last else a + (i + 1) * step
             ev.append(_text(8, fa, fb, x0 + 6, top, esc(f), big, PAPER, bold=True,
-                            fade="\\fad(0,200)" if i == len(frames) - 1 else ""))
+                            fade="\\fad(0,200)" if last else ""))
         if d.unit:
             ev.append(_text(8, a, b, x0 + 10, top + int(big * 1.08), esc(d.unit), int(B.font * 0.9), BLUE_SOFT, bold=True))
 
     elif t is TemplateKind.DEFINITION:
-        ev.append(_text(8, a, b, x0 + 6, top, esc(d.headline), int(B.font * 1.6), PAPER, bold=True))
+        ev.append(_text(8, a, b, x0 + 6, top, esc(d.headline), fit(int(B.font * 1.6), inner - 12, d.headline, 0.64), PAPER, bold=True))
         ev.append(_shape(8, a, b, x0 + 6, top + int(B.font * 2.0), min(inner - 12, 18 * len(d.headline) + 60), 6, BLUE,
                          extra="\\fscx0\\t(0,450,\\fscx100)"))
 
@@ -171,8 +193,8 @@ def template_events(va: ValueAddElement, aspect: str, duration: float, label: st
             ev.append(_shape(8, sa, b, x0 + 6, ya + 2, int(row * 0.78), int(row * 0.78), BLUE))
             ev.append(_text(9, sa, b, x0 + 6 + int(row * 0.39), ya + 2 + int(row * 0.39), str(i + 1), int(row * 0.5), PAPER,
                             bold=True, an=5))
-            ev.append(_text(9, sa, b, x0 + 6 + row, ya + int(row * 0.1), esc(item), int(min(B.font * 0.95, row * 0.62)), PAPER,
-                            extra="\\frx0"))
+            ev.append(_text(9, sa, b, x0 + 6 + row, ya + int(row * 0.1), esc(item),
+                            fit(int(min(B.font * 0.95, row * 0.62)), inner - row - 12, item), PAPER))
 
     elif t is TemplateKind.COMPARE:
         col = (inner - 24) // 2
@@ -182,10 +204,10 @@ def template_events(va: ValueAddElement, aspect: str, duration: float, label: st
         for side, (title, items, x) in enumerate(((d.left_title, d.left, x0 + 6), (d.right_title, d.right, x0 + 30 + col))):
             sa = a + side * min(0.8, (b - a) * 0.15)
             ev.append(_shape(8, sa, b, x, top, col, int(size * 1.4), BLUE if side else "&H00B8A394&"))  # slate vs blue
-            ev.append(_text(9, sa, b, x + 14, top + int(size * 0.2), esc(title), size, PAPER, bold=True))
+            ev.append(_text(9, sa, b, x + 14, top + int(size * 0.2), esc(title), fit(size, col - 28, title, 0.64), PAPER, bold=True))
             for i, item in enumerate(items):
                 ev.append(_text(9, sa + 0.15 * (i + 1), b, x + 14, top + int(size * 1.7) + i * row,
-                                "• " + esc(item), int(size * 0.9), PAPER))
+                                "• " + esc(item), fit(min(int(size * 0.9), int(row * 0.8)), col - 28, "• " + item), PAPER))
 
     elif t is TemplateKind.BAR:
         n = len(d.bars)
@@ -194,16 +216,17 @@ def template_events(va: ValueAddElement, aspect: str, duration: float, label: st
         label_size = int(min(B.font * 0.8, row * 0.38))
         bar_h = int(row * 0.38)
         longest = max(len(fmt_value(bar.value) + (f" {d.unit}" if d.unit else "")) for bar in d.bars)
-        maxw = max(80, inner - 30 - int(longest * bar_h * 0.66))  # leave room for the value label
+        maxw = max(80, inner - 30 - int(longest * bar_h * 0.75))  # leave room for the value label (bold digits ~0.7 em)
         for i, bar in enumerate(d.bars):
             ya = top + i * row
             w = max(6, int(maxw * bar.value / vmax))
             sa = a + 0.12 * i
-            ev.append(_text(8, sa, b, x0 + 6, ya, esc(bar.label), label_size, PAPER))
+            ev.append(_text(8, sa, b, x0 + 6, ya, esc(bar.label), fit(label_size, inner - 12, bar.label), PAPER))
             ev.append(_shape(8, sa, b, x0 + 6, ya + label_size + 6, w, bar_h, BLUE if i == n - 1 else "&H00F6A060&",
                              extra="\\fscx0\\t(0,600,\\fscx100)"))
             val = fmt_value(bar.value) + (f" {d.unit}" if d.unit else "")
-            ev.append(_text(9, sa + 0.6, b, x0 + 18 + w, ya + label_size + 2, esc(val), int(bar_h * 1.05), PAPER, bold=True))
+            ev.append(_text(9, sa + 0.6, b, x0 + 18 + w, ya + label_size + 2, esc(val),
+                            fit(int(bar_h * 1.05), B.x + B.w - (x0 + 18 + w) - 12, val, 0.72), PAPER, bold=True))
     return ev
 
 

@@ -14,6 +14,7 @@ import shutil
 import sqlite3
 import threading
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -79,6 +80,24 @@ class Store:
                 "INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",
                 (key, json.dumps(value)),
             )
+
+    def update(self, key: str, fn: Callable[[Any], Any]) -> Any:
+        """Read-modify-write one key atomically, across threads AND processes (the CLI and the
+        dashboard are separate processes): BEGIN IMMEDIATE takes the database write lock first."""
+        with self.lock:
+            if self.conn.in_transaction:
+                self.conn.commit()
+            self.conn.execute("BEGIN IMMEDIATE")
+            try:
+                row = self.conn.execute("SELECT v FROM kv WHERE k=?", (key,)).fetchone()
+                new = fn(json.loads(row[0]) if row else None)
+                self.conn.execute("INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",
+                                  (key, json.dumps(new)))
+                self.conn.commit()
+            except BaseException:
+                self.conn.rollback()
+                raise
+        return new
 
     # ------------------------------------------------------------------ kill switch
     @property

@@ -47,6 +47,8 @@ def epc(earnings: float, clicks: int) -> float:
 def area_under_retention(tau: list[float], ratio: list[float]) -> float:
     """Trapezoid rule over the retention curve; ≈ average percentage viewed."""
     t, r = np.asarray(tau, float), np.asarray(ratio, float)
+    if len(t) < 2 or len(t) != len(r):
+        return 0.0
     return float(np.sum((t[1:] - t[:-1]) * (r[1:] + r[:-1]) / 2.0))
 
 
@@ -57,6 +59,8 @@ def biggest_drop(tau: list[float], ratio: list[float], skip: float = 0.0) -> tup
     """
     r = np.asarray(ratio, float)
     t = np.asarray(tau, float)
+    if len(r) < 2 or len(t) != len(r):
+        return 0.0, 0.0
     d = np.diff(r)
     d[t[1:] <= skip] = 0.0
     i = int(np.argmin(d))

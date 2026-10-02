@@ -8,6 +8,7 @@ from __future__ import annotations
 import hmac
 import json
 import re
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -50,6 +51,8 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     throttle = sec.Throttle()
     hosts = sec.allowed_hosts(settings.dashboard.port) - {"testserver"} | set(extra_hosts)
     setup = {"token": setup_token if setup_token and not store.get("dashboard_pw") else None}
+    setup_lock = threading.Lock()
+    setup_throttle = sec.Throttle()  # separate from login, so a stale setup tab can't lock you out of /login
     first_pw = None if setup["token"] else sec.ensure_password(store)
     if first_pw:
         print("\n  First run: dashboard password (shown once, change it with `clipwarden set-password`):\n"
@@ -129,16 +132,18 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     @app.post("/setup")
     def setup_submit(request: Request, t: str = Form(...), password: str = Form(...), password2: str = Form(...)) -> Response:
         who = request.client.host if request.client else "?"
-        if throttle.blocked(who) or not setup_ok(t):
-            throttle.fail(who)
+        if setup_throttle.blocked(who) or not setup_ok(t):
+            setup_throttle.fail(who)
             return RedirectResponse("/login", status_code=303)
         if password != password2:
             return page(request, "setup.html", None, token=t, error="The two passwords differ.")
-        try:
+        if len(password) < 12:
+            return page(request, "setup.html", None, token=t, error="password must be at least 12 characters")
+        with setup_lock:  # check-and-consume atomically: two racing posts can't both set a password
+            if not setup_ok(t):
+                return RedirectResponse("/login", status_code=303)
+            setup["token"] = None  # single use
             sec.set_password(store, password)
-        except ValueError as exc:
-            return page(request, "setup.html", None, token=t, error=str(exc))
-        setup["token"] = None  # single use
         store.audit.append("owner", "set_password", "dashboard", {"via": "first-run setup link"})
         r = RedirectResponse("/", status_code=303)
         r.set_cookie(sec.SESSION_COOKIE, sessions.issue("owner"), httponly=True, samesite="strict",
@@ -354,7 +359,11 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
         data = store.get("analytics") or {}
         charts = []
         for cid, a in data.items():
-            tau, r = a["tau"], a["ratio"]
+            tau, r = a.get("tau") or [], a.get("ratio") or []
+            if len(tau) < 3 or len(tau) != len(r):  # new uploads: totals only, no curve yet
+                charts.append({"clip": cid, "svg": "", "apv": None, "stats": a.get("stats", {}),
+                               "illustrative": a.get("illustrative", False)})
+                continue
             t_drop, drop = biggest_drop(tau, r, skip=0.1)
             notes = [(t_drop, f"steepest drop after the hook ({drop:.0%}/step)")] + [tuple(n) for n in a.get("notes", [])]
             charts.append({"clip": cid, "svg": retention_svg(tau, r, notes), "apv": area_under_retention(tau, r),

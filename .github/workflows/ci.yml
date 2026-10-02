@@ -37,7 +37,7 @@ jobs:
       - name: App installer works on a clean home folder (then the installed app starts)
         run: |
           export HOME="$RUNNER_TEMP/home" && mkdir -p "$HOME" && unset XDG_DATA_HOME PYTHONPATH
-          bash scripts/install.sh
+          bash scripts/install.sh --from-checkout
           "$HOME/.local/bin/clipwarden" --help > /dev/null
           ( "$HOME/.local/bin/clipwarden" app --no-browser > app.log 2>&1 & ) && sleep 8
           curl -fsS http://127.0.0.1:8765/healthz && grep -q "/setup?t=" app.log

@@ -50,10 +50,21 @@ def _get(http: httpx.Client, token: str, params: dict[str, Any]) -> dict[str, An
                              "`clipwarden analytics connect`")
     if r.status_code != 200:
         raise AnalyticsError(f"YouTube Analytics error {r.status_code}: {redact(r.text[:200])}")
-    data = r.json()
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise AnalyticsError("YouTube Analytics sent a response that isn't JSON") from exc
     if not isinstance(data, dict):
         raise AnalyticsError("unexpected response shape")
     return data
+
+
+def _parse(resp: dict[str, Any]) -> dict[str, list[float]]:
+    """parse_report, but any odd shape (missing names, text cells, ragged rows) is one clip's error."""
+    try:
+        return parse_report(resp)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise AnalyticsError(f"unexpected report format ({type(exc).__name__})") from exc
 
 
 def _finite(x: float, lo: float, hi: float) -> bool:
@@ -62,15 +73,17 @@ def _finite(x: float, lo: float, hi: float) -> bool:
 
 def fetch_clip(http: httpx.Client, token: str, video_id: str, start: str, end: str) -> dict[str, Any]:
     """One clip's totals + retention, validated. Retention may be empty for low-view videos."""
-    tot = parse_report(_get(http, token, totals_query(video_id, start, end)))
+    tot = _parse(_get(http, token, totals_query(video_id, start, end)))
     stats: dict[str, float] = {}
     for k in TOTALS.split(","):
         vals = tot.get(k) or []
         if vals and _finite(vals[0], 0, 1e12):
             stats[k] = vals[0]
-    ret = parse_report(_get(http, token, retention_query(video_id, start, end)))
+    ret = _parse(_get(http, token, retention_query(video_id, start, end)))
     tau, ratio = ret.get("elapsedVideoTimeRatio", []), ret.get("audienceWatchRatio", [])
-    pairs = [(t, r) for t, r in zip(tau, ratio, strict=False) if _finite(t, 0, 1) and _finite(r, 0, 20)][:MAX_POINTS]
+    if len(tau) != len(ratio):  # columns come from the same rows, so this means a broken report
+        raise AnalyticsError("retention report columns have different lengths")
+    pairs = [(t, r) for t, r in zip(tau, ratio, strict=True) if _finite(t, 0, 1) and _finite(r, 0, 20)][:MAX_POINTS]
     pairs.sort()
     return {"tau": [p[0] for p in pairs], "ratio": [p[1] for p in pairs], "stats": stats}
 
@@ -78,7 +91,7 @@ def fetch_clip(http: httpx.Client, token: str, video_id: str, start: str, end: s
 def pull(store: Store, http: httpx.Client, token: str, *, today: date | None = None, actor: str = "analytics") -> dict[str, Any]:
     """Pull every published clip that has a YouTube video id. Returns a summary for the CLI/UI."""
     today = today or datetime.now(UTC).date()
-    data = dict(store.get("analytics") or {})
+    fresh: dict[str, dict[str, Any]] = {}
     done, empty, errors = 0, 0, []
     for row in store.rows("clips", "status='published'"):
         up = row.get("upload") or {}
@@ -97,9 +110,20 @@ def pull(store: Store, http: httpx.Client, token: str, *, today: date | None = N
             empty += 1
         got |= {"illustrative": False, "video_id": vid, "pulled_at": datetime.now(UTC).isoformat(timespec="seconds"),
                 "notes": []}
-        data[row["id"]] = got
+        fresh[row["id"]] = got
         done += 1
-    store.set("analytics", data)
+    # Atomic merge (no network inside it): a concurrent pull or import, even from another process,
+    # can't lose clips, and an empty curve never replaces a curve we already had.
+    def merge(current: Any) -> dict[str, Any]:
+        data = dict(current or {})
+        for cid, got in fresh.items():
+            old = data.get(cid) or {}
+            if len(got["tau"]) < 2 and len(old.get("tau") or []) >= 2 and not old.get("illustrative"):
+                got["tau"], got["ratio"] = old["tau"], old["ratio"]
+            data[cid] = got
+        return data
+
+    store.update("analytics", merge)
     store.audit.append(actor, "analytics_pull", "analytics", {"clips": done, "no_retention_yet": empty, "errors": len(errors)})
     return {"clips": done, "no_retention_yet": empty, "errors": errors}
 
@@ -107,9 +131,12 @@ def pull(store: Store, http: httpx.Client, token: str, *, today: date | None = N
 # ----------------------------------------------------------------------------- feedback loop input
 
 
-def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
+def _iou(a0: float, a1: float, b0: float, b1: float) -> float:
+    """Intersection over union of two time windows: 1.0 only for the same window (a candidate nested
+    inside the clip scores low, so overlapping candidates can't be mixed up)."""
     inter = max(0.0, min(a1, b1) - max(a0, b0))
-    return inter / max(1e-9, min(a1 - a0, b1 - b0))
+    union = max(a1, b1) - min(a0, b0)
+    return inter / union if union > 0 else 0.0
 
 
 def training_rows(store: Store, min_views: int = 50) -> list[dict[str, Any]]:
@@ -132,10 +159,10 @@ def training_rows(store: Store, min_views: int = 50) -> list[dict[str, Any]]:
             continue
         plan = clip.get("plan") or {}
         best, score = None, 0.0
-        for c in store.rows("candidates", "source_id=?", (plan.get("source_id"),)):
+        for c in store.rows("candidates", "source_id=?", (plan.get("source_id"),), order="rank"):
             d = c["data"]
-            o = _overlap(float(plan.get("start", 0)), float(plan.get("end", 0)), float(d["start"]), float(d["end"]))
-            if o > score:
+            o = _iou(float(plan.get("start", 0)), float(plan.get("end", 0)), float(d["start"]), float(d["end"]))
+            if o > score:  # strict: on a tie the better-ranked candidate (seen first) wins
                 best, score = d, o
         if best is None or score < 0.8 or not all(k in (best.get("z") or {}) for k in FEATURES):
             continue

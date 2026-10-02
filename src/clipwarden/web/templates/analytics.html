@@ -9,9 +9,10 @@
 {% for c in charts %}
 <section class="card">
   <div class="row-between"><h2 class="mono">{{ c.clip }}</h2>{% if c.illustrative %}<span class="badge">illustrative sample data</span>{% endif %}</div>
-  {{ c.svg | safe }}
+  {% if c.apv is not none %}{{ c.svg | safe }}
   <p class="small">Area under curve (APV) ≈ <strong>{{ '%.0f'|format(c.apv * 100) }}%</strong>
-  {% for k, v in c.stats.items() %} · {{ k }} {{ v }}{% endfor %}</p>
+  {% else %}<p class="small muted">No retention curve yet (YouTube adds it once the video has enough views).
+  {% endif %}{% for k, v in c.stats.items() %} · {{ k }} {{ v }}{% endfor %}</p>
 </section>
 {% else %}
 <section class="card"><p>No analytics yet. Connect with <code>clipwarden analytics connect</code> (read-only scope), then press Pull now, or import a Studio export with <code>clipwarden analytics import FILE.json</code>.</p></section>

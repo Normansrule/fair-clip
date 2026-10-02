@@ -1,15 +1,15 @@
 # Value-add templates
 
-Every clip needs original value on screen (see [POLICY.md](POLICY.md) and [EQUATIONS.md §5](EQUATIONS.md#5-value-add-coverage-and-originality)). The plain **card** is a label plus your sentence. The five templates below add structure and motion. They **never replace your words**: each one still needs `text`, your own sentence (at least 8 words across the clip's value-add), and that sentence closes every panel.
+Every clip needs original value on screen (see [POLICY.md](POLICY.md) and [EQUATIONS.md §5](EQUATIONS.md#5-value-add-coverage-and-originality)). The plain **card** is a label plus your sentence. The five templates below add structure and motion. They **never replace your words**: each one still needs `text`, your own sentence (at least 8 words across the clip's value-add, at most 140 characters with a template), and that sentence closes every panel.
 
 <img src="../assets/templates/gallery.png" alt="All five templates over the sample talk: key number, definition, steps, compare, bar." width="100%">
 
 | Template | Use it for | Data | Animation |
 |---|---|---|---|
-| `key_number` | one figure worth remembering | `headline` (must contain a digit, e.g. `"853 m"`), optional `unit` label | counts up, then settles on your exact text |
-| `definition` | a term the clip uses | `headline` = the term | underline draws in |
+| `key_number` | one figure worth remembering | `headline` (≤ 14 characters, must contain a digit, e.g. `"853 m"`), optional `unit` label | counts up, then settles on your exact text |
+| `definition` | a term the clip uses | `headline` = the term (≤ 24 characters) | underline draws in |
 | `steps` | a short process | `items`: 2–5 steps (≤ 60 characters each); needs ≥ 1.2 s per step | steps appear one by one |
-| `compare` | before/after, A vs B | `left_title`, `left` (1–4 items), `right_title`, `right` (1–4 items) | right column follows the left |
+| `compare` | before/after, A vs B | `left_title`, `right_title` (≤ 20 characters), `left`, `right` (1–4 items, ≤ 28 characters each) | right column follows the left |
 | `bar` | relative sizes | `bars`: 2–5 `{label, value}`, optional `unit` | bars grow to their values |
 
 ## How to write one
@@ -58,5 +58,5 @@ Coverage (≥ 25 % of the clip) and originality (< 60 % copied phrases) are meas
 
 ## Limits
 
-- Text is not measured in pixels (libass has no layout engine here). The field limits (≤ 60 characters per item, ≤ 40 per headline) keep panels inside their box at the default sizes. Very long words can still run close to the edge; preview with the script above.
+- Text isn't measured in pixels. Each line is shrunk to fit its width (down to a 14 px floor), and the field limits above guarantee it fits at that floor. A test renders every template with every field at its maximum length and checks that nothing leaves the panel. Preview with the script above anyway: the smallest sizes are legible, but not comfortable.
 - Bars are drawn to scale against the largest value. They are not a charting library: no axes or negative values.

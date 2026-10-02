@@ -147,7 +147,7 @@ def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text
         if b <= a:
             continue
         if va.template is not TemplateKind.CARD:
-            lines.extend(tpl.template_events(va, plan.aspect, D, LABELS[va.kind]))
+            lines.extend(tpl.template_events(va, plan.aspect, D, LABELS[va.kind], count_up=plan.markets is None))
             continue
         lines.append(ev(2, a, b, "CardLabel", LABELS[va.kind], pos=(L.w // 2, L.card_y)))
         lines.append(ev(2, a, b, "Card", wrap(va.text, wrapw), pos=(L.w // 2, L.card_y + int(L.font_card * 1.55))))
