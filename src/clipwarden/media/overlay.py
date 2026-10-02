@@ -10,7 +10,8 @@ from __future__ import annotations
 import textwrap
 from dataclasses import dataclass
 
-from ..models import ClipPlan, ValueAddKind, Word
+from ..models import ClipPlan, TemplateKind, ValueAddKind, Word
+from . import templates as tpl
 from .timeline import TimelineMap
 
 
@@ -69,6 +70,7 @@ def header(L: Layout) -> str:
         f"Style: Disclose,{f},{L.font_card},{_ass(INK)},{_ass(INK)},{_ass(DISCLOSE)},{_ass(DISCLOSE)},1,0,0,0,100,100,0,0,3,20,0,8,80,80,0,1",
         f"Style: Lower,{f},{int(L.font_card * 0.8)},{_ass(PAPER)},{_ass(PAPER)},{_ass(INK)},{_ass(INK, 0x30)},1,0,0,0,100,100,0,0,3,14,0,1,50,50,0,1",
         f"Style: Fine,{f},{int(L.font_card * 0.6)},{_ass(PAPER)},{_ass(PAPER)},{_ass(INK)},{_ass(INK, 0x40)},0,0,0,0,100,100,0,0,3,8,0,2,40,40,0,1",
+        tpl.TEMPLATE_STYLE,
     ]
     return (
         "[Script Info]\nScriptType: v4.00+\nWrapStyle: 0\nScaledBorderAndShadow: yes\n"
@@ -143,6 +145,9 @@ def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text
     for va in plan.value_add:
         a, b = min(va.start, D), min(va.end, D)
         if b <= a:
+            continue
+        if va.template is not TemplateKind.CARD:
+            lines.extend(tpl.template_events(va, plan.aspect, D, LABELS[va.kind]))
             continue
         lines.append(ev(2, a, b, "CardLabel", LABELS[va.kind], pos=(L.w // 2, L.card_y)))
         lines.append(ev(2, a, b, "Card", wrap(va.text, wrapw), pos=(L.w // 2, L.card_y + int(L.font_card * 1.55))))

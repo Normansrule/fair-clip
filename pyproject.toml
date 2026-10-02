@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clipwarden"
-version = "0.1.0"
+version = "0.2.0"
 description = "Security-first AI clipping pipeline: rights-cleared long video in, value-adding short clips out, every clip through a compliance gate and human approval before YouTube."
 readme = "README.md"
 license = "Apache-2.0"
@@ -20,6 +20,7 @@ dependencies = [
   "itsdangerous==2.2.0",
   "numpy==2.4.4",
   "cryptography==46.0.7",
+  "httpx==0.28.1",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +36,6 @@ keychain = ["keyring==25.7.0"]
 asr = ["faster-whisper==1.2.1"]
 dev = [
   "pytest==9.1.1",
-  "httpx==0.28.1",
   "ruff==0.16.9",
   "pillow==12.2.0",
   "matplotlib==3.10.9",
@@ -49,7 +49,7 @@ clipwarden = "clipwarden.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-clipwarden = ["web/templates/*.html", "web/static/*", "data/*"]
+clipwarden = ["web/templates/*.html", "web/static/*", "data/*", "data/fonts/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

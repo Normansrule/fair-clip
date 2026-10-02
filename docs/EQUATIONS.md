@@ -159,6 +159,8 @@ t=\min\!\left(1,\ \frac{\Delta_{\max}}{\max_k\lvert w_{\text{target},k}-w_{\text
 
 Both $\mathbf w_{cur}$ and $\mathbf w_{target}$ lie in the feasible box, and the box is convex, so every point on the segment between them does too. One update therefore never leaves the limits and never moves any weight by more than 0.05. A proposal needs **at least 10 published clips**, lands on the Settings page as *pending*, and only a person can approve it (audited).
 
+**Where y comes from (milestone 2).** `analytics_api.training_rows` joins each published clip with the candidate it was cut from (same source, ≥ 80 % time overlap) and uses that candidate's stored $z$-features as $x_j$. The outcome $y_j$ is YouTube's `averageViewPercentage` ÷ 100, i.e. APV. Clips with fewer than **50 views** and anything marked illustrative are left out, so a handful of early views can't steer the weights.
+
 **Worked example.** Current weights (E, R, r, D, Q) = (0.25, 0.35, 0.15, 0.10, 0.15). The data suggests (0.45, 0.25, 0.10, 0.10, 0.10). The largest gap is 0.20 (energy), so t = 0.05/0.20 = 0.25, and the new weights are **(0.30, 0.325, 0.1375, 0.10, 0.1375)**, which still sum to 1.
 
 <picture>

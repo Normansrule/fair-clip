@@ -47,8 +47,9 @@ AFFILIATE_PLAN = {
     "tags": ["affiliate"],
     "lower_third": "Bridge Basics · build it yourself",
     "value_add": [
-        {"kind": "analysis", "text": "Try it at home: hang a paper deck from string, pull the ends apart, and feel the tension climb as the sag gets smaller.",
-         "start": 7.0, "end": 16.0, "author": "owner"},
+        {"kind": "analysis", "template": "steps", "start": 6.0, "end": 16.0, "author": "owner",
+         "text": "Try it at home: the flatter the string, the harder you pull. Real main cables keep a deliberate sag.",
+         "data": {"items": ["Hang a paper deck from string", "Pull the string ends apart", "Watch the sag shrink as you pull"]}},
     ],
     "affiliate": {
         "links": [{"program_id": "example-kits", "url": "https://example.com/kits/bridge-kit", "product": "Example bridge-building kit"}],

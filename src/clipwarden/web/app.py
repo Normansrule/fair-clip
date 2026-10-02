@@ -5,19 +5,23 @@ Runs on 127.0.0.1 only. Server-rendered HTML (Jinja2 autoescaping on) with no in
 
 from __future__ import annotations
 
+import hmac
 import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
+from starlette.concurrency import run_in_threadpool
 
 from ..analytics import area_under_retention, biggest_drop
+from ..analytics_api import ANALYTICS_TOKEN, propose_from_analytics, pull, training_rows
 from ..approval import ApprovalError, decide, human_required
 from ..config import Settings
 from ..gate.reasons import GROUP_ORDER, REASONS
@@ -26,7 +30,8 @@ from ..pipeline import STAGES, Pipeline, PipelineError
 from ..publish.body import paid_promotion_required
 from ..publish.publisher import live_ready
 from ..publish.youtube import TOKEN_NAME
-from ..scoring import normalise
+from ..redact import redact
+from ..scoring import MIN_CLIPS_FOR_UPDATE, normalise
 from ..store import Store
 from ..vault import VaultError, open_vault
 from . import security as sec
@@ -35,13 +40,17 @@ from .charts import retention_svg, score_bars_svg
 HERE = Path(__file__).resolve().parent
 
 
-def create_app(settings: Settings, store: Store | None = None, extra_hosts: tuple[str, ...] = ()) -> FastAPI:
+def create_app(settings: Settings, store: Store | None = None, extra_hosts: tuple[str, ...] = (),
+               setup_token: str | None = None) -> FastAPI:
+    """`setup_token` (from `clipwarden app`): on first run, instead of printing a generated password,
+    allow ONE visit to /setup?t=<token> to choose it. The token lives only in memory and dies on use."""
     store = store or Store(settings.data_path)
     sessions = sec.Sessions(sec.session_key(store.root), store)
     pipeline = Pipeline(settings, store)
     throttle = sec.Throttle()
     hosts = sec.allowed_hosts(settings.dashboard.port) - {"testserver"} | set(extra_hosts)
-    first_pw = sec.ensure_password(store)
+    setup = {"token": setup_token if setup_token and not store.get("dashboard_pw") else None}
+    first_pw = None if setup["token"] else sec.ensure_password(store)
     if first_pw:
         print("\n  First run: dashboard password (shown once, change it with `clipwarden set-password`):\n"
               f"    {first_pw}\n")
@@ -102,6 +111,35 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
             return page(request, "login.html", None, error="Wrong password.")
         throttle.reset(who)
         store.audit.append("owner", "login", "dashboard", {"client": who})
+        r = RedirectResponse("/", status_code=303)
+        r.set_cookie(sec.SESSION_COOKIE, sessions.issue("owner"), httponly=True, samesite="strict",
+                     max_age=sec.SESSION_MAX_AGE, secure=False, path="/")
+        return r
+
+    def setup_ok(t: str) -> bool:
+        return bool(setup["token"] and t and hmac.compare_digest(setup["token"], t) and not store.get("dashboard_pw"))
+
+    @app.get("/setup", response_class=HTMLResponse)
+    def setup_form(request: Request) -> Response:
+        t = request.query_params.get("t", "")
+        if not setup_ok(t):
+            return RedirectResponse("/login", status_code=303)
+        return page(request, "setup.html", None, token=t, error=None)
+
+    @app.post("/setup")
+    def setup_submit(request: Request, t: str = Form(...), password: str = Form(...), password2: str = Form(...)) -> Response:
+        who = request.client.host if request.client else "?"
+        if throttle.blocked(who) or not setup_ok(t):
+            throttle.fail(who)
+            return RedirectResponse("/login", status_code=303)
+        if password != password2:
+            return page(request, "setup.html", None, token=t, error="The two passwords differ.")
+        try:
+            sec.set_password(store, password)
+        except ValueError as exc:
+            return page(request, "setup.html", None, token=t, error=str(exc))
+        setup["token"] = None  # single use
+        store.audit.append("owner", "set_password", "dashboard", {"via": "first-run setup link"})
         r = RedirectResponse("/", status_code=303)
         r.set_cookie(sec.SESSION_COOKIE, sessions.issue("owner"), httponly=True, samesite="strict",
                      max_age=sec.SESSION_MAX_AGE, secure=False, path="/")
@@ -206,13 +244,69 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
     def settings_page(request: Request) -> HTMLResponse:
         s = need(request)
         try:
-            has_token = open_vault(store.root).load(TOKEN_NAME) is not None
+            vault = open_vault(store.root)
+            has_token = vault.load(TOKEN_NAME) is not None
+            has_analytics = vault.load(ANALYTICS_TOKEN) is not None
         except VaultError:
-            has_token = None
+            has_token = has_analytics = None
         ready, why = live_ready(store, settings)
-        proposals = store.rows("weight_proposals", order="id DESC")
-        return page(request, "settings.html", s, has_token=has_token, ready=ready, why=why, settings=settings,
-                    weights=normalise(store.get("weights") or settings.scoring.weights), proposals=proposals)
+        live = normalise(store.get("weights") or settings.scoring.weights)
+        proposals = []
+        for row in store.rows("weight_proposals", order="id DESC"):
+            prop, cur = row.get("proposed") or {}, row.get("current") or {}
+            row["diff"] = [(k, float(cur.get(k, 0)), float(prop.get(k, 0))) for k in live]
+            proposals.append(row)
+        return page(request, "settings.html", s, has_token=has_token, has_analytics=has_analytics, ready=ready, why=why,
+                    settings=settings, weights=live, proposals=proposals, training_n=len(training_rows(store)),
+                    min_n=MIN_CLIPS_FOR_UPDATE, error=request.query_params.get("error", "")[:200])
+
+    @app.post("/settings/weights-propose")
+    async def weights_propose(request: Request) -> Response:
+        s = need(request)
+        await need_csrf(request, s)
+        try:
+            propose_from_analytics(store, normalise(store.get("weights") or settings.scoring.weights), s["u"])
+        except ValueError as exc:
+            return RedirectResponse(f"/settings?error={quote(str(exc)[:200])}", status_code=303)
+        return RedirectResponse("/settings", status_code=303)
+
+    @app.post("/settings/analytics-revoke")
+    async def analytics_revoke(request: Request) -> Response:
+        s = need(request)
+        await need_csrf(request, s)
+        from ..publish.youtube import revoke
+
+        ok = revoke(open_vault(store.root), token_name=ANALYTICS_TOKEN)
+        store.audit.append(s["u"], "oauth_revoke", "youtube-analytics", {"google_ok": ok})
+        return RedirectResponse("/settings", status_code=303)
+
+    @app.post("/analytics/pull")
+    async def analytics_pull(request: Request) -> Response:
+        """Read-only pull with the separate analytics token (runs off the event loop)."""
+        s = need(request)
+        await need_csrf(request, s)
+
+        def run() -> dict[str, Any]:
+            import httpx
+            from google.auth.transport.requests import Request as GRequest
+
+            from ..publish.youtube import credentials
+
+            creds = credentials(Path(settings.publish.oauth_client_file), open_vault(store.root), token_name=ANALYTICS_TOKEN)
+            creds.refresh(GRequest())
+            with httpx.Client(timeout=30) as http:
+                return pull(store, http, creds.token, actor=s["u"])
+
+        try:
+            res = await run_in_threadpool(run)
+        except ImportError:
+            return RedirectResponse("/analytics?msg=" + quote("install the youtube extra: pip install '.[youtube]'"), status_code=303)
+        except Exception as exc:  # noqa: BLE001 - shown to the owner, redacted
+            return RedirectResponse("/analytics?msg=" + quote(redact(str(exc))[:200]), status_code=303)
+        msg = f"pulled {res['clips']} clip(s); {res['no_retention_yet']} without a retention curve yet"
+        if res["errors"]:
+            msg += f"; {len(res['errors'])} error(s): " + res["errors"][0]
+        return RedirectResponse("/analytics?msg=" + quote(msg[:300]), status_code=303)
 
     @app.post("/settings/kill")
     async def kill(request: Request) -> Response:
@@ -265,7 +359,12 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
             notes = [(t_drop, f"steepest drop after the hook ({drop:.0%}/step)")] + [tuple(n) for n in a.get("notes", [])]
             charts.append({"clip": cid, "svg": retention_svg(tau, r, notes), "apv": area_under_retention(tau, r),
                            "stats": a.get("stats", {}), "illustrative": a.get("illustrative", False)})
-        return page(request, "analytics.html", s, charts=charts)
+        try:
+            connected = open_vault(store.root).load(ANALYTICS_TOKEN) is not None
+        except VaultError:
+            connected = None
+        return page(request, "analytics.html", s, charts=charts, connected=connected,
+                    msg=request.query_params.get("msg", "")[:300])
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

@@ -46,6 +46,17 @@ Live uploads also need an intact audit chain. If anything looks wrong, use the *
 - **Quota:** 100 `videos.insert` calls per day by default, in their own bucket ([ytapi-quota](REFERENCES.md#ytapi-quota)). clipwarden's daily cap (3 by default) keeps you far below that. If Google still says no, the clip is *deferred*, not failed.
 - **Paid promotion** can't be set through the API, so paid clips upload private and you tick the box in Studio ([POLICY.md](POLICY.md)).
 
-## 6. Revoke
+## 6. Analytics (optional, read-only)
+
+To feed real retention into the dashboard and the weight proposals:
+
+1. In the same Cloud project, enable the **YouTube Analytics API** (APIs & Services → Library).
+2. Run `clipwarden analytics connect`. Google asks for one scope, `yt-analytics.readonly`, which can read reports and nothing else. The token is stored **separately** from the upload token, so connecting analytics never widens what the upload token can do.
+3. Press **Pull now** on the Analytics page, or run `clipwarden analytics pull`. Retention curves appear once a video has enough views; until then you'll see totals only.
+4. Impressions and click-through rate aren't available from this API. Export them from YouTube Studio and load them with `clipwarden analytics import FILE.json` if you want them on the charts.
+
+Disconnect in **Settings → Disconnect analytics**, or with `clipwarden analytics disconnect`.
+
+## 7. Revoke
 
 Dashboard → **Settings → Revoke YouTube access**, or `clipwarden auth revoke`. This calls Google's revoke endpoint and deletes the local token ([google-oauth-web](REFERENCES.md#google-oauth-web)). You can also remove access from your Google Account's third-party connections page.

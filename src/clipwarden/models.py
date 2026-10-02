@@ -163,6 +163,52 @@ class ValueAddKind(StrEnum):
     ANALYSIS = "analysis"
 
 
+class TemplateKind(StrEnum):
+    """How a value-add element is drawn (docs/TEMPLATES.md). Every template still carries the
+    owner's own sentence in `text`; the template adds structure, never replaces the words."""
+
+    CARD = "card"  # label + sentence (the default)
+    KEY_NUMBER = "key_number"  # one big figure that counts up, with a label
+    DEFINITION = "definition"  # a term, then the owner's definition
+    STEPS = "steps"  # 2-5 numbered steps that appear one at a time
+    COMPARE = "compare"  # two columns, A vs B
+    BAR = "bar"  # 2-5 bars that grow to their values
+
+
+TplText = Annotated[str, Field(min_length=1, max_length=60)]
+
+
+class Bar(Strict):
+    label: Annotated[str, Field(min_length=1, max_length=40)]
+    value: Annotated[float, Field(ge=0.0, le=1e15)]
+
+
+class TemplateData(Strict):
+    headline: Annotated[str, Field(max_length=40)] = ""  # key_number: "42 m/s"; definition: the term
+    items: list[TplText] = Field(default_factory=list, max_length=5)  # steps
+    left_title: Annotated[str, Field(max_length=30)] = ""
+    right_title: Annotated[str, Field(max_length=30)] = ""
+    left: list[TplText] = Field(default_factory=list, max_length=4)
+    right: list[TplText] = Field(default_factory=list, max_length=4)
+    bars: list[Bar] = Field(default_factory=list, max_length=5)
+    unit: Annotated[str, Field(max_length=12)] = ""
+
+    def strings(self) -> list[str]:
+        return [self.headline, *self.items, self.left_title, self.right_title, *self.left, *self.right,
+                *(b.label for b in self.bars), self.unit]
+
+    @model_validator(mode="after")
+    def _clean(self) -> TemplateData:
+        for s in self.strings():
+            no_hidden_chars(s)
+        return self
+
+
+def fmt_value(v: float) -> str:
+    """Bar values as shown on screen (and checked by the gate): 12, 3.5, 1250."""
+    return f"{v:,.0f}" if v >= 100 or v == int(v) else f"{v:.3g}"
+
+
 class ValueAddElement(Strict):
     kind: ValueAddKind
     text: Annotated[str, Field(min_length=1, max_length=400)]
@@ -170,6 +216,8 @@ class ValueAddElement(Strict):
     end: Seconds
     author: Author = Author.OWNER
     owner_approved: bool = False
+    template: TemplateKind = TemplateKind.CARD
+    data: TemplateData | None = None
 
     _clean = field_validator("text")(classmethod(lambda cls, v: no_hidden_chars(v)))
 
@@ -177,7 +225,28 @@ class ValueAddElement(Strict):
     def _order(self) -> ValueAddElement:
         if self.end <= self.start:
             raise ValueError("value-add element must have end > start")
+        d, t = self.data or TemplateData(), self.template
+        need = {
+            TemplateKind.KEY_NUMBER: bool(d.headline) and any(ch.isdigit() for ch in d.headline),
+            TemplateKind.DEFINITION: bool(d.headline),
+            TemplateKind.STEPS: 2 <= len(d.items) <= 5,
+            TemplateKind.COMPARE: bool(d.left_title and d.right_title and d.left and d.right),
+            TemplateKind.BAR: 2 <= len(d.bars) <= 5 and max(b.value for b in d.bars) > 0,
+        }
+        if not need.get(t, True):
+            raise ValueError(f"template '{t.value}' is missing its data (see docs/TEMPLATES.md)")
+        if t is TemplateKind.STEPS and self.end - self.start < 1.2 * len(d.items):
+            raise ValueError("steps need at least 1.2 s on screen per step")
         return self
+
+    def visible_text(self) -> str:
+        """Every word and figure a viewer can read for this element: what the gate checks."""
+        if not self.data:
+            return self.text
+        d = self.data
+        bars = [f"{b.label} {fmt_value(b.value)}{(' ' + d.unit) if d.unit else ''}" for b in d.bars]
+        return "\n".join([self.text, *(s for s in d.strings() if s and s != d.unit), *bars,
+                          d.unit if not d.bars and d.unit else ""]).strip()
 
 
 class AffiliateLink(Strict):

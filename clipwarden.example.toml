@@ -26,7 +26,7 @@ max_candidates = 10
 
 [media]
 runner = "auto"             # "docker" = always sandbox; "auto" = sandbox, or host only for pinned trusted demo files
-image = "clipwarden-media:0.1.0"
+image = "clipwarden-media:0.2.0"
 memory = "2g"
 cpus = "2"
 

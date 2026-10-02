@@ -34,6 +34,7 @@
 | Never committed: `.gitignore`, gitleaks in CI with custom Google rules, GitHub push protection | `.gitleaks.toml`, `ci.yml` |
 | Revocable in one click (Settings → Revoke), which calls Google's revoke endpoint and deletes the local copy ([google-oauth-web](REFERENCES.md#google-oauth-web)) | `publish/youtube.revoke` |
 | PKCE + `state` on sign-in, so an intercepted authorization code is useless ([google-oauth-native](REFERENCES.md#google-oauth-native)) | `publish/youtube.authorize` |
+| Analytics uses a **second, read-only token** (`yt-analytics.readonly`) in its own vault entry; it can't upload, and revoking either token leaves the other alone. Analytics responses are parsed as untrusted numbers (finite, range-checked, capped at 200 points) | `analytics_api.py` |
 | A separate Google Cloud project per deployment, plus 2-Step Verification with a passkey or security key on the channel's account ([google-2sv](REFERENCES.md#google-2sv)) | `SETUP_YOUTUBE.md` |
 
 *Residual risk:* code running as your OS user while the vault is unlocked can read the token. Keep the machine patched and the passphrase out of `.env`.
@@ -67,6 +68,10 @@
 | The model has no tools and no authority: it can't approve, publish or change settings ([owasp-llm-2025](REFERENCES.md#owasp-llm-2025) LLM06) | architecture |
 | Tested against an "obedient" model that follows injected instructions: the gate still blocks the clip | `tests/test_llm_and_metadata.py` |
 
+### 3b. Value-add templates
+
+Template text (headlines, steps, column items, bar labels) is owner input like any card: hidden/control characters are rejected at the schema, everything is escaped before it reaches the ASS file (a test injects `{\alpha&HFF&}`), and `ValueAddElement.visible_text()` hands every word and number a viewer can read to the link, finance-number and screening checks. The count-up animation always ends on the exact text the gate checked.
+
 ### 4. Supply-chain compromise
 
 *Scenario:* a dependency, base image or GitHub Action is hijacked.
@@ -81,6 +86,8 @@
 | Releases are built by CI from tags, with SHA-256 checksums and a Sigstore-signed build-provenance attestation | `release.yml` |
 
 *Residual risk:* Debian packages inside the images float within the pinned base's security channel. Build with `--build-arg SNAPSHOT=...` for byte-for-byte reproducibility.
+
+*The app installer* (`scripts/install.sh`) downloads a release archive and refuses to install unless its SHA-256 matches the release's `SHA256SUMS`; with `gh` logged in it also verifies the Sigstore build provenance. Dependencies install with `--require-hashes`, and nothing is built or run with `sudo`.
 
 ### 5. Insider misuse (including you, in a hurry)
 
@@ -107,7 +114,7 @@ The rules are mapped in [POLICY.md](POLICY.md). In short: a value-add minimum, d
 
 - Bound to `127.0.0.1` by config validation (`0.0.0.0` only inside the compose container, which publishes on the host's loopback).
 - The Host-header allowlist blocks DNS rebinding.
-- The first-run password is random, printed once and stored as an scrypt hash. Five failed logins in 15 minutes trigger a lockout.
+- First run: `clipwarden dashboard` prints a random password once; `clipwarden app` instead opens a **single-use welcome link** (`/setup?t=…`, 192-bit token held only in memory) to choose one. The link stops working after use, after a restart, or as soon as any password exists. Either way only an scrypt hash is stored. Five failed logins in 15 minutes trigger a lockout.
 - Cookies are signed, HttpOnly and SameSite=Strict, and expire after 12 h. Every POST needs a CSRF token and a same-origin `Origin` header.
 - `Referrer-Policy: same-origin`, not `no-referrer`. With `no-referrer`, browsers send `Origin: null` on form posts, which would break the Origin check. We found this when rendering the docs' screenshots.
 - CSP: `default-src 'self'`, no inline script, `frame-ancestors 'none'`. Jinja2 autoescaping is on, and a test injects `<script>` through the database.

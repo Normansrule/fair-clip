@@ -38,7 +38,8 @@ class PublishError(RuntimeError):
     pass
 
 
-def authorize(client_file: Path, scopes: list[str], vault: KeychainVault | EncryptedFileVault) -> dict[str, Any]:  # pragma: no cover - interactive
+def authorize(client_file: Path, scopes: list[str], vault: KeychainVault | EncryptedFileVault,
+              token_name: str = TOKEN_NAME) -> dict[str, Any]:  # pragma: no cover - interactive
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     if not client_file.exists():
@@ -51,31 +52,32 @@ def authorize(client_file: Path, scopes: list[str], vault: KeychainVault | Encry
     if granted - set(scopes):
         raise PublishError(f"Google granted extra scopes {granted - set(scopes)}; refusing to store them")
     record = {"refresh_token": creds.refresh_token, "scopes": sorted(granted), "obtained": int(time.time())}
-    vault.save(TOKEN_NAME, record)
+    vault.save(token_name, record)
     return {"scopes": record["scopes"], "obtained": record["obtained"]}
 
 
-def credentials(client_file: Path, vault: KeychainVault | EncryptedFileVault):  # pragma: no cover - needs Google libs
+def credentials(client_file: Path, vault: KeychainVault | EncryptedFileVault, token_name: str = TOKEN_NAME):  # pragma: no cover - needs Google libs
     from google.oauth2.credentials import Credentials
 
-    rec = vault.load(TOKEN_NAME)
+    rec = vault.load(token_name)
     if not rec:
-        raise PublishError("not authorized: run `clipwarden auth login`")
+        raise PublishError("not authorized: run `clipwarden auth login`" if token_name == TOKEN_NAME
+                           else "analytics not connected: run `clipwarden analytics connect`")
     client = json.loads(client_file.read_text())
     c = client.get("installed") or client.get("web") or {}
     return Credentials(None, refresh_token=rec["refresh_token"], token_uri=c.get("token_uri", "https://oauth2.googleapis.com/token"),
                        client_id=c["client_id"], client_secret=c.get("client_secret"), scopes=rec["scopes"])
 
 
-def revoke(vault: KeychainVault | EncryptedFileVault, http: httpx.Client | None = None) -> bool:
-    rec = vault.load(TOKEN_NAME)
+def revoke(vault: KeychainVault | EncryptedFileVault, http: httpx.Client | None = None, token_name: str = TOKEN_NAME) -> bool:
+    rec = vault.load(token_name)
     ok = True
     if rec and rec.get("refresh_token"):
         client = http or httpx.Client(timeout=15)
         # Token in the POST body (not the URL), so it can't end up in any URL/access log.
         r = client.post(REVOKE_URL, data={"token": rec["refresh_token"]})
         ok = r.status_code == 200
-    vault.delete(TOKEN_NAME)  # delete locally even if Google already considered it revoked
+    vault.delete(token_name)  # delete locally even if Google already considered it revoked
     return ok
 
 

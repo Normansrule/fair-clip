@@ -16,12 +16,14 @@
 
 </div>
 
-> **Status: milestone 1 (MVP).** Own and licensed content, dry-run and private uploads, rights intake, captions, value-add cards, the full compliance gate, the approval dashboard and the audit log all work and are tested. The affiliate and markets *gate rules* are live; their editing UIs are milestones 3–4. See [Roadmap](#roadmap).
+> **Status: v0.2.0 (milestone 2).** Everything in the MVP (rights intake, captions, the full compliance gate, the approval dashboard, the audit log, dry-run and private uploads), plus **five animated value-add templates**, a **read-only YouTube Analytics pull** feeding bounded weight proposals, and a **one-command desktop install**. The affiliate and markets *gate rules* are live; their editing UIs are milestones 3–4. See [Roadmap](#roadmap).
+>
+> **Two ways in:** the [web demo](https://normansrule.github.io/clipwarden/) runs in your browser with sample footage, nothing to install · the [app](#install-the-app-ubuntu--wsl2) runs the real pipeline on your own computer.
 
 ## Contents
 
 1. [What you'll see](#what-youll-see)
-2. [Quick start (≈ 5 minutes)](#quick-start--5-minutes)
+2. [Quick start (≈ 5 minutes)](#quick-start--5-minutes) · [Install the app](#install-the-app-ubuntu--wsl2)
 3. [How it works](#how-it-works)
 4. [Walkthrough: your own video](#walkthrough-your-own-video)
 5. [Project layout](#project-layout)
@@ -78,6 +80,20 @@ Open **http://127.0.0.1:8765**, log in, open clip A, and approve it with a reaso
 Untrusted media must run in the network-less Docker sandbox. The demo's sample is *our own* file, pinned by SHA-256 in `examples/demo/SHA256SUMS`, so it may run on your machine without Docker. Any other file is refused until you `make sandbox` (see [Security](#security)).
 </details>
 
+## Install the app (Ubuntu / WSL2)
+
+For day-to-day use, install clipwarden as an app instead of running it from a clone. The installer downloads the latest release, **checks its SHA-256** (and its signed build provenance if you have `gh` logged in), installs hash-pinned dependencies into a private environment, and adds a `clipwarden` command plus a launcher in your apps menu. On WSL2 with WSLg, that launcher appears in the Windows Start menu. No `sudo`, no build step.
+
+```bash
+sudo apt update && sudo apt install -y python3-venv ffmpeg curl
+curl -fsSL https://raw.githubusercontent.com/Normansrule/clipwarden/main/scripts/install.sh | bash
+clipwarden app        # starts the dashboard and opens it in your browser
+```
+
+The first launch opens a **one-time welcome link** where you choose your password (the link lives only in memory and dies after one use). Your config and data live in `~/.local/share/clipwarden/`. In Chrome or Edge, choose **Install clipwarden** (or *Install page as app*) to give the dashboard its own window. Update by running the installer again; remove with `bash ~/.local/share/clipwarden/app/install.sh --uninstall` (your data is kept).
+
+Always-on instead? `make compose-init && make compose-up` runs the same app in Docker with a separate network-less media container (see [Walkthrough](#walkthrough-your-own-video)).
+
 ## How it works
 
 <picture>
@@ -115,11 +131,17 @@ A 9:16 reframe: either the whole frame over a blurred fill (slides) or a smart c
 ### 5 · Value-add layer (required)
 YouTube treats permission and originality as separate things: reused content needs significant original commentary or modification, *even with the creator's permission* ([yt-monetization](docs/REFERENCES.md#yt-monetization)). So owner-written cards (context, commentary, analysis, explainer) must be on screen for **≥ 25 %** of the clip, with at least 8 words, and less than 60 % of their phrases copied from the transcript. AI drafts don't count until you approve them. [EQUATIONS.md §5](docs/EQUATIONS.md#5-value-add-coverage-and-originality)
 
+Besides the plain card there are five **animated templates**: a key number that counts up, a definition, steps that appear one by one, an A-vs-B comparison and growing bars. Each still carries your own sentence, and every word and number on it goes through the gate. On 9:16 they sit above the source frame, so nothing original is covered. How to use them: [docs/TEMPLATES.md](docs/TEMPLATES.md).
+
+<img src="assets/templates/gallery.png" alt="The five value-add templates rendered over the sample talk: key number '853 m', definition 'Flutter', three numbered steps, '1940 deck' versus 'Modern deck', and two bars for 1 and 8 times stiffness." width="100%">
+
+*Figure 3b. The five templates, each drawn by the same escaped ASS renderer as the captions.*
+
 ### 6 · Metadata
 The title is the clip's most on-topic sentence. Tags come from its words. The description *frame* (disclosures first, then summary, credit, links, sources) is assembled by code. An optional model, preferably local, may propose the title and summary, but its output is parsed as untrusted data. → [`metadata.py`](src/clipwarden/metadata.py), [`llm.py`](src/clipwarden/llm.py)
 
 ### 7 · Compliance gate (hard stop)
-48 checks in 11 groups, all run every time and all reported. **41 block** the clip; **7 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/clipwarden/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
+52 checks in 11 groups, all run every time and all reported. **43 block** the clip; **9 warn**, and the reviewer must acknowledge each warning. The diagram below is generated from [`gate/reasons.py`](src/clipwarden/gate/reasons.py), so it can't drift from the code, and a test proves every reason can actually be triggered.
 
 <!-- gate-mermaid:start -->
 ```mermaid
@@ -189,7 +211,7 @@ The review page shows before/after video, the full report and the exact request 
 Uploads go through YouTube Data API v3 using **one scope, `youtube.upload`**. Privacy and the scheduled `publishAt` time are set in the same insert call, so the broad "manage your account" scope is never needed ([POLICY.md](docs/POLICY.md)). Dry-run is the default. Going live takes a config change, a typed confirmation, at least one completed dry run and an intact audit chain.
 
 ### 10 · Analytics
-Import retention data (milestone 2 pulls it with a read-only scope). The dashboard shows r(τ) and the area under it (≈ average % viewed), and can *propose* new highlight weights. Each approved update moves any single weight by at most 0.05. [EQUATIONS.md §3–4](docs/EQUATIONS.md#3-retention-curve)
+`clipwarden analytics connect` asks Google for **one read-only scope** (`yt-analytics.readonly`), stored as a *separate* token from the upload one. Then **Pull now** on the Analytics page (or `clipwarden analytics pull`) fetches views, watch time, average view duration and percentage, and the retention curve for every published clip. Impressions and click-through rate aren't in that API, so import them from a Studio export with `clipwarden analytics import`. The dashboard shows r(τ) and the area under it (≈ average % viewed), and, once **10 clips with ≥ 50 real views** each exist, can *propose* new highlight weights from them (**Propose from live analytics**). Nothing changes until you approve; each approved update moves any single weight by at most 0.05. [EQUATIONS.md §3–4](docs/EQUATIONS.md#3-retention-curve)
 
 <img src="assets/dashboard-analytics-light.png" alt="Analytics page: an illustrative retention curve for the demo clip with two numbered markers, the steepest drop after the hook and a rewatch bump, and the area under the curve shown as 70 percent." width="100%">
 
@@ -236,6 +258,7 @@ clipwarden/
 │   │   ├── analyze.py     # audio energy, scene cuts, motion centroid, frame hashes
 │   │   ├── timeline.py    # jump cuts and the source→clip time map
 │   │   ├── overlay.py     # captions, hook, cards, disclosures (escaped ASS)
+│   │   ├── templates.py   # animated value-add templates (key number, steps, compare, bar...)
 │   │   └── edit.py        # stage 4: the FFmpeg filter graph
 │   ├── metadata.py        # stage 6: grounded title/description/chapters
 │   ├── llm.py             # untrusted-text handling, optional local model adapter
@@ -243,14 +266,16 @@ clipwarden/
 │   ├── approval.py        # stage 8: decisions bound to hashes
 │   ├── publish/           # stage 9: request body, OAuth, uploader, publisher
 │   ├── analytics.py       # stage 10: Eq. 2–3 metrics
+│   ├── analytics_api.py   # read-only YouTube Analytics pull + live weight-proposal input
+│   ├── data/              # bundled fonts and the default screen-terms list
 │   ├── audit.py           # append-only hash-chained log
 │   ├── vault.py · redact.py
-│   └── web/               # dashboard (FastAPI + Jinja2, no inline JS)
-├── tests/                 # 140+ tests: every gate reason, security, equations, end-to-end
-├── scripts/               # demo, sample generator, asset renderers, sandbox smoke test
+│   └── web/               # dashboard (FastAPI + Jinja2, no inline JS) + app manifest/icons
+├── tests/                 # 210+ tests: every gate reason, security, equations, templates, end-to-end
+├── scripts/               # install.sh (the app), demo, asset/template renderers, sandbox smoke test
 ├── examples/demo/         # CC0 sample talk, transcript, rights record, plan
 ├── assets/                # generated visuals (sources: scripts/ + assets/src/)
-├── docs/                  # POLICY, SECURITY_MODEL, EQUATIONS, STYLE, SETUP_YOUTUBE, REFERENCES
+├── docs/                  # POLICY, SECURITY_MODEL, EQUATIONS, TEMPLATES, STYLE, SETUP_YOUTUBE, REFERENCES
 ├── site/                  # GitHub Pages: overview + interactive demo
 ├── sandbox/Dockerfile.media · Dockerfile · docker-compose.yml
 └── .github/               # CI, CodeQL, Scorecard, Pages, links, release, Dependabot
@@ -280,6 +305,9 @@ clipwarden/
 | `bad host` (HTTP 400) in the browser | You opened the dashboard by LAN IP or hostname; it only answers on loopback | Use `http://127.0.0.1:8765` |
 | `invalid_grant` when publishing, about a week after `auth login` | Your OAuth app is in Testing mode, so refresh tokens expire after 7 days | `clipwarden auth login` again, or move the app to production ([SETUP_YOUTUBE.md](docs/SETUP_YOUTUBE.md)) |
 | Scheduled uploads stay private forever | Unaudited API projects (created after 28 July 2020) can only upload private | Approve as Private and publish in Studio, or complete Google's API audit |
+| `clipwarden: command not found` right after installing | `~/.local/bin` isn't on your `PATH` yet | `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc` |
+| `clipwarden app` opens nothing on WSL2 | No Windows browser bridge found | Open the printed `http://127.0.0.1:8765/…` link yourself (Windows forwards localhost to WSL2) |
+| Analytics: `refused the request (403)` | The analytics token was revoked or never granted | `clipwarden analytics connect` again |
 | `ERROR: THESE PACKAGES DO NOT MATCH THE HASHES` | An interrupted download, or an unsupported Python version | `rm -rf .venv && make setup` with Python 3.11–3.13 |
 
 ## References and further learning
@@ -302,16 +330,16 @@ All sources are primary and verified: [docs/REFERENCES.md](docs/REFERENCES.md). 
 | [m-bain/whisperX](https://github.com/m-bain/whisperX) | reference for word alignment; not a dependency |
 | [Breakthrough/PySceneDetect](https://github.com/Breakthrough/PySceneDetect) | same idea as our FFmpeg `scene` score; not a dependency |
 | [youtube/api-samples](https://github.com/youtube/api-samples) | resumable-upload retry pattern |
-| [remotion-dev/remotion](https://github.com/remotion-dev/remotion), [motion-canvas](https://github.com/motion-canvas/motion-canvas) | candidates for milestone-2 animated value-add templates. Remotion's license needs checking before company use |
+| [remotion-dev/remotion](https://github.com/remotion-dev/remotion), [motion-canvas](https://github.com/motion-canvas/motion-canvas) | looked at for animated templates; milestone 2 draws them with libass inside FFmpeg instead (no Node runtime, same sandbox). Remotion's license needs checking before company use |
 | [gitleaks](https://github.com/gitleaks/gitleaks), [OpenSSF Scorecard](https://github.com/ossf/scorecard) | CI security |
 
 ## Roadmap
 
 1. ✅ **MVP:** own and licensed content, dry-run and private uploads, rights intake, captions, compliance gate, approval UI, audit log.
-2. Value-add templates (animated explainers), YouTube Analytics pull (read-only scope), weight proposals from live data.
+2. ✅ **Value-add templates** (five animated explainers), **YouTube Analytics pull** (read-only scope, separate token), **weight proposals from live data**, one-command app install.
 3. Affiliate module UI: per-program terms, spoken-disclosure detection timed against the transcript.
 4. Markets module UI: data-source connectors with timestamps, mandatory review flow.
-5. Hardening: independent threat-model review, fuzzing of media inputs and prompt injection, signed releases.
+5. Hardening: ✅ first independent review fixed (link obfuscation, hidden characters, in-video paid disclosure, upload race, audit-chain concurrency; see [CHANGELOG](CHANGELOG.md)); next, fuzzing of media inputs and prompt injection.
 
 ## Contributing, license, credits
 

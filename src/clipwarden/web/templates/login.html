@@ -3,7 +3,7 @@
 {% block body %}
 <section class="card narrow">
   <h1>Log in</h1>
-  <p class="muted">This dashboard only listens on this computer. The first-run password was printed in the terminal that started it.</p>
+  <p class="muted">This dashboard only listens on this computer. The first-run password was set on the welcome page, or printed by <code>clipwarden dashboard</code>. Forgot it? Run <code>clipwarden set-password</code>.</p>
   {% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
   <form method="post" action="/login">
     <label for="pw">Password</label>

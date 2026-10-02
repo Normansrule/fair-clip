@@ -70,7 +70,7 @@ class GateContext:
 
     def owner_text(self) -> str:
         """Everything a person or model wrote: title, summary, tags, value-add. Checked hardest."""
-        return "\n".join([self.metadata.title, self.summary, " ".join(self.metadata.tags), *(v.text for v in self.plan.value_add)])
+        return "\n".join([self.metadata.title, self.summary, " ".join(self.metadata.tags), *(v.visible_text() for v in self.plan.value_add)])
 
     def said_between(self, a: float, b: float) -> str:
         return " ".join(t for s, e, t in self.words if e >= a and s <= b)
@@ -358,7 +358,7 @@ def check_metadata(c: GateContext) -> list[CheckResult]:
     md, out = c.metadata, []
     if len(md.title) > 100 or len(md.description.encode("utf-8")) > 5000 or tag_chars(md.tags) > 500:
         out.append(_r("METADATA_LIMITS"))
-    va_text = " ".join(v.text for v in c.plan.value_add)
+    va_text = " ".join(v.visible_text() for v in c.plan.value_add)
     allowed = set(tokens(c.transcript_text)) | set(tokens(va_text)) | set(tokens(c.settings.channel.name))
     grounded = _grounding(md.title, allowed)
     if grounded < 0.7:
@@ -412,6 +412,8 @@ def check_uniqueness(c: GateContext) -> list[CheckResult]:
 
 def load_screen_terms(path: Path) -> dict[str, list[str]]:
     terms: dict[str, list[str]] = {"hard": [], "soft": []}
+    if not path.exists():  # never screen silently with an empty list
+        raise FileNotFoundError(f"screen-terms list missing: {path}")
     if path.exists():
         for line in path.read_text("utf-8").splitlines():
             line = line.strip()

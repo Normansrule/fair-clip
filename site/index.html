@@ -12,7 +12,7 @@
 <body>
 <header class="site"><div class="wrap">
   <a class="brand" href="./"><span>◈</span> clipwarden</a>
-  <nav><a href="demo.html">Interactive demo</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="https://github.com/Normansrule/clipwarden">GitHub</a></nav>
+  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/clipwarden">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
@@ -20,7 +20,7 @@
     <div class="motto">Automate the labor, never the judgment</div>
     <h1>Short clips that add something real, and never go out without a person saying yes.</h1>
     <p class="lede">clipwarden turns long videos you have the <strong>rights</strong> to into captioned vertical clips with your own commentary. Every clip passes a <strong>blocking compliance gate</strong> and <strong>human approval</strong> before it reaches YouTube. Self-hosted, dry-run by default, one narrow OAuth scope.</p>
-    <div class="cta"><a class="btn primary" href="demo.html">Try the interactive demo →</a><a class="btn" href="https://github.com/Normansrule/clipwarden#quick-start--5-minutes">Run it locally in 5 minutes</a></div>
+    <div class="cta"><a class="btn primary" href="demo.html">Try the interactive demo →</a><a class="btn" href="#get">Get the app</a></div>
     <figure class="frame"><img src="assets/hero.gif" alt="Animated tour: a long sample video with a rights record goes in, highlights are ranked, a vertical clip with captions and an owner-written context card is rendered, the gate checks pass, a person approves, and the upload is scheduled as private with a publish time." width="960" height="540"></figure>
   </section>
 
@@ -36,9 +36,21 @@
     <figure class="frame"><img src="assets/before-after.png" alt="Raw 16:9 source frame next to the finished 9:16 clip with labelled context card, captions, lower third and attribution." width="1600" height="1160"></figure>
   </section>
 
+  <section id="templates">
+    <h2>Value-add templates</h2>
+    <p class="sub">Five animated explainers on top of the plain card. Each one still needs a sentence in your own words, and every word and number on it goes through the gate (links, sourced figures, screening). On vertical clips they sit above the source frame, so nothing original is covered.</p>
+    <div class="tpl-grid">
+      <figure><img src="assets/templates/key_number.gif" alt="Key-number template: '853 m' counts up with the label 'main span' and the owner's sentence underneath." width="360" height="234" loading="lazy"><figcaption><strong>key number</strong>: one figure that counts up</figcaption></figure>
+      <figure><img src="assets/templates/definition.gif" alt="Definition template: the word 'Flutter' with an underline that draws in, then the owner's definition." width="360" height="234" loading="lazy"><figcaption><strong>definition</strong>: a term, then your words</figcaption></figure>
+      <figure><img src="assets/templates/steps.gif" alt="Steps template: three numbered steps appear one after another." width="360" height="234" loading="lazy"><figcaption><strong>steps</strong>: 2 to 5, one at a time</figcaption></figure>
+      <figure><img src="assets/templates/compare.gif" alt="Compare template: '1940 deck' versus 'Modern deck' columns with bullet points." width="360" height="234" loading="lazy"><figcaption><strong>compare</strong>: A vs B</figcaption></figure>
+      <figure><img src="assets/templates/bar.gif" alt="Bar template: two bars grow to 1 and 8 times stiffness." width="360" height="234" loading="lazy"><figcaption><strong>bar</strong>: 2 to 5 bars that grow</figcaption></figure>
+    </div>
+  </section>
+
   <section id="gate">
     <h2>The compliance gate</h2>
-    <p class="sub">48 checks in 11 groups. Every one runs, and every reason is reported: 41 block the clip, 7 are warnings a person must acknowledge. The chart is generated from the code that enforces it.</p>
+    <p class="sub">52 checks in 11 groups. Every one runs, and every reason is reported: 43 block the clip, 9 are warnings a person must acknowledge. The chart is generated from the code that enforces it.</p>
     <div class="grid3">
       <div class="card"><h3>Rights &amp; originality</h3><p>No rights record, no processing. Licenses that forbid edits or commercial use are refused. Value-add coverage, length and originality are measured.</p></div>
       <div class="card"><h3>Disclosures</h3><p>The synthetic-content flag is set from the rights record (when unsure, disclose). Paid promotion goes private-only plus a Studio step, because the API can't set that flag.</p></div>
@@ -63,6 +75,25 @@
     <h2>The review screen</h2>
     <p class="sub">Before/after, the full report, the exact request body. Approving binds the file and request hashes, so nothing can change after you say yes.</p>
     <figure class="frame"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-review-dark.png"><img src="assets/dashboard-review-light.png" alt="Dashboard review screen with before and after previews and a passed compliance report." width="1360" height="900"></picture></figure>
+  </section>
+  <section id="get">
+    <h2>Get the app</h2>
+    <p class="sub">clipwarden runs on your own computer. There is no hosted service and no account with us. Three ways in, all dry-run until you switch publishing on.</p>
+    <div class="grid3">
+      <div class="card"><h3>Desktop app (Ubuntu / WSL2)</h3><p>One command installs a checksum-verified release into your home folder and adds clipwarden to your apps menu (the Windows Start menu on WSL2).</p>
+        <pre class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/Normansrule/clipwarden/main/scripts/install.sh | bash
+clipwarden app</code></pre>
+        <p class="note">In Chrome or Edge, choose “Install clipwarden” to give it its own window.</p></div>
+      <div class="card"><h3>Docker (always-on)</h3><p>The app and a network-less media worker as two containers. The dashboard is published on 127.0.0.1 only.</p>
+        <pre class="cmd"><code>git clone https://github.com/Normansrule/clipwarden.git
+cd clipwarden
+make compose-init &amp;&amp; make compose-up</code></pre></div>
+      <div class="card"><h3>From source (try the demo)</h3><p>Runs the whole pipeline on the bundled CC0 sample, no Google account needed.</p>
+        <pre class="cmd"><code>git clone https://github.com/Normansrule/clipwarden.git
+cd clipwarden
+make setup &amp;&amp; make demo &amp;&amp; make dashboard</code></pre></div>
+    </div>
+    <p class="note spaced">Releases: <a href="https://github.com/Normansrule/clipwarden/releases">GitHub Releases</a> (source archive, SHA-256 checksums and signed build provenance). Verify with <code>sha256sum -c SHA256SUMS</code> and <code>gh attestation verify FILE -R Normansrule/clipwarden</code>.</p>
   </section>
 </main>
 

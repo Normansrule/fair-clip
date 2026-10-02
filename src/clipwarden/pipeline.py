@@ -40,6 +40,7 @@ from .transcribe import load_sidecar, whisper_transcribe
 
 log = logging.getLogger("clipwarden")
 REPO_ROOT = Path(__file__).resolve().parents[2]
+PACKAGE_DATA = Path(__file__).resolve().parent / "data"
 STAGES = ["rights", "transcribe", "highlights", "edit", "value_add", "metadata", "gate", "approval", "publish", "analytics"]
 
 
@@ -268,8 +269,9 @@ class Pipeline:
         return report
 
     def screen_terms_path(self) -> Path:
-        local = Path("config/screen_terms.txt")
-        return local if local.exists() else REPO_ROOT / "config" / "screen_terms.txt"
+        """Your own list in the data folder overrides the bundled default (src/clipwarden/data)."""
+        own = self.store.root / "screen_terms.txt"
+        return own if own.exists() else PACKAGE_DATA / "screen_terms.txt"
 
     def history(self, plan: ClipPlan, clip_id: str) -> History:
         h = History()

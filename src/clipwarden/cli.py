@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -114,13 +115,12 @@ def cmd_audit(a: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_analytics(a: argparse.Namespace) -> int:
+def _import_analytics(p: Pipeline, file: str) -> int:
     """Import retention/metrics JSON: {clip_id: {"tau": [...], "ratio": [...], "stats": {...}}}."""
-    p = _pipeline(a)
-    raw = json.loads(Path(a.file).read_text())
+    raw = json.loads(Path(file).read_text())
     if not isinstance(raw, dict) or len(raw) > 1000:
         raise ValueError("analytics file must be an object of at most 1000 clips")
-    clean = {}
+    clean = dict(p.store.get("analytics") or {})
     for cid, v in raw.items():
         tau, ratio = [float(x) for x in v["tau"]], [float(x) for x in v["ratio"]]
         if len(tau) != len(ratio) or not 2 <= len(tau) <= 1000 or any(not 0 <= t <= 1 for t in tau):
@@ -129,25 +129,67 @@ def cmd_analytics(a: argparse.Namespace) -> int:
                                 "notes": [[float(n[0]), str(n[1])[:60]] for n in v.get("notes", [])][:5],
                                 "illustrative": bool(v.get("illustrative", False))}
     p.store.set("analytics", clean)
-    p.store.audit.append(getpass.getuser(), "analytics_import", "analytics", {"clips": len(clean)})
-    print(f"imported analytics for {len(clean)} clip(s)")
+    p.store.audit.append(getpass.getuser(), "analytics_import", "analytics", {"clips": len(raw)})
+    print(f"imported analytics for {len(raw)} clip(s)")
+    return 0
+
+
+def cmd_analytics(a: argparse.Namespace) -> int:
+    """import FILE | connect | pull | disconnect. connect/pull use the read-only analytics scope."""
+    from .analytics import ANALYTICS_SCOPE
+    from .analytics_api import ANALYTICS_TOKEN
+
+    p = _pipeline(a)
+    if a.action == "import":
+        if not a.file:
+            raise ValueError("usage: clipwarden analytics import FILE.json")
+        return _import_analytics(p, a.file)
+    from .publish.youtube import authorize, credentials, revoke
+    from .vault import open_vault
+
+    vault = open_vault(p.store.root)
+    client = Path(p.s.publish.oauth_client_file)
+    if a.action == "connect":
+        info = authorize(client, [ANALYTICS_SCOPE], vault, token_name=ANALYTICS_TOKEN)
+        p.store.audit.append(getpass.getuser(), "oauth_login", "youtube-analytics", info)
+        print(f"analytics connected (read-only) with scopes {info['scopes']}")
+    elif a.action == "disconnect":
+        ok = revoke(vault, token_name=ANALYTICS_TOKEN)
+        p.store.audit.append(getpass.getuser(), "oauth_revoke", "youtube-analytics", {"google_ok": ok})
+        print("analytics token revoked" if ok else "local analytics token deleted (Google did not confirm revocation)")
+    else:  # pull
+        import httpx
+        from google.auth.transport.requests import Request
+
+        from .analytics_api import pull
+
+        creds = credentials(client, vault, token_name=ANALYTICS_TOKEN)
+        creds.refresh(Request())
+        with httpx.Client(timeout=30) as http:
+            res = pull(p.store, http, creds.token, actor=getpass.getuser())
+        print(f"pulled {res['clips']} clip(s); {res['no_retention_yet']} without a retention curve yet")
+        for e in res["errors"]:
+            print("  " + e, file=sys.stderr)
     return 0
 
 
 def cmd_weights(a: argparse.Namespace) -> int:
-    """Propose new highlight weights from {"rows": [{"z": {...5 features...}, "outcome": APV}, ...]}."""
+    """Propose bounded weights from live analytics (--from-analytics) or a rows file:
+    {"rows": [{"z": {...5 features...}, "outcome": APV}, ...]}. A person applies it in Settings."""
+    from .analytics_api import propose_from_analytics, save_proposal
     from .scoring import propose_weights
 
     p = _pipeline(a)
-    data = json.loads(Path(a.file).read_text())
-    X, y = [r["z"] for r in data["rows"]], [float(r["outcome"]) for r in data["rows"]]
-    proposed, raw = propose_weights(p.weights(), X, y)
-    with p.store.conn:
-        p.store.conn.execute(
-            "INSERT INTO weight_proposals (created, current, proposed, evidence, status) VALUES (datetime('now'), ?, ?, ?, 'pending')",
-            (json.dumps(p.weights()), json.dumps(proposed), json.dumps({"n": len(y), "raw_fit": raw})))
-    p.store.audit.append(getpass.getuser(), "weights_proposed", "scoring", {"proposed": proposed, "n": len(y)})
-    print(f"proposal stored (pending human approval on the Settings page): {proposed}")
+    if a.from_analytics:
+        pid, proposed = propose_from_analytics(p.store, p.weights(), getpass.getuser())
+    else:
+        if not a.file:
+            raise ValueError("give a rows FILE or --from-analytics")
+        data = json.loads(Path(a.file).read_text())
+        X, y = [r["z"] for r in data["rows"]], [float(r["outcome"]) for r in data["rows"]]
+        proposed, raw = propose_weights(p.weights(), X, y)
+        pid = save_proposal(p.store, p.weights(), proposed, {"n": len(y), "raw_fit": raw, "from": "file"}, getpass.getuser())
+    print(f"proposal #{pid} stored (pending human approval on the Settings page): {proposed}")
     return 0
 
 
@@ -160,6 +202,90 @@ def cmd_dashboard(a: argparse.Namespace) -> int:
     app = create_app(s)
     print(f"dashboard on http://{s.dashboard.host}:{s.dashboard.port} (localhost only)")
     uvicorn.run(app, host=s.dashboard.host, port=s.dashboard.port, log_level="warning", server_header=False)
+    return 0
+
+
+APP_HOME = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "clipwarden"
+APP_CONFIG = """# clipwarden app config (created on first run). Edit, then restart `clipwarden app`.
+data_dir = "."
+link_allowlist = []
+
+[channel]
+name = "My Channel"
+topics = []
+daily_cap = 3
+
+[publish]
+mode = "dry-run"          # nothing leaves your machine until you run `clipwarden publish enable-live`
+
+[dashboard]
+host = "127.0.0.1"
+port = 8765
+"""
+
+
+def _open_browser(url: str) -> None:
+    """Open the dashboard. Under WSL, open it in the Windows browser."""
+    import shutil
+    import subprocess
+    import webbrowser
+
+    if "microsoft" in os.uname().release.lower():
+        for cmd in (["wslview", url], ["explorer.exe", url]):
+            if shutil.which(cmd[0]):
+                subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # fixed argv, no shell
+                return
+    webbrowser.open(url)
+
+
+def cmd_app(a: argparse.Namespace) -> int:
+    """The desktop way in: create a config on first run, start the dashboard, open it in a browser."""
+    import threading
+    import time
+
+    import httpx
+    import uvicorn
+
+    from .web.app import create_app
+
+    cfg = Path(a.config) if a.config else (Path("clipwarden.toml") if Path("clipwarden.toml").exists() else APP_HOME / "clipwarden.toml")
+    if not cfg.exists():
+        cfg.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        cfg.write_text(APP_CONFIG)
+        print(f"first run: wrote {cfg} (dry-run mode)")
+    import secrets
+
+    s = load_settings(cfg)
+    token = secrets.token_urlsafe(24)
+    app = create_app(s, setup_token=token)
+    url = f"http://{s.dashboard.host}:{s.dashboard.port}/"
+    server = uvicorn.Server(uvicorn.Config(app, host=s.dashboard.host, port=s.dashboard.port, log_level="warning", server_header=False))
+    t = threading.Thread(target=server.run, daemon=True)
+    t.start()
+    for _ in range(100):
+        try:
+            if httpx.get(url + "healthz", timeout=0.5).status_code == 200:
+                break
+        except httpx.HTTPError:
+            time.sleep(0.1)
+    else:
+        raise RuntimeError(f"dashboard did not start on {url} (is the port in use?)")
+    print(f"clipwarden is running at {url}  (localhost only; press Ctrl+C to stop)")
+    print("tip: in Chrome or Edge choose 'Install clipwarden' (or 'Install page as app') to give it its own window")
+    from .store import Store
+
+    first = not Store(s.data_path).get("dashboard_pw")
+    target = url + f"setup?t={token}" if first else url
+    if first:
+        print(f"first run: choose your password at {target}")
+    if not a.no_browser:
+        _open_browser(target)
+    try:
+        while t.is_alive():
+            t.join(0.5)
+    except KeyboardInterrupt:
+        server.should_exit = True
+        t.join(5)
     return 0
 
 
@@ -204,12 +330,16 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("action", nargs="?", default="show", choices=["show", "verify", "head"])
     s.add_argument("--limit", type=int, default=50)
     s.set_defaults(fn=cmd_audit)
-    s = sub.add_parser("analytics", help="stage 10: import retention data")
-    s.add_argument("action", choices=["import"]), s.add_argument("file")
+    s = sub.add_parser("analytics", help="stage 10: connect (read-only), pull, import FILE, disconnect")
+    s.add_argument("action", choices=["import", "connect", "pull", "disconnect"]), s.add_argument("file", nargs="?")
     s.set_defaults(fn=cmd_analytics)
     s = sub.add_parser("weights", help="propose bounded highlight-weight update (needs approval)")
-    s.add_argument("action", choices=["propose"]), s.add_argument("file")
+    s.add_argument("action", choices=["propose"]), s.add_argument("file", nargs="?")
+    s.add_argument("--from-analytics", action="store_true", help="use pulled YouTube Analytics (>= 10 clips, >= 50 views each)")
     s.set_defaults(fn=cmd_weights)
+    s = sub.add_parser("app", help="start the dashboard and open it in your browser (first run creates a config)")
+    s.add_argument("--no-browser", action="store_true")
+    s.set_defaults(fn=cmd_app)
     s = sub.add_parser("dashboard", help="stage 8 UI on localhost")
     s.set_defaults(fn=cmd_dashboard)
     s = sub.add_parser("set-password", help="set the dashboard password")

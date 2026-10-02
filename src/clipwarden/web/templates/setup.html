@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block body %}
+<section class="card narrow">
+  <h1>Welcome to clipwarden</h1>
+  <p class="muted">Choose the password for this dashboard. It only listens on this computer. This link works once.</p>
+  {% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="/setup">
+    <input type="hidden" name="t" value="{{ token }}">
+    <label for="pw">New password (12+ characters)</label>
+    <input id="pw" type="password" name="password" autocomplete="new-password" minlength="12" required autofocus>
+    <label for="pw2">Repeat it</label>
+    <input id="pw2" type="password" name="password2" autocomplete="new-password" minlength="12" required>
+    <button class="btn primary">Save and open the dashboard</button>
+  </form>
+  <p class="small muted">Forgot it later? Run <code>clipwarden set-password</code> in a terminal.</p>
+</section>
+{% endblock %}

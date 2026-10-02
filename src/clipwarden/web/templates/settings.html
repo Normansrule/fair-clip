@@ -2,6 +2,7 @@
 {% block title %}Settings{% endblock %}
 {% block body %}
 <h1>Settings</h1>
+{% if error %}<p class="err" role="alert">{{ error }}</p>{% endif %}
 <div class="grid2">
 <section class="card">
   <h2>Kill switch</h2>
@@ -26,14 +27,31 @@
     <button class="btn danger">Revoke YouTube access</button></form>
   {% endif %}
 </section>
+<section class="card">
+  <h2>Analytics (read-only)</h2>
+  <p class="small">A separate token with only <code>yt-analytics.readonly</code>. It can read numbers; it can't upload or change anything.</p>
+  <dl class="kv">
+    <dt>Token</dt><dd>{% if has_analytics is none %}vault locked{% elif has_analytics %}connected{% else %}not connected: run <code>clipwarden analytics connect</code>{% endif %}</dd>
+    <dt>Clips usable for tuning</dt><dd>{{ training_n }} of the {{ min_n }} needed (real data, ≥ 50 views each)</dd>
+  </dl>
+  {% if has_analytics %}
+  <form method="post" action="/settings/analytics-revoke"><input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn danger">Disconnect analytics</button></form>
+  {% endif %}
+</section>
 </div>
 <section class="card">
   <h2>Highlight weights</h2>
   <p class="muted small">Bounded to [0.02, 0.60], summing to 1; an analytics-driven update may move each weight by at most 0.05 and needs your approval.</p>
   <p>{% for k, v in weights.items() %}<span class="tag mono">{{ k }} {{ '%.3f'|format(v) }}</span>{% endfor %}</p>
+  <form method="post" action="/settings/weights-propose" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn" {% if training_n < min_n %}disabled title="needs {{ min_n }} clips with real analytics"{% endif %}>Propose from live analytics</button></form>
   {% for p in proposals %}
   <div class="proposal">
-    <p class="small">Proposal #{{ p.id }} ({{ p.status }}): {{ p.proposed | tojson }}</p>
+    <p class="small">Proposal #{{ p.id }} · <strong>{{ p.status }}</strong> · from {{ (p.evidence or {}).get('from', 'file') }}, n = {{ (p.evidence or {}).get('n', '?') }}</p>
+    <table class="small mono"><tr><th>weight</th><th>now</th><th>proposed</th><th>change</th></tr>
+    {% for k, a, b in p.diff %}<tr><td>{{ k }}</td><td>{{ '%.3f'|format(a) }}</td><td>{{ '%.3f'|format(b) }}</td><td>{{ '%+.3f'|format(b - a) }}</td></tr>{% endfor %}
+    </table>
     {% if p.status == 'pending' %}
     <form method="post" action="/settings/weights/{{ p.id }}" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}">
       <button class="btn primary" name="decision" value="approve">Approve</button>
