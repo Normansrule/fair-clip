@@ -2,7 +2,8 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["site/**", "assets/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "assets/**", "src/fairclip/**", "examples/studio/**", "scripts/vendor_web.py", "scripts/build_studio.py",
+            ".github/workflows/pages.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +23,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Build the browser Studio (Python standard library only; engines pinned and hash-checked)
+        run: python3 scripts/vendor_web.py && python3 scripts/build_studio.py
       - name: Assemble site (static files only, no build tools)
         run: |
           mkdir -p _site && cp -r site/. _site/ && mkdir -p _site/assets && cp -r assets/. _site/assets/

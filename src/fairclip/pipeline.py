@@ -51,7 +51,8 @@ class Pipeline:
         self.s = settings
         self.store = store or Store(settings.data_path)
         self.trust = TrustManifest(self.store.root / "trusted-media.json")
-        self.trust.seed_from_sums(REPO_ROOT / "examples" / "demo" / "SHA256SUMS")
+        for ex in ("demo", "studio"):  # the bundled CC0 examples are ours: they may run without Docker
+            self.trust.seed_from_sums(REPO_ROOT / "examples" / ex / "SHA256SUMS")
         self.runner = MediaRunner(image=settings.media.image, mode=settings.media.runner, trust=self.trust,
                                   memory=settings.media.memory, cpus=settings.media.cpus,
                                   pids=settings.media.pids, timeout_s=settings.media.timeout_s)

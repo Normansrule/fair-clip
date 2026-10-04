@@ -45,6 +45,7 @@ from ..scoring import MIN_CLIPS_FOR_UPDATE, normalise
 from ..store import Store
 from ..vault import VaultError, open_vault
 from . import security as sec
+from . import studio_api
 from .charts import retention_svg, score_bars_svg
 
 HERE = Path(__file__).resolve().parent
@@ -511,6 +512,8 @@ def create_app(settings: Settings, store: Store | None = None, extra_hosts: tupl
             connected = None
         return page(request, "analytics.html", s, charts=charts, connected=connected,
                     msg=request.query_params.get("msg", "")[:300])
+
+    studio_api.register(app, store=store, pipeline=pipeline, settings=settings, session=session)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

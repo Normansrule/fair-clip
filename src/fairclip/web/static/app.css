@@ -100,3 +100,4 @@ form.inline { display: inline; }
 .formgrid input, .formgrid textarea, .formgrid select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; box-sizing: border-box; }
 .formgrid label.check input { width: auto; margin-top: 4px; }
 .formgrid fieldset { border: 1px solid var(--grid); border-radius: 8px; padding: 8px 12px; }
+.studio-cta { border-left: 4px solid var(--pass); } .studio-cta a.btn { display: inline-block; text-decoration: none; margin-top: 4px; }

@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Pipeline{% endblock %}
 {% block body %}
+<section class="card studio-cta">
+  <h2>Make clips in three steps</h2>
+  <p class="muted">Add a video and its captions, write your take for each moment, download the finished clips with their titles and descriptions.</p>
+  <a class="btn primary" href="/studio/">Open Studio →</a>
+</section>
 <h1>Pipeline</h1>
 <p class="muted">Every source moves through ten stages. <span class="stop-legend">■</span> marks the two hard stops: the compliance gate and human approval.
   Audit chain: {% if audit_ok %}<strong class="ok">✓ intact</strong>{% else %}<strong class="bad">✕ broken at entry {{ audit_bad }}</strong>{% endif %}</p>

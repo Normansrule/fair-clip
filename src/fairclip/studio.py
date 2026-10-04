@@ -176,7 +176,7 @@ def find_clips(source_id: str, tr: Transcript, rms_db: np.ndarray, cuts: list[fl
 
 
 _FIGURE = re.compile(r"(?<![\w.])(?:[$€£]\s?)?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|km|m|metres|meters|kg|tonnes|tons|years|°C|°F|x|times|million|billion)?(?![\w])", re.I)
-_STEPS = re.compile(r"\b(first|second|then|next|finally|step)\b", re.I)
+_STEPS = re.compile(r"\b(first|second|third|then|next|finally|lastly)\b", re.I)
 
 
 def suggest_take(c: Candidate) -> dict[str, Any]:
@@ -188,11 +188,27 @@ def suggest_take(c: Candidate) -> dict[str, Any]:
     if figures:
         return {"template": TemplateKind.KEY_NUMBER.value, "data": {"headline": figures[0]},
                 "prompt": f"The clip says {figures[0]}. What does that number mean for your viewers? Put it in perspective in one sentence."}
-    if len(_STEPS.findall(c.text)) >= 2:
+    if len({m.lower() for m in _STEPS.findall(c.text)}) >= 3:  # "first … then … finally"
         return {"template": TemplateKind.CARD.value, "data": None,
                 "prompt": "This moment walks through a process. In one sentence, what's the step people usually get wrong?"}
     return {"template": TemplateKind.CARD.value, "data": None,
             "prompt": "In one or two sentences: what should viewers take away, that the clip itself doesn't say? Context, a consequence, or your own view."}
+
+
+def candidates_json(cands: list[Candidate], tr: Transcript, brand: Brand) -> list[dict[str, Any]]:
+    """What step 2 shows for each moment (the same for the browser and the app)."""
+    topics = brand.topics or default_topics(tr)
+    out = []
+    for i, c in enumerate(cands):
+        sents = [s for s in tr.sentences if s.start >= c.start - 1e-6 and s.end <= c.end + 1e-6]
+        out.append({"i": i, "start": round(c.start, 2), "end": round(c.end, 2), "text": c.text[:1200],
+                    "hook": pick_hook(sents, topics), "suggestion": suggest_take(c)})
+    return out
+
+
+def take_from_json(take: dict[str, Any]) -> Take:
+    """A Take from what the page sent (unknown keys ignored, everything validated)."""
+    return Take.model_validate({k: take.get(k) for k in ("text", "template", "data", "kind") if take.get(k) is not None})
 
 
 class Take(Strict):

@@ -42,6 +42,28 @@ jobs:
           ( "$HOME/.local/bin/fair-clip" app --no-browser > app.log 2>&1 & ) && sleep 8
           curl -fsS http://127.0.0.1:8765/healthz && grep -q "/setup?t=" app.log
 
+  studio-e2e:
+    # The Studio page in headless Chromium, both backends: the Pages build (Pyodide + ffmpeg.wasm,
+    # under its real CSP) and the app's /studio/. Makes one clip each and checks the zip.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Dependencies (hash-checked) and Chromium
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m playwright install --with-deps chromium
+      - name: Vendor the engines and build the Studio
+        run: python scripts/vendor_web.py && python scripts/build_studio.py
+      - name: Browser end-to-end
+        run: FAIRCLIP_E2E=1 PYTHONPATH=src python -m pytest -q tests/e2e
+
   secrets:
     runs-on: ubuntu-24.04
     steps:

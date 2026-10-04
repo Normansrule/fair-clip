@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' blob: data:; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="same-origin">
+<meta name="fairclip-backend" content="web">
+<meta name="fairclip-csrf" content="">
+<title>fair-clip Studio · finished clips in three steps</title>
+<meta name="description" content="Turn a long video you have the rights to into captioned vertical clips with your own take, then download the videos and their titles and descriptions. Runs in your browser.">
+<link rel="stylesheet" href="studio.css">
+<link rel="icon" href="icon.png">
+<script type="module" src="studio.js"></script>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="../"><span aria-hidden="true">◈</span> fair-clip <b>Studio</b></a>
+  <ol class="steps" aria-label="Progress">
+    <li data-step="1" class="on">1 · Your video</li>
+    <li data-step="2">2 · Your take</li>
+    <li data-step="3">3 · Download</li>
+  </ol>
+  <span id="engine" class="engine" role="status">loading…</span>
+</header>
+
+<main>
+<!-- ============================================================== STEP 1 -->
+<section id="s1" class="step">
+  <h1>Turn a long video into finished clips</h1>
+  <p class="lede">Add a video you have the rights to and its captions. fair-clip finds the best moments, you add a sentence of your own to each, and you download the clips with their titles and descriptions ready to paste.
+    <span class="where" data-web>Everything runs in this browser tab: your video is never uploaded.</span></p>
+
+  <div class="try">
+    <button type="button" id="use-example" class="btn ghost">▶ Try it with the example video</button>
+    <span class="muted">A 2-minute CC0 explainer, its captions, and example takes filled in for you.</span>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Video and captions</h2>
+      <label class="drop" id="drop-video">
+        <input type="file" id="video" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.webm,.mkv">
+        <span class="drop-t">Drop a video here or <u>choose a file</u></span>
+        <span class="drop-n" id="video-name">MP4, MOV, WebM or MKV</span>
+      </label>
+      <label class="drop small" id="drop-captions">
+        <input type="file" id="captions" accept=".srt,.vtt,.json,text/vtt,application/x-subrip">
+        <span class="drop-t">Captions (.srt or .vtt) <span class="need" data-web>needed</span><span class="need opt" data-app>optional</span></span>
+        <span class="drop-n" id="captions-name">YouTube Studio → Subtitles → ⋮ → Download</span>
+      </label>
+      <video id="preview" class="preview" controls muted playsinline hidden></video>
+    </div>
+
+    <div class="panel">
+      <h2>Where is this video from?</h2>
+      <div class="radios" role="radiogroup" aria-label="Rights">
+        <label><input type="radio" name="basis" value="own_content" checked> I made it (my own channel or recording)</label>
+        <label><input type="radio" name="basis" value="creative_commons"> It has a Creative Commons or public-domain license</label>
+        <label><input type="radio" name="basis" value="written_permission"> I have written permission from the creator</label>
+        <label><input type="radio" name="basis" value="license"> I licensed it</label>
+      </div>
+      <div class="rights-more">
+        <label>Video title <input id="r-title" maxlength="200" placeholder="e.g. Resonance"></label>
+        <label>Rights holder <input id="r-holder" maxlength="200" placeholder="who made it"></label>
+        <label data-for="creative_commons">License
+          <select id="r-cc">
+            <option value="CC0-1.0">CC0 (public domain dedication)</option>
+            <option value="PD">Public domain (no copyright, e.g. US government works)</option>
+            <option value="CC-BY-4.0">CC BY 4.0</option>
+            <option value="CC-BY-SA-4.0">CC BY-SA 4.0 (ShareAlike: refused)</option>
+            <option value="CC-BY-NC-4.0">CC BY-NC 4.0 (not for monetized channels)</option>
+            <option value="CC-BY-ND-4.0">CC BY-ND 4.0 (no edits: refused)</option>
+          </select></label>
+        <label data-for="creative_commons">Credit line <input id="r-attr" maxlength="300" placeholder="&quot;Title&quot; by Name"></label>
+        <label data-for="written_permission license">Where the proof is kept <input id="r-evidence" maxlength="300" placeholder="e.g. email from the creator, 3 May 2026"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="r-synthetic"> It has a realistic AI voice, AI-generated people or altered footage <span class="muted">(YouTube requires a disclosure)</span></label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Your look</h2>
+    <div class="row">
+      <label>Channel name <input id="b-channel" maxlength="60" placeholder="My Channel" required></label>
+      <label>Style
+        <select id="b-style"><option value="bold">Bold (big pop captions)</option><option value="clean">Clean</option><option value="minimal">Minimal</option></select></label>
+      <label>Accent <input type="color" id="b-accent" value="#3ddc97"></label>
+      <label>Shape
+        <select id="b-aspect"><option value="9:16">Vertical 9:16 (Shorts)</option><option value="16:9">Landscape 16:9</option></select></label>
+      <label>Framing
+        <select id="b-reframe"><option value="fit">Whole frame (slides, screen, diagrams)</option><option value="crop">Fill the screen (one speaker)</option></select></label>
+      <label>Clips <input type="number" id="b-clips" min="1" max="8" value="3"></label>
+    </div>
+    <label class="wide">Topics <span class="muted">(comma separated; helps pick moments and hashtags)</span>
+      <input id="b-topics" maxlength="400" placeholder="e.g. bridges, engineering, wind"></label>
+  </div>
+
+  <p id="s1-error" class="error" role="alert" hidden></p>
+  <div class="go">
+    <button type="button" id="find" class="btn primary big">Find the best moments →</button>
+    <span id="s1-status" class="muted" role="status"></span>
+  </div>
+</section>
+
+<!-- ============================================================== STEP 2 -->
+<section id="s2" class="step" hidden>
+  <h1>Add your take</h1>
+  <p class="lede">For each moment, write one or two sentences of your own: context, a consequence, or your view. That's what makes a clip yours (and what YouTube's reused-content policy asks for). fair-clip never writes it for you.</p>
+  <div id="moments" class="moments"></div>
+  <p id="s2-error" class="error" role="alert" hidden></p>
+  <div class="go">
+    <button type="button" id="back1" class="btn ghost">← Back</button>
+    <label class="inline">Quality
+      <select id="quality"><option value="fast">Fast</option><option value="high">Best (slower)</option></select></label>
+    <button type="button" id="make" class="btn primary big">Make my clips →</button>
+  </div>
+</section>
+
+<!-- ============================================================== STEP 3 -->
+<section id="s3" class="step" hidden>
+  <h1 id="s3-title">Making your clips…</h1>
+  <div class="progress"><div id="bar"></div></div>
+  <p id="s3-status" class="muted" role="status"></p>
+  <div class="actions" id="actions" hidden>
+    <button type="button" id="zip" class="btn primary big">⬇ Download all (.zip)</button>
+    <button type="button" id="copy-all" class="btn">Copy all titles &amp; descriptions</button>
+    <button type="button" id="again" class="btn ghost">← Change my takes</button>
+  </div>
+  <div id="results" class="results"></div>
+  <div class="howto panel" id="howto" hidden>
+    <h2>Posting them</h2>
+    <ol>
+      <li>YouTube Studio → <b>Create</b> → <b>Upload videos</b> → pick a clip.</li>
+      <li>Paste its <b>title</b> and <b>description</b> (the Copy buttons above).</li>
+      <li>Tick what its checklist says, especially <b>Altered or synthetic content</b>.</li>
+      <li>Upload as <b>Private</b>, watch it once on your phone, then publish.</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<template id="tpl-moment">
+  <article class="moment">
+    <div class="m-media"><video class="m-video" controls playsinline preload="metadata"></video><span class="m-time"></span></div>
+    <div class="m-body">
+      <header><h3 class="m-h"></h3><label class="check"><input type="checkbox" class="m-include" checked> Make this clip</label></header>
+      <blockquote class="m-hook"></blockquote>
+      <details class="m-says"><summary>What's said</summary><p class="m-text"></p></details>
+      <label class="m-q"></label>
+      <textarea class="m-take" rows="3" maxlength="400" placeholder="Your take, in your own words"></textarea>
+      <div class="m-tpl">
+        <label>Graphic
+          <select class="m-template">
+            <option value="card">Text card</option>
+            <option value="key_number">Key number</option>
+            <option value="definition">Definition</option>
+            <option value="steps">Steps</option>
+          </select></label>
+        <label class="m-f m-headline">Number / term <input class="m-head" maxlength="24"></label>
+        <label class="m-f m-unit">Label <input class="m-unitv" maxlength="12"></label>
+        <label class="m-f m-items">Steps (one per line) <textarea class="m-itemsv" rows="3" maxlength="300"></textarea></label>
+      </div>
+      <label>Title <span class="muted">(optional: otherwise the clip's best line)</span> <input class="m-title" maxlength="100"></label>
+      <p class="m-warn" hidden></p>
+    </div>
+  </article>
+</template>
+
+<template id="tpl-result">
+  <article class="result">
+    <video class="r-video" controls playsinline preload="metadata"></video>
+    <div class="r-body">
+      <p class="r-state"></p>
+      <div class="copyrow"><h3 class="r-title"></h3><button type="button" class="btn small r-ct">Copy title</button></div>
+      <div class="copyrow"><pre class="r-desc"></pre><button type="button" class="btn small r-cd">Copy description</button></div>
+      <div class="copyrow"><p class="r-tags"></p><button type="button" class="btn small r-ctg">Copy tags</button></div>
+      <ul class="r-check"></ul>
+      <ul class="r-blocks"></ul>
+      <a class="btn small r-dl" download>⬇ This video</a>
+    </div>
+  </article>
+</template>
+<footer class="foot">Automate the labor, never the judgment. · <a href="https://github.com/Normansrule/fair-clip">fair-clip on GitHub</a> · <span data-web>runs locally in your browser</span><span data-app>running on your computer</span></footer>
+</body>
+</html>
