@@ -87,3 +87,11 @@ def test_encode_presets():
     assert "-crf" in encode_args("high") and ENCODE["high"][ENCODE["high"].index("-crf") + 1] == "18"
     assert ENCODE["fast"][ENCODE["fast"].index("-preset") + 1] == "veryfast"
     assert "+faststart" in encode_args("fast")
+
+
+def test_caption_groups_break_at_sentences_commas_and_pauses():
+    from fairclip.media.style import caption_groups
+
+    m = [("last.", 0.0, 0.3), ("The", 0.35, 0.5), ("swing,", 0.55, 0.8), ("it", 0.85, 0.9), ("goes", 0.95, 1.2), ("on", 1.25, 1.4),
+         ("later", 2.5, 2.8)]
+    assert [[w for w, _, _ in g] for g in caption_groups(m, 4)] == [["last."], ["The", "swing,"], ["it", "goes", "on"], ["later"]]

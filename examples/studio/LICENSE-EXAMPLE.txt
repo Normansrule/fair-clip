@@ -1,0 +1,18 @@
+Example video "Resonance" (examples/studio/source.mp4, captions.srt, transcript.json)
+
+Made from scratch by fair-clip contributors with scripts/make_example.py:
+* picture: animated diagrams drawn frame by frame with pycairo, text set in Inter (SIL Open Font
+  License 1.1, bundled in src/fairclip/data/fonts);
+* narration: synthesized locally with Kokoro-82M (model weights Apache License 2.0,
+  https://huggingface.co/hexgrad/Kokoro-82M) through kokoro-onnx, voice "af_heart".
+No stock footage, music, photos, logos or real people.
+
+Dedicated to the public domain under Creative Commons CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The narration voice is synthetic and realistic, so the rights record flags the video as
+altered/synthetic and fair-clip ticks YouTube's disclosure for every clip made from it.
+
+The facts it states (Millennium Bridge, London: opened June 2000, closed after two days, 37 fluid
+dampers fitted, reopened 2002; Taipei 101: a tuned mass damper of about 660 tonnes) are widely
+documented; check them yourself before reusing the script.

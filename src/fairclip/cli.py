@@ -256,6 +256,81 @@ def cmd_weights(a: argparse.Namespace) -> int:
     return 0
 
 
+def studio_runner(s: Any) -> Any:
+    from .media.sandbox import MediaRunner, TrustManifest
+    from .pipeline import REPO_ROOT
+
+    trust = TrustManifest(s.data_path / "trusted-media.json")
+    for ex in ("demo", "studio"):  # the bundled CC0 examples are ours, so they may run without Docker
+        trust.seed_from_sums(REPO_ROOT / "examples" / ex / "SHA256SUMS")
+    return MediaRunner(image=s.media.image, mode=s.media.runner, trust=trust, memory=s.media.memory, cpus=s.media.cpus,
+                       pids=s.media.pids, timeout_s=s.media.timeout_s)
+
+
+def cmd_studio(a: argparse.Namespace) -> int:
+    """Studio from the command line, in two runs:
+    1. without takes: finds the best moments and writes them into the project file with a
+       suggestion for each, for YOU to fill in (the take is the value-add; fair-clip never writes it);
+    2. with takes: renders every clip, gates it, and writes the videos + copy-paste texts + a zip."""
+    import tempfile
+
+    from . import studio
+    from .studio_run import StudioError, analyze_source, make_clip, write_package
+
+    proj_path = Path(a.project)
+    proj = json.loads(proj_path.read_text()) if proj_path.exists() else {}
+    brand = studio.Brand.model_validate(proj.get("brand") or {"channel": "My Channel"})
+    choice = studio.RightsChoice.model_validate(proj.get("rights") or {})
+    s = load_settings(config_path(a.config))
+    settings = studio.studio_settings(brand, monetized=s.channel.monetized)
+    settings.media = s.media
+    runner = studio_runner(s)
+    captions = Path(a.captions).read_text("utf-8", "replace") if a.captions else None
+    base = Path(s.media.jobs_dir) if s.media.runner == "worker" and s.media.jobs_dir else s.data_path / "work"
+    base.mkdir(parents=True, exist_ok=True)
+    work = Path(tempfile.mkdtemp(prefix="studio-", dir=base))
+    try:
+        sess = analyze_source(Path(a.video), captions, brand, choice, runner=runner, work=work, settings=settings,
+                              progress=lambda m: print(f"  … {m}", file=sys.stderr))
+    except StudioError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 1
+    clips = proj.get("clips") or []
+    moments = [{"start": round(c.start, 2), "end": round(c.end, 2)} for c in sess.candidates]
+    same = len(clips) == len(moments) and all(c.get("moment") == m for c, m in zip(clips, moments, strict=True))
+    if not same or any(c.get("include", True) and not c.get("take", "").strip() for c in clips):
+        old = {json.dumps(c.get("moment")): c for c in clips}
+        proj["clips"] = []
+        for c, m, sug in zip(sess.candidates, moments, sess.suggestions, strict=True):
+            prev = old.get(json.dumps(m), {})
+            proj["clips"].append({
+                "moment": m, "says": c.text[:400], "question": sug["prompt"],
+                "template": prev.get("template", sug["template"]), "data": prev.get("data", sug["data"]),
+                "take": prev.get("take", ""), "title": prev.get("title", ""), "include": prev.get("include", True)})
+        proj.setdefault("brand", brand.model_dump()), proj.setdefault("rights", choice.model_dump(mode="json"))
+        proj_path.write_text(json.dumps(proj, indent=2, ensure_ascii=False) + "\n")
+        print(f"found {len(moments)} moments. Write your take for each in {proj_path} ('take', and optionally 'title'), "
+              "or set \"include\": false to skip one. Then run the same command again.")
+        return 3
+    made = []
+    for n, (c, cand) in enumerate(zip(clips, sess.candidates, strict=True), 1):
+        if not c.get("include", True):
+            continue
+        take = studio.Take(text=c["take"], template=c.get("template") or "card", data=c.get("data"))
+        print(f"  … rendering clip {n} of {len(clips)}", file=sys.stderr)
+        made.append(make_clip(sess, cand, take, c.get("title", ""), n, runner=runner, work=work, quality=a.quality))
+    out = Path(a.out)
+    zpath = write_package(made, brand, out)
+    for m in made:
+        f = m.finished
+        state = "ready  " if f.passed else "BLOCKED"
+        print(f"  [{state}] {f.filename}  {f.duration:5.1f}s  {f.metadata.title}")
+        for r in f.report.blocks:
+            print(f"            {r.code}: {r.message}")
+    print(f"wrote {out}/ (videos, ALL-TITLES-AND-DESCRIPTIONS.txt, upload-sheet.csv) and {zpath.name}")
+    return 0 if all(m.finished.passed for m in made) else 2
+
+
 def cmd_dashboard(a: argparse.Namespace) -> int:
     import uvicorn
 
@@ -401,6 +476,11 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("action", choices=["propose"]), s.add_argument("file", nargs="?")
     s.add_argument("--from-analytics", action="store_true", help="use pulled YouTube Analytics (>= 10 clips, >= 50 views each)")
     s.set_defaults(fn=cmd_weights)
+    s = sub.add_parser("studio", help="video + captions + your takes -> finished clips and copy-paste texts")
+    s.add_argument("video"), s.add_argument("--captions", help=".srt/.vtt (else speech-to-text, if installed)")
+    s.add_argument("--project", required=True, help="studio project JSON (brand, rights, your takes); created if missing")
+    s.add_argument("--out", default="fair-clip-out"), s.add_argument("--quality", choices=["high", "fast"], default="high")
+    s.set_defaults(fn=cmd_studio)
     s = sub.add_parser("app", help="start the dashboard and open it in your browser (first run creates a config)")
     s.add_argument("--no-browser", action="store_true")
     s.set_defaults(fn=cmd_app)

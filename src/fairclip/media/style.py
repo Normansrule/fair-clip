@@ -14,6 +14,7 @@ All owner and transcript text is escaped (overlay.escape) before it reaches ASS.
 
 from __future__ import annotations
 
+import re
 import textwrap
 from dataclasses import dataclass
 
@@ -110,6 +111,25 @@ def _dlg(layer: int, a: float, b: float, style: str, text: str, tags: str = "") 
     return f"Dialogue: {layer},{ts(a)},{ts(b)},{style},,0,0,0,,{{{tags}}}{text}"
 
 
+_SENT_END = re.compile(r"[.!?…][\"'”’)]*$")
+
+
+def caption_groups(mapped: list[tuple[str, float, float]], size: int) -> list[list[tuple[str, float, float]]]:
+    """Words grouped the way a caption editor would: at most `size` words, never across a sentence
+    end, a comma (once there are 2+ words) or a pause longer than 0.45 s."""
+    out: list[list[tuple[str, float, float]]] = []
+    cur: list[tuple[str, float, float]] = []
+    for w in mapped:
+        if cur and (len(cur) >= size or _SENT_END.search(cur[-1][0]) or (cur[-1][0].endswith(",") and len(cur) >= 2)
+                    or w[1] - cur[-1][2] > 0.45):
+            out.append(cur)
+            cur = []
+        cur.append(w)
+    if cur:
+        out.append(cur)
+    return out
+
+
 def caption_events(p: Preset, mapped: list[tuple[str, float, float]], vertical: bool, accent: str, width: int) -> list[str]:
     """`mapped` = [(escaped word, clip start, clip end)]. One event per spoken word: the whole group
     is visible, the current word is highlighted (and pops, in presets that pop)."""
@@ -117,12 +137,12 @@ def caption_events(p: Preset, mapped: list[tuple[str, float, float]], vertical: 
     y = p.caption_y_v if vertical else p.caption_y_h
     x = width // 2
     hi = ass_colour(accent)
-    for g in range(0, len(mapped), p.group):
-        chunk = mapped[g : g + p.group]
+    for chunk in caption_groups(mapped, p.group):
         for i, (_w, a, b) in enumerate(chunk):
             nxt = chunk[i + 1][1] if i + 1 < len(chunk) else b
             parts = []
             for j, (tt, _, _) in enumerate(chunk):
+                tt = tt.rstrip(".,;:") or tt  # captions read cleaner without trailing commas and full stops
                 tt = tt.upper() if p.upper else tt
                 if j == i and p.pop:
                     parts.append(f"{{\\c{hi}\\fscx112\\fscy112\\t(0,90,\\fscx100\\fscy100)}}{tt}{{\\r}}")

@@ -1,0 +1,12 @@
+{
+  "record_id": "example-resonance-cc0",
+  "basis": "creative_commons",
+  "cc_license": "CC0-1.0",
+  "source_title": "Resonance (fair-clip example video)",
+  "rights_holder": "fair-clip contributors",
+  "attribution": "\"Resonance\" example video by fair-clip contributors",
+  "evidence": "examples/studio/LICENSE-EXAMPLE.txt",
+  "source_sha256": "6f31797f1cfaae46b2bcc4410c43d5ce3098059f32c2842f38e644bf4a2dfdec",
+  "synthetic_or_altered": true,
+  "notes": "AI text-to-speech narration (Kokoro-82M); flagged as altered/synthetic."
+}

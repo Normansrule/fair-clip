@@ -1,0 +1,1810 @@
+{
+ "language": "en",
+ "engine": "generator:kokoro-82m:af_heart+phoneme-weighted-word-timing",
+ "sentences": [
+  {
+   "start": 0.72,
+   "end": 1.87,
+   "text": "Here's something strange.",
+   "words": [
+    {
+     "text": "Here's",
+     "start": 0.72,
+     "end": 0.977
+    },
+    {
+     "text": "something",
+     "start": 0.994,
+     "end": 1.354
+    },
+    {
+     "text": "strange.",
+     "start": 1.377,
+     "end": 1.84
+    }
+   ]
+  },
+  {
+   "start": 2.23,
+   "end": 8.598,
+   "text": "A bridge can carry a line of heavy trucks without a wobble, and still be shaken by people simply walking across it.",
+   "words": [
+    {
+     "text": "A",
+     "start": 2.23,
+     "end": 2.39
+    },
+    {
+     "text": "bridge",
+     "start": 2.401,
+     "end": 2.721
+    },
+    {
+     "text": "can",
+     "start": 2.742,
+     "end": 2.955
+    },
+    {
+     "text": "carry",
+     "start": 2.969,
+     "end": 3.236
+    },
+    {
+     "text": "a",
+     "start": 3.253,
+     "end": 3.414
+    },
+    {
+     "text": "line",
+     "start": 3.424,
+     "end": 3.691
+    },
+    {
+     "text": "of",
+     "start": 3.708,
+     "end": 3.815
+    },
+    {
+     "text": "heavy",
+     "start": 3.822,
+     "end": 4.089
+    },
+    {
+     "text": "trucks",
+     "start": 4.106,
+     "end": 4.427
+    },
+    {
+     "text": "without",
+     "start": 4.447,
+     "end": 4.822
+    },
+    {
+     "text": "a",
+     "start": 4.845,
+     "end": 5.006
+    },
+    {
+     "text": "wobble,",
+     "start": 5.016,
+     "end": 5.471
+    },
+    {
+     "text": "and",
+     "start": 5.585,
+     "end": 5.745
+    },
+    {
+     "text": "still",
+     "start": 5.755,
+     "end": 6.022
+    },
+    {
+     "text": "be",
+     "start": 6.039,
+     "end": 6.253
+    },
+    {
+     "text": "shaken",
+     "start": 6.267,
+     "end": 6.641
+    },
+    {
+     "text": "by",
+     "start": 6.665,
+     "end": 6.879
+    },
+    {
+     "text": "people",
+     "start": 6.892,
+     "end": 7.266
+    },
+    {
+     "text": "simply",
+     "start": 7.29,
+     "end": 7.664
+    },
+    {
+     "text": "walking",
+     "start": 7.688,
+     "end": 8.062
+    },
+    {
+     "text": "across",
+     "start": 8.086,
+     "end": 8.46
+    },
+    {
+     "text": "it.",
+     "start": 8.484,
+     "end": 8.591
+    }
+   ]
+  },
+  {
+   "start": 9.058,
+   "end": 12.828,
+   "text": "The reason is resonance, and once you see it, you'll notice it everywhere.",
+   "words": [
+    {
+     "text": "The",
+     "start": 9.058,
+     "end": 9.167
+    },
+    {
+     "text": "reason",
+     "start": 9.174,
+     "end": 9.556
+    },
+    {
+     "text": "is",
+     "start": 9.58,
+     "end": 9.689
+    },
+    {
+     "text": "resonance,",
+     "start": 9.696,
+     "end": 10.253
+    },
+    {
+     "text": "and",
+     "start": 10.392,
+     "end": 10.556
+    },
+    {
+     "text": "once",
+     "start": 10.566,
+     "end": 10.839
+    },
+    {
+     "text": "you",
+     "start": 10.856,
+     "end": 11.02
+    },
+    {
+     "text": "see",
+     "start": 11.03,
+     "end": 11.248
+    },
+    {
+     "text": "it,",
+     "start": 11.262,
+     "end": 11.494
+    },
+    {
+     "text": "you'll",
+     "start": 11.552,
+     "end": 11.77
+    },
+    {
+     "text": "notice",
+     "start": 11.784,
+     "end": 12.166
+    },
+    {
+     "text": "it",
+     "start": 12.19,
+     "end": 12.299
+    },
+    {
+     "text": "everywhere.",
+     "start": 12.306,
+     "end": 12.797
+    }
+   ]
+  },
+  {
+   "start": 13.788,
+   "end": 15.508,
+   "text": "Think about pushing a child on a swing.",
+   "words": [
+    {
+     "text": "Think",
+     "start": 13.788,
+     "end": 14.001
+    },
+    {
+     "text": "about",
+     "start": 14.014,
+     "end": 14.27
+    },
+    {
+     "text": "pushing",
+     "start": 14.286,
+     "end": 14.541
+    },
+    {
+     "text": "a",
+     "start": 14.557,
+     "end": 14.685
+    },
+    {
+     "text": "child",
+     "start": 14.693,
+     "end": 14.991
+    },
+    {
+     "text": "on",
+     "start": 15.01,
+     "end": 15.138
+    },
+    {
+     "text": "a",
+     "start": 15.146,
+     "end": 15.274
+    },
+    {
+     "text": "swing.",
+     "start": 15.282,
+     "end": 15.494
+    }
+   ]
+  },
+  {
+   "start": 15.868,
+   "end": 18.337,
+   "text": "Push at random moments, and nothing much happens.",
+   "words": [
+    {
+     "text": "Push",
+     "start": 15.868,
+     "end": 16.07
+    },
+    {
+     "text": "at",
+     "start": 16.083,
+     "end": 16.184
+    },
+    {
+     "text": "random",
+     "start": 16.19,
+     "end": 16.543
+    },
+    {
+     "text": "moments,",
+     "start": 16.566,
+     "end": 17.081
+    },
+    {
+     "text": "and",
+     "start": 17.21,
+     "end": 17.361
+    },
+    {
+     "text": "nothing",
+     "start": 17.371,
+     "end": 17.674
+    },
+    {
+     "text": "much",
+     "start": 17.693,
+     "end": 17.945
+    },
+    {
+     "text": "happens.",
+     "start": 17.961,
+     "end": 18.314
+    }
+   ]
+  },
+  {
+   "start": 18.797,
+   "end": 23.478,
+   "text": "But push once every swing, right at the top, and each small push adds to the last.",
+   "words": [
+    {
+     "text": "But",
+     "start": 18.797,
+     "end": 19.032
+    },
+    {
+     "text": "push",
+     "start": 19.047,
+     "end": 19.281
+    },
+    {
+     "text": "once",
+     "start": 19.296,
+     "end": 19.59
+    },
+    {
+     "text": "every",
+     "start": 19.608,
+     "end": 19.902
+    },
+    {
+     "text": "swing,",
+     "start": 19.92,
+     "end": 20.32
+    },
+    {
+     "text": "right",
+     "start": 20.42,
+     "end": 20.713
+    },
+    {
+     "text": "at",
+     "start": 20.732,
+     "end": 20.849
+    },
+    {
+     "text": "the",
+     "start": 20.857,
+     "end": 20.974
+    },
+    {
+     "text": "top,",
+     "start": 20.981,
+     "end": 21.381
+    },
+    {
+     "text": "and",
+     "start": 21.481,
+     "end": 21.657
+    },
+    {
+     "text": "each",
+     "start": 21.668,
+     "end": 21.961
+    },
+    {
+     "text": "small",
+     "start": 21.98,
+     "end": 22.332
+    },
+    {
+     "text": "push",
+     "start": 22.355,
+     "end": 22.589
+    },
+    {
+     "text": "adds",
+     "start": 22.604,
+     "end": 22.839
+    },
+    {
+     "text": "to",
+     "start": 22.854,
+     "end": 23.03
+    },
+    {
+     "text": "the",
+     "start": 23.041,
+     "end": 23.158
+    },
+    {
+     "text": "last.",
+     "start": 23.166,
+     "end": 23.459
+    }
+   ]
+  },
+  {
+   "start": 23.888,
+   "end": 27.517,
+   "text": "The swing has its own rhythm, and matching that rhythm is the whole trick.",
+   "words": [
+    {
+     "text": "The",
+     "start": 23.888,
+     "end": 24.0
+    },
+    {
+     "text": "swing",
+     "start": 24.007,
+     "end": 24.287
+    },
+    {
+     "text": "has",
+     "start": 24.304,
+     "end": 24.528
+    },
+    {
+     "text": "its",
+     "start": 24.542,
+     "end": 24.71
+    },
+    {
+     "text": "own",
+     "start": 24.721,
+     "end": 24.945
+    },
+    {
+     "text": "rhythm,",
+     "start": 24.959,
+     "end": 25.387
+    },
+    {
+     "text": "and",
+     "start": 25.494,
+     "end": 25.662
+    },
+    {
+     "text": "matching",
+     "start": 25.673,
+     "end": 26.064
+    },
+    {
+     "text": "that",
+     "start": 26.089,
+     "end": 26.313
+    },
+    {
+     "text": "rhythm",
+     "start": 26.327,
+     "end": 26.663
+    },
+    {
+     "text": "is",
+     "start": 26.684,
+     "end": 26.796
+    },
+    {
+     "text": "the",
+     "start": 26.803,
+     "end": 26.915
+    },
+    {
+     "text": "whole",
+     "start": 26.922,
+     "end": 27.202
+    },
+    {
+     "text": "trick.",
+     "start": 27.22,
+     "end": 27.499
+    }
+   ]
+  },
+  {
+   "start": 27.877,
+   "end": 29.994,
+   "text": "That rhythm is called the natural frequency.",
+   "words": [
+    {
+     "text": "That",
+     "start": 27.877,
+     "end": 28.076
+    },
+    {
+     "text": "rhythm",
+     "start": 28.089,
+     "end": 28.387
+    },
+    {
+     "text": "is",
+     "start": 28.406,
+     "end": 28.506
+    },
+    {
+     "text": "called",
+     "start": 28.512,
+     "end": 28.811
+    },
+    {
+     "text": "the",
+     "start": 28.83,
+     "end": 28.929
+    },
+    {
+     "text": "natural",
+     "start": 28.936,
+     "end": 29.383
+    },
+    {
+     "text": "frequency.",
+     "start": 29.412,
+     "end": 29.959
+    }
+   ]
+  },
+  {
+   "start": 30.954,
+   "end": 35.543,
+   "text": "Everything has one: a guitar string, a wine glass, a skyscraper, a bridge.",
+   "words": [
+    {
+     "text": "Everything",
+     "start": 30.954,
+     "end": 31.427
+    },
+    {
+     "text": "has",
+     "start": 31.458,
+     "end": 31.668
+    },
+    {
+     "text": "one:",
+     "start": 31.682,
+     "end": 31.995
+    },
+    {
+     "text": "a",
+     "start": 32.073,
+     "end": 32.231
+    },
+    {
+     "text": "guitar",
+     "start": 32.241,
+     "end": 32.609
+    },
+    {
+     "text": "string,",
+     "start": 32.633,
+     "end": 33.036
+    },
+    {
+     "text": "a",
+     "start": 33.137,
+     "end": 33.294
+    },
+    {
+     "text": "wine",
+     "start": 33.304,
+     "end": 33.567
+    },
+    {
+     "text": "glass,",
+     "start": 33.584,
+     "end": 33.942
+    },
+    {
+     "text": "a",
+     "start": 34.032,
+     "end": 34.19
+    },
+    {
+     "text": "skyscraper,",
+     "start": 34.2,
+     "end": 34.871
+    },
+    {
+     "text": "a",
+     "start": 35.039,
+     "end": 35.197
+    },
+    {
+     "text": "bridge.",
+     "start": 35.207,
+     "end": 35.523
+    }
+   ]
+  },
+  {
+   "start": 35.953,
+   "end": 41.345,
+   "text": "A tall building might sway once every few seconds, and a footbridge might bounce about twice a second.",
+   "words": [
+    {
+     "text": "A",
+     "start": 35.953,
+     "end": 36.107
+    },
+    {
+     "text": "tall",
+     "start": 36.116,
+     "end": 36.372
+    },
+    {
+     "text": "building",
+     "start": 36.389,
+     "end": 36.747
+    },
+    {
+     "text": "might",
+     "start": 36.77,
+     "end": 37.026
+    },
+    {
+     "text": "sway",
+     "start": 37.042,
+     "end": 37.298
+    },
+    {
+     "text": "once",
+     "start": 37.315,
+     "end": 37.571
+    },
+    {
+     "text": "every",
+     "start": 37.587,
+     "end": 37.843
+    },
+    {
+     "text": "few",
+     "start": 37.859,
+     "end": 38.115
+    },
+    {
+     "text": "seconds,",
+     "start": 38.132,
+     "end": 38.611
+    },
+    {
+     "text": "and",
+     "start": 38.731,
+     "end": 38.884
+    },
+    {
+     "text": "a",
+     "start": 38.894,
+     "end": 39.048
+    },
+    {
+     "text": "footbridge",
+     "start": 39.057,
+     "end": 39.518
+    },
+    {
+     "text": "might",
+     "start": 39.548,
+     "end": 39.804
+    },
+    {
+     "text": "bounce",
+     "start": 39.82,
+     "end": 40.127
+    },
+    {
+     "text": "about",
+     "start": 40.147,
+     "end": 40.454
+    },
+    {
+     "text": "twice",
+     "start": 40.474,
+     "end": 40.781
+    },
+    {
+     "text": "a",
+     "start": 40.8,
+     "end": 40.954
+    },
+    {
+     "text": "second.",
+     "start": 40.964,
+     "end": 41.322
+    }
+   ]
+  },
+  {
+   "start": 41.755,
+   "end": 46.541,
+   "text": "When a force keeps arriving at that same rhythm, small pushes stack up into big motion.",
+   "words": [
+    {
+     "text": "When",
+     "start": 41.755,
+     "end": 41.972
+    },
+    {
+     "text": "a",
+     "start": 41.986,
+     "end": 42.148
+    },
+    {
+     "text": "force",
+     "start": 42.159,
+     "end": 42.484
+    },
+    {
+     "text": "keeps",
+     "start": 42.505,
+     "end": 42.83
+    },
+    {
+     "text": "arriving",
+     "start": 42.851,
+     "end": 43.284
+    },
+    {
+     "text": "at",
+     "start": 43.312,
+     "end": 43.42
+    },
+    {
+     "text": "that",
+     "start": 43.427,
+     "end": 43.644
+    },
+    {
+     "text": "same",
+     "start": 43.658,
+     "end": 43.929
+    },
+    {
+     "text": "rhythm,",
+     "start": 43.946,
+     "end": 44.361
+    },
+    {
+     "text": "small",
+     "start": 44.465,
+     "end": 44.79
+    },
+    {
+     "text": "pushes",
+     "start": 44.811,
+     "end": 45.136
+    },
+    {
+     "text": "stack",
+     "start": 45.157,
+     "end": 45.428
+    },
+    {
+     "text": "up",
+     "start": 45.445,
+     "end": 45.608
+    },
+    {
+     "text": "into",
+     "start": 45.618,
+     "end": 45.889
+    },
+    {
+     "text": "big",
+     "start": 45.907,
+     "end": 46.124
+    },
+    {
+     "text": "motion.",
+     "start": 46.137,
+     "end": 46.517
+    }
+   ]
+  },
+  {
+   "start": 47.501,
+   "end": 54.53,
+   "text": "In June 2000, London opened the Millennium Bridge, and on opening day it began to sway sideways under the crowds.",
+   "words": [
+    {
+     "text": "In",
+     "start": 47.501,
+     "end": 47.672
+    },
+    {
+     "text": "June",
+     "start": 47.683,
+     "end": 48.025
+    },
+    {
+     "text": "2000,",
+     "start": 48.046,
+     "end": 48.822
+    },
+    {
+     "text": "London",
+     "start": 49.016,
+     "end": 49.415
+    },
+    {
+     "text": "opened",
+     "start": 49.44,
+     "end": 49.839
+    },
+    {
+     "text": "the",
+     "start": 49.864,
+     "end": 49.978
+    },
+    {
+     "text": "Millennium",
+     "start": 49.985,
+     "end": 50.498
+    },
+    {
+     "text": "Bridge,",
+     "start": 50.531,
+     "end": 50.967
+    },
+    {
+     "text": "and",
+     "start": 51.076,
+     "end": 51.247
+    },
+    {
+     "text": "on",
+     "start": 51.258,
+     "end": 51.429
+    },
+    {
+     "text": "opening",
+     "start": 51.44,
+     "end": 51.895
+    },
+    {
+     "text": "day",
+     "start": 51.924,
+     "end": 52.152
+    },
+    {
+     "text": "it",
+     "start": 52.167,
+     "end": 52.281
+    },
+    {
+     "text": "began",
+     "start": 52.288,
+     "end": 52.63
+    },
+    {
+     "text": "to",
+     "start": 52.652,
+     "end": 52.822
+    },
+    {
+     "text": "sway",
+     "start": 52.833,
+     "end": 53.118
+    },
+    {
+     "text": "sideways",
+     "start": 53.136,
+     "end": 53.649
+    },
+    {
+     "text": "under",
+     "start": 53.682,
+     "end": 53.966
+    },
+    {
+     "text": "the",
+     "start": 53.985,
+     "end": 54.099
+    },
+    {
+     "text": "crowds.",
+     "start": 54.106,
+     "end": 54.505
+    }
+   ]
+  },
+  {
+   "start": 54.94,
+   "end": 59.339,
+   "text": "When we walk, our bodies rock slightly from side to side, about once a second.",
+   "words": [
+    {
+     "text": "When",
+     "start": 54.94,
+     "end": 55.147
+    },
+    {
+     "text": "we",
+     "start": 55.16,
+     "end": 55.315
+    },
+    {
+     "text": "walk,",
+     "start": 55.325,
+     "end": 55.677
+    },
+    {
+     "text": "our",
+     "start": 55.765,
+     "end": 55.972
+    },
+    {
+     "text": "bodies",
+     "start": 55.985,
+     "end": 56.347
+    },
+    {
+     "text": "rock",
+     "start": 56.37,
+     "end": 56.628
+    },
+    {
+     "text": "slightly",
+     "start": 56.645,
+     "end": 57.058
+    },
+    {
+     "text": "from",
+     "start": 57.085,
+     "end": 57.291
+    },
+    {
+     "text": "side",
+     "start": 57.304,
+     "end": 57.563
+    },
+    {
+     "text": "to",
+     "start": 57.579,
+     "end": 57.734
+    },
+    {
+     "text": "side,",
+     "start": 57.744,
+     "end": 58.096
+    },
+    {
+     "text": "about",
+     "start": 58.184,
+     "end": 58.494
+    },
+    {
+     "text": "once",
+     "start": 58.514,
+     "end": 58.773
+    },
+    {
+     "text": "a",
+     "start": 58.789,
+     "end": 58.944
+    },
+    {
+     "text": "second.",
+     "start": 58.954,
+     "end": 59.316
+    }
+   ]
+  },
+  {
+   "start": 59.749,
+   "end": 65.892,
+   "text": "As the deck started to move, people adjusted their steps to keep their balance, and that put them in step with the bridge.",
+   "words": [
+    {
+     "text": "As",
+     "start": 59.749,
+     "end": 59.856
+    },
+    {
+     "text": "the",
+     "start": 59.863,
+     "end": 59.97
+    },
+    {
+     "text": "deck",
+     "start": 59.977,
+     "end": 60.19
+    },
+    {
+     "text": "started",
+     "start": 60.204,
+     "end": 60.685
+    },
+    {
+     "text": "to",
+     "start": 60.716,
+     "end": 60.876
+    },
+    {
+     "text": "move,",
+     "start": 60.887,
+     "end": 61.251
+    },
+    {
+     "text": "people",
+     "start": 61.342,
+     "end": 61.716
+    },
+    {
+     "text": "adjusted",
+     "start": 61.74,
+     "end": 62.221
+    },
+    {
+     "text": "their",
+     "start": 62.252,
+     "end": 62.412
+    },
+    {
+     "text": "steps",
+     "start": 62.422,
+     "end": 62.743
+    },
+    {
+     "text": "to",
+     "start": 62.764,
+     "end": 62.924
+    },
+    {
+     "text": "keep",
+     "start": 62.934,
+     "end": 63.202
+    },
+    {
+     "text": "their",
+     "start": 63.219,
+     "end": 63.379
+    },
+    {
+     "text": "balance,",
+     "start": 63.389,
+     "end": 63.844
+    },
+    {
+     "text": "and",
+     "start": 63.958,
+     "end": 64.118
+    },
+    {
+     "text": "that",
+     "start": 64.129,
+     "end": 64.343
+    },
+    {
+     "text": "put",
+     "start": 64.356,
+     "end": 64.57
+    },
+    {
+     "text": "them",
+     "start": 64.584,
+     "end": 64.798
+    },
+    {
+     "text": "in",
+     "start": 64.811,
+     "end": 64.972
+    },
+    {
+     "text": "step",
+     "start": 64.982,
+     "end": 65.249
+    },
+    {
+     "text": "with",
+     "start": 65.266,
+     "end": 65.427
+    },
+    {
+     "text": "the",
+     "start": 65.437,
+     "end": 65.544
+    },
+    {
+     "text": "bridge.",
+     "start": 65.551,
+     "end": 65.872
+    }
+   ]
+  },
+  {
+   "start": 66.302,
+   "end": 71.506,
+   "text": "Thousands of small sideways pushes, all in time. The bridge closed after just two days.",
+   "words": [
+    {
+     "text": "Thousands",
+     "start": 66.302,
+     "end": 66.839
+    },
+    {
+     "text": "of",
+     "start": 66.873,
+     "end": 66.992
+    },
+    {
+     "text": "small",
+     "start": 67.0,
+     "end": 67.358
+    },
+    {
+     "text": "sideways",
+     "start": 67.381,
+     "end": 67.918
+    },
+    {
+     "text": "pushes,",
+     "start": 67.952,
+     "end": 68.409
+    },
+    {
+     "text": "all",
+     "start": 68.523,
+     "end": 68.762
+    },
+    {
+     "text": "in",
+     "start": 68.777,
+     "end": 68.956
+    },
+    {
+     "text": "time.",
+     "start": 68.967,
+     "end": 69.266
+    },
+    {
+     "text": "The",
+     "start": 69.285,
+     "end": 69.404
+    },
+    {
+     "text": "bridge",
+     "start": 69.412,
+     "end": 69.77
+    },
+    {
+     "text": "closed",
+     "start": 69.792,
+     "end": 70.21
+    },
+    {
+     "text": "after",
+     "start": 70.237,
+     "end": 70.535
+    },
+    {
+     "text": "just",
+     "start": 70.554,
+     "end": 70.912
+    },
+    {
+     "text": "two",
+     "start": 70.935,
+     "end": 71.173
+    },
+    {
+     "text": "days.",
+     "start": 71.189,
+     "end": 71.487
+    }
+   ]
+  },
+  {
+   "start": 72.466,
+   "end": 80.349,
+   "text": "The fix wasn't to make it stronger. Engineers added dampers, devices that soak up motion the way shock absorbers do in a car.",
+   "words": [
+    {
+     "text": "The",
+     "start": 72.466,
+     "end": 72.588
+    },
+    {
+     "text": "fix",
+     "start": 72.596,
+     "end": 72.902
+    },
+    {
+     "text": "wasn't",
+     "start": 72.922,
+     "end": 73.289
+    },
+    {
+     "text": "to",
+     "start": 73.313,
+     "end": 73.497
+    },
+    {
+     "text": "make",
+     "start": 73.508,
+     "end": 73.815
+    },
+    {
+     "text": "it",
+     "start": 73.834,
+     "end": 73.957
+    },
+    {
+     "text": "stronger.",
+     "start": 73.964,
+     "end": 74.454
+    },
+    {
+     "text": "Engineers",
+     "start": 74.486,
+     "end": 75.159
+    },
+    {
+     "text": "added",
+     "start": 75.202,
+     "end": 75.508
+    },
+    {
+     "text": "dampers,",
+     "start": 75.528,
+     "end": 76.049
+    },
+    {
+     "text": "devices",
+     "start": 76.179,
+     "end": 76.731
+    },
+    {
+     "text": "that",
+     "start": 76.766,
+     "end": 77.011
+    },
+    {
+     "text": "soak",
+     "start": 77.026,
+     "end": 77.333
+    },
+    {
+     "text": "up",
+     "start": 77.352,
+     "end": 77.536
+    },
+    {
+     "text": "motion",
+     "start": 77.548,
+     "end": 77.976
+    },
+    {
+     "text": "the",
+     "start": 78.004,
+     "end": 78.126
+    },
+    {
+     "text": "way",
+     "start": 78.134,
+     "end": 78.379
+    },
+    {
+     "text": "shock",
+     "start": 78.395,
+     "end": 78.701
+    },
+    {
+     "text": "absorbers",
+     "start": 78.72,
+     "end": 79.333
+    },
+    {
+     "text": "do",
+     "start": 79.372,
+     "end": 79.617
+    },
+    {
+     "text": "in",
+     "start": 79.632,
+     "end": 79.816
+    },
+    {
+     "text": "a",
+     "start": 79.828,
+     "end": 80.012
+    },
+    {
+     "text": "car.",
+     "start": 80.023,
+     "end": 80.329
+    }
+   ]
+  },
+  {
+   "start": 80.759,
+   "end": 87.99,
+   "text": "First they measured the motion, then they fitted 37 fluid dampers, and finally they tested it with crowds of volunteers.",
+   "words": [
+    {
+     "text": "First",
+     "start": 80.759,
+     "end": 81.111
+    },
+    {
+     "text": "they",
+     "start": 81.133,
+     "end": 81.309
+    },
+    {
+     "text": "measured",
+     "start": 81.32,
+     "end": 81.672
+    },
+    {
+     "text": "the",
+     "start": 81.694,
+     "end": 81.811
+    },
+    {
+     "text": "motion,",
+     "start": 81.819,
+     "end": 82.317
+    },
+    {
+     "text": "then",
+     "start": 82.442,
+     "end": 82.676
+    },
+    {
+     "text": "they",
+     "start": 82.691,
+     "end": 82.867
+    },
+    {
+     "text": "fitted",
+     "start": 82.878,
+     "end": 83.23
+    },
+    {
+     "text": "37",
+     "start": 83.252,
+     "end": 83.956
+    },
+    {
+     "text": "fluid",
+     "start": 84.0,
+     "end": 84.411
+    },
+    {
+     "text": "dampers,",
+     "start": 84.437,
+     "end": 84.936
+    },
+    {
+     "text": "and",
+     "start": 85.06,
+     "end": 85.236
+    },
+    {
+     "text": "finally",
+     "start": 85.247,
+     "end": 85.716
+    },
+    {
+     "text": "they",
+     "start": 85.746,
+     "end": 85.922
+    },
+    {
+     "text": "tested",
+     "start": 85.933,
+     "end": 86.343
+    },
+    {
+     "text": "it",
+     "start": 86.369,
+     "end": 86.486
+    },
+    {
+     "text": "with",
+     "start": 86.494,
+     "end": 86.67
+    },
+    {
+     "text": "crowds",
+     "start": 86.681,
+     "end": 87.091
+    },
+    {
+     "text": "of",
+     "start": 87.117,
+     "end": 87.234
+    },
+    {
+     "text": "volunteers.",
+     "start": 87.242,
+     "end": 87.945
+    }
+   ]
+  },
+  {
+   "start": 88.4,
+   "end": 92.248,
+   "text": "It reopened in 2002, and it has stayed steady ever since.",
+   "words": [
+    {
+     "text": "It",
+     "start": 88.4,
+     "end": 88.511
+    },
+    {
+     "text": "reopened",
+     "start": 88.518,
+     "end": 89.019
+    },
+    {
+     "text": "in",
+     "start": 89.051,
+     "end": 89.218
+    },
+    {
+     "text": "2002,",
+     "start": 89.229,
+     "end": 90.223
+    },
+    {
+     "text": "and",
+     "start": 90.472,
+     "end": 90.639
+    },
+    {
+     "text": "it",
+     "start": 90.65,
+     "end": 90.761
+    },
+    {
+     "text": "has",
+     "start": 90.768,
+     "end": 90.991
+    },
+    {
+     "text": "stayed",
+     "start": 91.005,
+     "end": 91.339
+    },
+    {
+     "text": "steady",
+     "start": 91.36,
+     "end": 91.694
+    },
+    {
+     "text": "ever",
+     "start": 91.715,
+     "end": 91.938
+    },
+    {
+     "text": "since.",
+     "start": 91.952,
+     "end": 92.23
+    }
+   ]
+  },
+  {
+   "start": 93.208,
+   "end": 101.296,
+   "text": "Tall buildings use a similar idea. Taipei 101 hangs a steel ball weighing about 660 tonnes near its top.",
+   "words": [
+    {
+     "text": "Tall",
+     "start": 93.208,
+     "end": 93.505
+    },
+    {
+     "text": "buildings",
+     "start": 93.524,
+     "end": 93.999
+    },
+    {
+     "text": "use",
+     "start": 94.029,
+     "end": 94.326
+    },
+    {
+     "text": "a",
+     "start": 94.345,
+     "end": 94.524
+    },
+    {
+     "text": "similar",
+     "start": 94.535,
+     "end": 94.951
+    },
+    {
+     "text": "idea.",
+     "start": 94.977,
+     "end": 95.334
+    },
+    {
+     "text": "Taipei",
+     "start": 95.356,
+     "end": 95.832
+    },
+    {
+     "text": "101",
+     "start": 95.862,
+     "end": 96.872
+    },
+    {
+     "text": "hangs",
+     "start": 96.936,
+     "end": 97.233
+    },
+    {
+     "text": "a",
+     "start": 97.252,
+     "end": 97.43
+    },
+    {
+     "text": "steel",
+     "start": 97.442,
+     "end": 97.798
+    },
+    {
+     "text": "ball",
+     "start": 97.821,
+     "end": 98.118
+    },
+    {
+     "text": "weighing",
+     "start": 98.137,
+     "end": 98.493
+    },
+    {
+     "text": "about",
+     "start": 98.516,
+     "end": 98.872
+    },
+    {
+     "text": "660",
+     "start": 98.895,
+     "end": 100.142
+    },
+    {
+     "text": "tonnes",
+     "start": 100.222,
+     "end": 100.519
+    },
+    {
+     "text": "near",
+     "start": 100.538,
+     "end": 100.775
+    },
+    {
+     "text": "its",
+     "start": 100.791,
+     "end": 100.969
+    },
+    {
+     "text": "top.",
+     "start": 100.98,
+     "end": 101.277
+    }
+   ]
+  },
+  {
+   "start": 101.706,
+   "end": 106.264,
+   "text": "When the wind pushes the tower one way, the heavy ball lags behind and pulls it back.",
+   "words": [
+    {
+     "text": "When",
+     "start": 101.706,
+     "end": 101.938
+    },
+    {
+     "text": "the",
+     "start": 101.952,
+     "end": 102.068
+    },
+    {
+     "text": "wind",
+     "start": 102.076,
+     "end": 102.365
+    },
+    {
+     "text": "pushes",
+     "start": 102.384,
+     "end": 102.731
+    },
+    {
+     "text": "the",
+     "start": 102.753,
+     "end": 102.869
+    },
+    {
+     "text": "tower",
+     "start": 102.876,
+     "end": 103.166
+    },
+    {
+     "text": "one",
+     "start": 103.184,
+     "end": 103.416
+    },
+    {
+     "text": "way,",
+     "start": 103.431,
+     "end": 103.776
+    },
+    {
+     "text": "the",
+     "start": 103.862,
+     "end": 103.978
+    },
+    {
+     "text": "heavy",
+     "start": 103.985,
+     "end": 104.274
+    },
+    {
+     "text": "ball",
+     "start": 104.293,
+     "end": 104.582
+    },
+    {
+     "text": "lags",
+     "start": 104.601,
+     "end": 104.89
+    },
+    {
+     "text": "behind",
+     "start": 104.909,
+     "end": 105.372
+    },
+    {
+     "text": "and",
+     "start": 105.402,
+     "end": 105.575
+    },
+    {
+     "text": "pulls",
+     "start": 105.586,
+     "end": 105.876
+    },
+    {
+     "text": "it",
+     "start": 105.894,
+     "end": 106.01
+    },
+    {
+     "text": "back.",
+     "start": 106.018,
+     "end": 106.249
+    }
+   ]
+  },
+  {
+   "start": 107.224,
+   "end": 112.36,
+   "text": "So, resonance in one line: small pushes, perfectly timed, can beat brute force.",
+   "words": [
+    {
+     "text": "So,",
+     "start": 107.224,
+     "end": 107.558
+    },
+    {
+     "text": "resonance",
+     "start": 107.642,
+     "end": 108.147
+    },
+    {
+     "text": "in",
+     "start": 108.18,
+     "end": 108.348
+    },
+    {
+     "text": "one",
+     "start": 108.359,
+     "end": 108.583
+    },
+    {
+     "text": "line:",
+     "start": 108.598,
+     "end": 108.98
+    },
+    {
+     "text": "small",
+     "start": 109.075,
+     "end": 109.412
+    },
+    {
+     "text": "pushes,",
+     "start": 109.434,
+     "end": 109.864
+    },
+    {
+     "text": "perfectly",
+     "start": 109.971,
+     "end": 110.533
+    },
+    {
+     "text": "timed,",
+     "start": 110.568,
+     "end": 110.998
+    },
+    {
+     "text": "can",
+     "start": 111.106,
+     "end": 111.33
+    },
+    {
+     "text": "beat",
+     "start": 111.345,
+     "end": 111.625
+    },
+    {
+     "text": "brute",
+     "start": 111.643,
+     "end": 111.98
+    },
+    {
+     "text": "force.",
+     "start": 112.002,
+     "end": 112.339
+    }
+   ]
+  },
+  {
+   "start": 112.82,
+   "end": 117.006,
+   "text": "Engineers don't fight it with strength. They change the rhythm, or they soak it up.",
+   "words": [
+    {
+     "text": "Engineers",
+     "start": 112.82,
+     "end": 113.421
+    },
+    {
+     "text": "don't",
+     "start": 113.46,
+     "end": 113.787
+    },
+    {
+     "text": "fight",
+     "start": 113.808,
+     "end": 114.082
+    },
+    {
+     "text": "it",
+     "start": 114.099,
+     "end": 114.208
+    },
+    {
+     "text": "with",
+     "start": 114.215,
+     "end": 114.379
+    },
+    {
+     "text": "strength.",
+     "start": 114.39,
+     "end": 114.772
+    },
+    {
+     "text": "They",
+     "start": 114.797,
+     "end": 114.961
+    },
+    {
+     "text": "change",
+     "start": 114.971,
+     "end": 115.408
+    },
+    {
+     "text": "the",
+     "start": 115.436,
+     "end": 115.546
+    },
+    {
+     "text": "rhythm,",
+     "start": 115.553,
+     "end": 115.971
+    },
+    {
+     "text": "or",
+     "start": 116.076,
+     "end": 116.24
+    },
+    {
+     "text": "they",
+     "start": 116.25,
+     "end": 116.414
+    },
+    {
+     "text": "soak",
+     "start": 116.425,
+     "end": 116.698
+    },
+    {
+     "text": "it",
+     "start": 116.715,
+     "end": 116.825
+    },
+    {
+     "text": "up.",
+     "start": 116.832,
+     "end": 116.996
+    }
+   ]
+  }
+ ]
+}

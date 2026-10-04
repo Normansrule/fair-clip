@@ -1,0 +1,68 @@
+{
+  "brand": {
+    "channel": "Everyday Physics",
+    "accent": "#3DDC97",
+    "style": "bold",
+    "aspect": "9:16",
+    "reframe": "fit",
+    "topics": [
+      "resonance",
+      "bridge",
+      "frequency",
+      "damper",
+      "swing",
+      "wind"
+    ],
+    "clips": 3,
+    "min_s": 20,
+    "max_s": 55
+  },
+  "rights": {
+    "basis": "creative_commons",
+    "cc_license": "CC0-1.0",
+    "title": "Resonance (fair-clip example video)",
+    "holder": "fair-clip contributors",
+    "attribution": "\"Resonance\" example video by fair-clip contributors",
+    "synthetic": true
+  },
+  "clips": [
+    {
+      "moment": {
+        "start": 47.5,
+        "end": 71.48
+      },
+      "template": "card",
+      "data": null,
+      "take": "No single walker could move a 325-metre steel bridge. The danger was feedback: the more it swayed, the more people stepped in time with it.",
+      "title": "Why London's Millennium Bridge closed after two days",
+      "include": true
+    },
+    {
+      "moment": {
+        "start": 18.8,
+        "end": 46.51
+      },
+      "template": "definition",
+      "data": {
+        "headline": "Natural frequency"
+      },
+      "take": "The rate something prefers to wobble at, set by its stiffness and mass. Push at that rate and tiny forces add up.",
+      "title": "Small pushes, big motion: the natural frequency trick",
+      "include": true
+    },
+    {
+      "moment": {
+        "start": 74.72,
+        "end": 106.24
+      },
+      "template": "key_number",
+      "data": {
+        "headline": "37",
+        "unit": "dampers"
+      },
+      "take": "Dampers don't stop the push. They turn motion into heat, so energy can't pile up swing after swing.",
+      "title": "37 dampers and a 660-tonne steel ball: how engineers soak up motion",
+      "include": true
+    }
+  ]
+}

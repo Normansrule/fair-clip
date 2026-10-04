@@ -50,7 +50,7 @@ from .models import (
     Word,
 )
 from .publish.body import build_body
-from .scoring import default_topics, rank_candidates
+from .scoring import default_topics, rank_candidates, tokens
 
 # ----------------------------------------------------------------------------- shared steps
 
@@ -183,7 +183,7 @@ def suggest_take(c: Candidate) -> dict[str, Any]:
     """A STARTING POINT for step 2, never the value-add itself: which template might fit and a
     question to answer. Facts it pre-fills (a figure) are copied from what is SAID in the clip;
     the sentence is always left for the owner to write."""
-    figures = [m.group(0).strip() for m in _FIGURE.finditer(c.text) if len(m.group(0).strip()) <= 14 and any(ch.isdigit() for ch in m.group(0))]
+    figures = [m.group(0).strip().rstrip(",.") for m in _FIGURE.finditer(c.text) if len(m.group(0).strip()) <= 14 and any(ch.isdigit() for ch in m.group(0))]
     figures = [f for f in figures if not re.fullmatch(r"(19|20)\d\d", f)]  # years are context, not a key number
     if figures:
         return {"template": TemplateKind.KEY_NUMBER.value, "data": {"headline": figures[0]},
@@ -251,22 +251,79 @@ class Finished:
 
 
 def slug(text: str, limit: int = 48) -> str:
-    s = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    s = re.sub(r"[^a-z0-9]+", "-", re.sub(r"['’]", "", text.lower())).strip("-")
     return (s[:limit].rstrip("-") or "clip")
 
 
 def finish(*, plan: ClipPlan, n: int, tr: Transcript, rms: np.ndarray, rights: RightsRecord, brand: Brand,
            settings: Settings, screen_terms: dict[str, list[str]], clip_sha256: str, history: History | None = None,
-           fingerprint: dict[str, Any] | None = None, llm: Any = None) -> Finished:
-    """After the clip is rendered: metadata, then the full compliance gate."""
+           fingerprint: dict[str, Any] | None = None, llm: Any = None, title: str = "") -> Finished:
+    """After the clip is rendered: metadata (the owner's title if they wrote one), then the full
+    compliance gate. Whatever the owner edits is gated exactly like what fair-clip proposed."""
     words, tmap, sents = clip_window(plan, tr, rms)
     topics = brand.topics or default_topics(tr)
     md, notes, summary, extra = compose_metadata(plan, tmap, sents, rights, topics, llm)
+    if not extra:
+        md, problem = _polish(md, title, brand, plan, " ".join(w.text for w in words))
+        if problem:
+            extra.append(CheckResult(code="METADATA_LIMITS", check="Metadata", severity=Severity.BLOCK, message=problem))
     fp = fingerprint or {"dhash": [], "shingles": text_fingerprint(words)}
     report, body = gate_clip(plan=plan, rights=rights, md=md, summary=summary, words=words, tmap=tmap, settings=settings,
                              media_sha256=rights.source_sha256 or "", clip_sha256=clip_sha256, fingerprint=fp,
                              history=history or History(), kill_switch=False, screen_terms=screen_terms, extra=extra)
     return Finished(plan, md, report, body, tmap.duration, f"{n:02d}-{slug(md.title)}.mp4", notes)
+
+
+def hashtags(brand: Brand, vertical: bool, clip_text: str = "") -> str:
+    """Up to three hashtags from the owner's topics (letters and digits only), plus #Shorts for
+    vertical clips; topics this clip actually talks about come first. YouTube shows the first
+    three above the title."""
+    from .gate import stem
+
+    stems = {stem(t) for t in tokens(clip_text)}
+    ranked = sorted(brand.topics, key=lambda t: not (tokens(t) and all(stem(x) in stems for x in tokens(t))))
+    tags = ["Shorts"] if vertical else []
+    for t in ranked:
+        tag = re.sub(r"[^0-9A-Za-z]", "", t.title())
+        if tag and tag.lower() not in {x.lower() for x in tags}:
+            tags.append(tag[:30])
+        if len(tags) >= 3:
+            break
+    return " ".join(f"#{t}" for t in tags)
+
+
+def _polish(md: Metadata, title: str, brand: Brand, plan: ClipPlan, clip_text: str = "") -> tuple[Metadata, str]:
+    from pydantic import ValidationError
+
+    upd: dict[str, Any] = {}
+    if title.strip():
+        upd["title"] = re.sub(r"\s+", " ", title).strip()
+    if tags := hashtags(brand, plan.aspect == "9:16", clip_text):
+        upd["description"] = md.description + "\n\n" + tags
+    try:
+        return Metadata.model_validate(md.model_dump() | upd), ""
+    except ValidationError as exc:
+        what = "title" if "title" in str(exc) else "description"
+        return md, f"your {what} breaks YouTube's rules ({exc.errors()[0]['msg']}) — fix: edit the {what}"
+
+
+def title_problems(title: str, plan: ClipPlan, tr: Transcript, rms: np.ndarray, channel: str) -> list[str]:
+    """Live feedback while the owner types a title: the gate's grounding rule, in words. A title
+    may only use words and numbers that are SAID in the clip or written in the owner's own take."""
+    from .gate import numbers, ungrounded_words
+
+    words, _tmap, _s = clip_window(plan, tr, rms)
+    said = " ".join(w.text for w in words)
+    va = " ".join(v.visible_text() for v in plan.value_add)
+    allowed = set(tokens(said)) | set(tokens(va)) | set(tokens(channel))
+    out = []
+    tt = tokens(title)
+    bad = ungrounded_words(title, allowed)
+    if tt and (len(tt) - len(bad)) / len(tt) < 0.7:
+        out.append("not said in the clip or your take: " + ", ".join(dict.fromkeys(bad)))
+    if extra := sorted(numbers(title, skip_years=False) - numbers(said, skip_years=False) - numbers(va, skip_years=False)):
+        out.append("numbers never said: " + ", ".join(extra))
+    return out
 
 
 def studio_settings(brand: Brand, monetized: bool = True) -> Settings:

@@ -420,9 +420,24 @@ def tag_chars(tags: list[str]) -> int:
     return sum(len(t) + (2 if " " in t else 0) for t in tags) + max(0, len(tags) - 1)
 
 
+def stem(t: str) -> str:
+    """Very light stemming so 'sways'/'swayed'/'swaying' all match 'sway' (no dictionary, no model)."""
+    t = t.removesuffix("'s").removesuffix("s'")
+    for suf in ("ing", "ed", "s"):
+        if t.endswith(suf) and not t.endswith("ss") and len(t) - len(suf) >= 3:
+            t = t[: -len(suf)].rstrip("-")
+            break
+    return t[:-1] if t.endswith("e") and len(t) > 4 else t  # bridge/bridges/bridged -> bridg
+
+
+def ungrounded_words(text: str, allowed: set[str]) -> list[str]:
+    stems = {stem(a) for a in allowed}
+    return [t for t in tokens(text) if t not in allowed and stem(t) not in stems]
+
+
 def _grounding(text: str, allowed: set[str]) -> float:
     tt = tokens(text)
-    return sum(1 for t in tt if t in allowed) / len(tt) if tt else 1.0
+    return (len(tt) - len(ungrounded_words(text, allowed))) / len(tt) if tt else 1.0
 
 
 def check_metadata(c: GateContext) -> list[CheckResult]:

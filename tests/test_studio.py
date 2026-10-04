@@ -161,3 +161,50 @@ def test_brand_accent_cannot_mimic_disclosures(sample):
     c = studio.find_clips("src-x", tr, rms, [], brand)[0]
     with pytest.raises(ValueError):
         studio.build_plan(c, studio.Take(text="x" * 20), brand.model_copy(update={"accent": "#FDE047"}), 1)
+
+
+def test_owner_title_and_hashtags(sample):
+    tr, rms, rights, brand = sample
+    c = studio.find_clips("src-x", tr, rms, [], brand)[0]
+    take = studio.Take(text="Wind, not weight, is the real enemy: stiff, deep decks are how engineers stopped flutter.")
+    plan = studio.build_plan(c, take, brand, 1)
+    kw = dict(plan=plan, n=1, tr=tr, rms=rms, rights=rights, brand=brand, settings=studio.studio_settings(brand),
+              screen_terms=studio.default_screen_terms(), clip_sha256="1" * 64)
+    done = studio.finish(**kw, title="Why wind, not weight, breaks bridges")
+    assert done.metadata.title == "Why wind, not weight, breaks bridges" and done.filename.startswith("01-why-wind")
+    assert done.metadata.description.rstrip().endswith("#Shorts #Bridge #Wind")  # topics this clip talks about come first
+    assert done.metadata.description.index(take.text) < done.metadata.description.index("In this clip:")  # owner's words lead
+    bad = studio.finish(**kw, title="<script> x")
+    assert not bad.passed and "METADATA_LIMITS" in {r.code for r in bad.report.blocks}
+
+
+def test_hashtags_are_letters_and_digits_only():
+    b = studio.Brand(channel="C", topics=["suspension bridges", "#wind!!", "x-y z"])
+    assert studio.hashtags(b, True) == "#Shorts #SuspensionBridges #Wind"
+    assert studio.hashtags(b, False) == "#SuspensionBridges #Wind #XYZ"
+
+
+def test_suggested_figures_drop_trailing_punctuation_and_years():
+    from fairclip.models import Candidate, Features
+
+    f = Features(audio_energy_db=-20, speech_rate_wps=2.5, relevance=0.5, scene_density=0.1, silence_ratio=0.1)
+    c = Candidate(candidate_id="x", source_id="s", start=0, end=30, text="In June 2000, they fitted 37, then more.", features=f, score=0.5)
+    assert studio.suggest_take(c)["data"] == {"headline": "37"}
+
+
+def test_title_feedback_matches_the_gate(sample):
+    tr, rms, rights, brand = sample
+    c = studio.find_clips("src-x", tr, rms, [], brand)[0]
+    plan = studio.build_plan(c, studio.Take(text="Stiff, deep decks are how engineers stopped flutter."), brand, 1)
+    words = {w.text.strip(".,?!").lower() for w in studio.clip_window(plan, tr, rms)[0]}
+    assert "wind" in words
+    assert studio.title_problems("Wind, not weight: how engineers stopped flutter", plan, tr, rms, brand.channel) == []
+    probs = studio.title_problems("Aliens destroyed 9 bridges", plan, tr, rms, brand.channel)
+    assert any("aliens" in p for p in probs) and any("9" in p for p in probs)
+
+
+def test_grounding_tolerates_simple_inflections():
+    from fairclip.gate import ungrounded_words
+
+    assert ungrounded_words("Bridges swaying with walkers", {"bridge", "sways", "walkers"}) == []
+    assert ungrounded_words("Bridges exploded", {"bridge"}) == ["exploded"]

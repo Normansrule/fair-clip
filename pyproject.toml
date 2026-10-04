@@ -66,3 +66,5 @@ ignore = ["S101", "S603", "S607", "E501"]
 [tool.ruff.lint.per-file-ignores]
 # Tests use fixed fake passphrases, seeded PRNGs and literal bind addresses on purpose.
 "tests/*" = ["S104", "S105", "S106", "S311"]
+# The example-video generator uses seeded PRNGs for drawing jitter, not for security.
+"scripts/make_example.py" = ["S311"]
