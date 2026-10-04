@@ -129,7 +129,7 @@ function fillFrom(project) {
   rightsUI();
 }
 
-fetch("example/project.json", { method: "HEAD" }).then((r) => { if (!r.ok) $(".try").hidden = true; }, () => { $(".try").hidden = true; });
+fetch("example/project.json").then((r) => { if (!r.ok) $(".try").hidden = true; }, () => { $(".try").hidden = true; });
 $("#use-example").addEventListener("click", async (e) => {
   const btn = e.currentTarget; btn.disabled = true; btn.textContent = "Loading the example…";
   try {

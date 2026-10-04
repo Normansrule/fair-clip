@@ -421,7 +421,7 @@ def tag_chars(tags: list[str]) -> int:
 
 
 def stem(t: str) -> str:
-    """Very light stemming so 'sways'/'swayed'/'swaying' all match 'sway' (no dictionary, no model)."""
+    """Very light stemming for tag/hashtag de-duplication (never for grounding decisions)."""
     t = t.removesuffix("'s").removesuffix("s'")
     for suf in ("ing", "ed", "s"):
         if t.endswith(suf) and not t.endswith("ss") and len(t) - len(suf) >= 3:
@@ -430,9 +430,30 @@ def stem(t: str) -> str:
     return t[:-1] if t.endswith("e") and len(t) > 4 else t  # bridge/bridges/bridged -> bridg
 
 
+def _bases(w: str) -> set[str]:
+    """The word itself plus what it could be an inflection of: bridges -> bridge, swayed -> sway,
+    caring -> care. Bases shorter than 4 letters don't count (news is not new, cars is not car)."""
+    w = w.removesuffix("'s").removesuffix("s'")
+    out = {w}
+    for suf in ("s", "es", "ed", "d", "ing"):
+        if w.endswith(suf) and not (suf == "s" and w.endswith("ss")):
+            b = w[: -len(suf)]
+            if len(b) >= 4:
+                out.add(b)
+            if suf in ("ed", "ing") and len(b) >= 3:
+                out.add(b + "e")  # caring -> care, danced -> dance
+    return out
+
+
 def ungrounded_words(text: str, allowed: set[str]) -> list[str]:
-    stems = {stem(a) for a in allowed}
-    return [t for t in tokens(text) if t not in allowed and stem(t) not in stems]
+    """Words of `text` that weren't said, allowing simple inflections of words that were."""
+    pool = set().union(*(_bases(a) for a in allowed)) if allowed else set()
+    return [t for t in tokens(text) if not (_bases(t) & pool)]
+
+
+def without_phrase(text: str, phrase: str) -> str:
+    """The channel name may appear in a title, but its words never count as 'said in the clip'."""
+    return re.sub(re.escape(phrase.strip()), " ", text, flags=re.I) if phrase.strip() else text
 
 
 def _grounding(text: str, allowed: set[str]) -> float:
@@ -445,8 +466,8 @@ def check_metadata(c: GateContext) -> list[CheckResult]:
     if len(md.title) > 100 or len(md.description.encode("utf-8")) > 5000 or tag_chars(md.tags) > 500:
         out.append(_r("METADATA_LIMITS"))
     va_text = " ".join(v.visible_text() for v in c.plan.value_add)
-    allowed = set(tokens(c.transcript_text)) | set(tokens(va_text)) | set(tokens(c.settings.channel.name))
-    grounded = _grounding(md.title, allowed)
+    allowed = set(tokens(c.transcript_text)) | set(tokens(va_text))
+    grounded = _grounding(without_phrase(md.title, c.settings.channel.name), allowed)
     if grounded < 0.7:
         out.append(_r("METADATA_UNGROUNDED", f"only {grounded:.0%} of title words appear in the clip"))
     for label, text in (("summary", c.summary), ("tags", " ".join(md.tags))):

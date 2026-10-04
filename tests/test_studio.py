@@ -208,3 +208,24 @@ def test_grounding_tolerates_simple_inflections():
 
     assert ungrounded_words("Bridges swaying with walkers", {"bridge", "sways", "walkers"}) == []
     assert ungrounded_words("Bridges exploded", {"bridge"}) == ["exploded"]
+
+
+def test_owner_gate_config_reaches_studio_clips(sample):
+    """Kill switch, the owner's screen terms and history apply to Studio clips too."""
+    tr, rms, rights, brand = sample
+    c = studio.find_clips("src-x", tr, rms, [], brand)[0]
+    plan = studio.build_plan(c, studio.Take(text="Stiff, deep decks are how engineers stopped flutter for good."), brand, 1)
+    kw = dict(plan=plan, n=1, tr=tr, rms=rms, rights=rights, brand=brand, settings=studio.studio_settings(brand), clip_sha256="2" * 64)
+    assert studio.finish(**kw, screen_terms=studio.default_screen_terms()).passed
+    assert "KILL_SWITCH_ON" in {r.code for r in studio.finish(**kw, screen_terms=studio.default_screen_terms(), kill_switch=True).report.blocks}
+    terms = {k: list(v) for k, v in studio.default_screen_terms().items()}
+    terms["hard"].append("flutter")  # the owner's own hard-block term
+    assert "SCREEN_BLOCKED_TERM" in {r.code for r in studio.finish(**kw, screen_terms=terms).report.blocks}
+
+
+def test_channel_name_never_grounds_a_title(sample):
+    tr, rms, rights, brand = sample
+    c = studio.find_clips("src-x", tr, rms, [], brand)[0]
+    plan = studio.build_plan(c, studio.Take(text="Stiff decks stopped flutter."), brand, 1)
+    assert studio.title_problems("Miracle Cure Doctors Hate", plan, tr, rms, "Miracle Cure Doctors Hate") == []  # the bare channel name: nothing left to check
+    assert studio.title_problems("Miracle Cure Doctors Hate: secret aliens", plan, tr, rms, "Miracle Cure Doctors") != []

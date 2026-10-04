@@ -12,11 +12,11 @@ themselves (or approves it in the dashboard's publish flow).
 
 from __future__ import annotations
 
-import io
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -47,6 +47,38 @@ class Session:
     candidates: list[Candidate]
     settings: Settings
     suggestions: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class GateInputs:
+    """The owner's own gate configuration (the app's settings, screen terms, kill switch, history
+    and affiliate registry), so a Studio clip is judged exactly like a pipeline clip."""
+
+    screen_terms: dict[str, list[str]] | None = None
+    kill_switch: bool = False
+    registry: Any = None
+    history: Callable[[Any], Any] | None = None  # plan -> History
+
+
+def gate_inputs(pipeline: Any) -> GateInputs:
+    """The owner's gate configuration from the app's Pipeline (store, settings, data folder)."""
+    from .affiliate import load_registry
+    from .gate import load_screen_terms
+
+    def history(plan: Any) -> Any:
+        h = pipeline.history(plan, "")
+        h.today_count = h.today_same_source = 0  # a download isn't a publish: the daily cap applies when it's posted
+        return h
+
+    return GateInputs(screen_terms=load_screen_terms(pipeline.screen_terms_path()), kill_switch=pipeline.store.kill_switch,
+                      registry=load_registry(pipeline.store), history=history)
+
+
+def owner_settings(settings: Settings, brand: studio.Brand) -> Settings:
+    """The owner's own settings (gate thresholds, monetization, media limits); only the brand differs."""
+    st = settings.model_copy(deep=True)
+    st.channel.name, st.channel.topics = brand.channel, list(brand.topics)
+    return st
 
 
 @dataclass
@@ -102,7 +134,7 @@ def _transcribe(runner: MediaRunner, media: Path, work: Path) -> Transcript:
 
 
 def make_clip(s: Session, cand: Candidate, take: studio.Take, title: str, n: int, *, runner: MediaRunner, work: Path,
-              quality: str = "high") -> Made:
+              quality: str = "high", gate: GateInputs | None = None) -> Made:
     """Step 3, one clip: plan → render (sandboxed FFmpeg) → full compliance gate."""
     plan = studio.build_plan(cand, take, s.brand, n)
     words, tmap, sents = studio.clip_window(plan, s.tr, s.rms)
@@ -114,8 +146,11 @@ def make_clip(s: Session, cand: Candidate, take: studio.Take, title: str, n: int
                in_dir=in_dir, out_dir=out_dir, inputs=[src])
     clip = out_dir / "clip.mp4"
     fp = {"dhash": analyze.frame_dhashes(runner, clip, work), "shingles": studio.text_fingerprint(words)}
+    g = gate or GateInputs()
     done = studio.finish(plan=plan, n=n, tr=s.tr, rms=s.rms, rights=s.rights, brand=s.brand, settings=s.settings,
-                         screen_terms=studio.default_screen_terms(), clip_sha256=sha256_file(clip), fingerprint=fp, title=title)
+                         screen_terms=g.screen_terms or studio.default_screen_terms(), clip_sha256=sha256_file(clip),
+                         fingerprint=fp, title=title, kill_switch=g.kill_switch, registry=g.registry,
+                         history=g.history(plan) if g.history else None)
     if not done.passed:
         return Made(done, None)
     pin, pout, (c,) = analyze.job_dirs(work, [clip])
@@ -146,15 +181,17 @@ def write_package(made: list[Made], brand: studio.Brand, out: Path) -> Path:
     return zpath
 
 
-def zip_bytes(made: list[Made], brand: studio.Brand) -> bytes:
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
+def write_zip(made: list[Made], brand: studio.Brand, dest: Path) -> Path:
+    """The download as one file on disk (clips are streamed in, never held in memory)."""
+    tmp = dest.with_suffix(".part")
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_STORED) as z:
         for m in made:
             if m.clip is not None:
                 z.write(m.clip, m.finished.filename)
         for name, text in package_files(made, brand).items():
             z.writestr(name, text.encode())
-    return buf.getvalue()
+    tmp.replace(dest)
+    return dest
 
 
-__all__ = ["Made", "Session", "StudioError", "analyze_source", "make_clip", "package_files", "write_package", "zip_bytes"]
+__all__ = ["GateInputs", "Made", "Session", "gate_inputs", "owner_settings", "StudioError", "analyze_source", "make_clip", "package_files", "write_package", "write_zip"]

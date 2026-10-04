@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EX = ROOT / "examples" / "studio"
 FONTS = ROOT / "src" / "fairclip" / "data" / "fonts"
 PW = "correct horse battery staple"
+CAPS = (EX / "captions.srt").read_bytes()
 pytestmark = pytest.mark.skipif(not shutil.which("ffmpeg"), reason="needs ffmpeg")
 
 
@@ -60,6 +61,27 @@ def test_studio_needs_login_and_csrf(app):
     assert r.status_code == 404
 
 
+def test_bad_requests_are_400s_not_500s(app):
+    c, _ = app
+    h = {"X-CSRF-Token": login(c)}
+    assert c.post("/api/studio/title-check", content=b"[1]", headers=h | {"content-type": "application/json"}).status_code == 400
+    r = c.post("/api/studio/analyze", files={"video": ("..", b"x")}, data={"meta": "[]"}, headers=h)
+    assert r.status_code == 400 and "form" in r.json()["error"]
+    r = c.post("/api/studio/analyze", files={"video": ("v.mp4", b"x")}, data={"meta": meta()},
+               headers=h | {"content-length": str(10**13)})
+    assert r.status_code in (400, 413)
+    big = b"1\n00:00:00,000 --> 00:00:01,000\nx\n\n" * 400_000  # ~14 MB of captions
+    r = c.post("/api/studio/analyze", files={"video": ("v.mp4", b"x"), "captions": ("c.srt", big)}, data={"meta": meta()}, headers=h)
+    assert r.status_code == 400 and "10 MB" in r.json()["error"]
+
+
+def test_safe_upload_names():
+    from fairclip.web.studio_api import safe_name
+
+    assert safe_name("..") == "video.mp4" and safe_name("../../etc/passwd") == "passwd" and safe_name(".bashrc") == "bashrc"
+    assert safe_name("my clip (1).mp4") == "my_clip_1_.mp4"
+
+
 def test_untrusted_upload_needs_the_sandbox(app):
     from fairclip.media.sandbox import docker_available
 
@@ -68,8 +90,8 @@ def test_untrusted_upload_needs_the_sandbox(app):
     c, _ = app
     csrf = login(c)
     data = (EX / "source.mp4").read_bytes() + b"\0"  # different bytes: not one of our trusted examples
-    r = c.post("/api/studio/analyze", files={"video": ("mine.mp4", data, "video/mp4")},
-               data={"meta": meta(), "captions": (EX / "captions.srt").read_text()}, headers={"X-CSRF-Token": csrf})
+    r = c.post("/api/studio/analyze", files={"video": ("mine.mp4", data, "video/mp4"), "captions": ("c.srt", CAPS)},
+               data={"meta": meta()}, headers={"X-CSRF-Token": csrf})
     assert r.status_code == 503 and "sandbox" in r.json()["error"]
 
 
@@ -77,8 +99,8 @@ def test_app_studio_end_to_end(app):
     c, store = app
     csrf = login(c)
     h = {"X-CSRF-Token": csrf}
-    r = c.post("/api/studio/analyze", files={"video": ("resonance.mp4", (EX / "source.mp4").read_bytes(), "video/mp4")},
-               data={"meta": meta(), "captions": (EX / "captions.srt").read_text()}, headers=h)
+    r = c.post("/api/studio/analyze", files={"video": ("resonance.mp4", (EX / "source.mp4").read_bytes(), "video/mp4"),
+                                             "captions": ("captions.srt", CAPS)}, data={"meta": meta()}, headers=h)
     assert r.status_code == 200, r.text
     res = r.json()
     project = json.loads((EX / "project.json").read_text())

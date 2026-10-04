@@ -256,17 +256,6 @@ def cmd_weights(a: argparse.Namespace) -> int:
     return 0
 
 
-def studio_runner(s: Any) -> Any:
-    from .media.sandbox import MediaRunner, TrustManifest
-    from .pipeline import REPO_ROOT
-
-    trust = TrustManifest(s.data_path / "trusted-media.json")
-    for ex in ("demo", "studio"):  # the bundled CC0 examples are ours, so they may run without Docker
-        trust.seed_from_sums(REPO_ROOT / "examples" / ex / "SHA256SUMS")
-    return MediaRunner(image=s.media.image, mode=s.media.runner, trust=trust, memory=s.media.memory, cpus=s.media.cpus,
-                       pids=s.media.pids, timeout_s=s.media.timeout_s)
-
-
 def cmd_studio(a: argparse.Namespace) -> int:
     """Studio from the command line, in two runs:
     1. without takes: finds the best moments and writes them into the project file with a
@@ -275,25 +264,33 @@ def cmd_studio(a: argparse.Namespace) -> int:
     import tempfile
 
     from . import studio
-    from .studio_run import StudioError, analyze_source, make_clip, write_package
+    from .media.sandbox import MediaToolError, SandboxUnavailable
+    from .studio_run import (
+        StudioError,
+        analyze_source,
+        gate_inputs,
+        make_clip,
+        owner_settings,
+        write_package,
+    )
 
     proj_path = Path(a.project)
-    proj = json.loads(proj_path.read_text()) if proj_path.exists() else {}
-    brand = studio.Brand.model_validate(proj.get("brand") or {"channel": "My Channel"})
-    choice = studio.RightsChoice.model_validate(proj.get("rights") or {})
-    s = load_settings(config_path(a.config))
-    settings = studio.studio_settings(brand, monetized=s.channel.monetized)
-    settings.media = s.media
-    runner = studio_runner(s)
-    captions = Path(a.captions).read_text("utf-8", "replace") if a.captions else None
-    base = Path(s.media.jobs_dir) if s.media.runner == "worker" and s.media.jobs_dir else s.data_path / "work"
-    base.mkdir(parents=True, exist_ok=True)
-    work = Path(tempfile.mkdtemp(prefix="studio-", dir=base))
     try:
-        sess = analyze_source(Path(a.video), captions, brand, choice, runner=runner, work=work, settings=settings,
+        proj = json.loads(proj_path.read_text()) if proj_path.exists() else {}
+        brand = studio.Brand.model_validate(proj.get("brand") or {"channel": "My Channel"})
+        choice = studio.RightsChoice.model_validate(proj.get("rights") or {})
+    except ValueError as exc:
+        print(f"refused: {proj_path}: {redact.redact(str(exc))[:600]}", file=sys.stderr)
+        return 1
+    p = _pipeline(a)
+    settings = owner_settings(p.s, brand)
+    captions = Path(a.captions).read_text("utf-8", "replace") if a.captions else None
+    work = Path(tempfile.mkdtemp(prefix="studio-", dir=p.work))
+    try:
+        sess = analyze_source(Path(a.video), captions, brand, choice, runner=p.runner, work=work, settings=settings,
                               progress=lambda m: print(f"  … {m}", file=sys.stderr))
-    except StudioError as exc:
-        print(f"refused: {exc}", file=sys.stderr)
+    except (StudioError, ValueError, SandboxUnavailable, MediaToolError) as exc:
+        print(f"refused: {redact.redact(str(exc))[:800]}", file=sys.stderr)
         return 1
     clips = proj.get("clips") or []
     moments = [{"start": round(c.start, 2), "end": round(c.end, 2)} for c in sess.candidates]
@@ -318,7 +315,12 @@ def cmd_studio(a: argparse.Namespace) -> int:
             continue
         take = studio.Take(text=c["take"], template=c.get("template") or "card", data=c.get("data"))
         print(f"  … rendering clip {n} of {len(clips)}", file=sys.stderr)
-        made.append(make_clip(sess, cand, take, c.get("title", ""), n, runner=runner, work=work, quality=a.quality))
+        try:
+            made.append(make_clip(sess, cand, take, c.get("title", ""), n, runner=p.runner, work=work, quality=a.quality,
+                                  gate=gate_inputs(p)))
+        except (ValueError, SandboxUnavailable, MediaToolError) as exc:
+            print(f"refused: clip {n}: {redact.redact(str(exc))[:800]}", file=sys.stderr)
+            return 1
     out = Path(a.out)
     zpath = write_package(made, brand, out)
     for m in made:

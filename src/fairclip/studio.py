@@ -127,7 +127,7 @@ class Brand(Strict):
     style: Literal["bold", "clean", "minimal"] = "bold"
     aspect: Literal["9:16", "16:9"] = "9:16"
     reframe: Literal["fit", "crop"] = "fit"  # fit: whole frame over a blurred fill (slides); crop: fill the screen
-    topics: list[Annotated[str, Field(max_length=40)]] = Field(default_factory=list, max_length=30)
+    topics: list[Annotated[str, Field(max_length=40, pattern=r"^[^<>,]*$")]] = Field(default_factory=list, max_length=30)
     clips: Annotated[int, Field(ge=1, le=8)] = 3
     min_s: Annotated[float, Field(ge=10, le=120)] = 20
     max_s: Annotated[float, Field(ge=15, le=180)] = 55
@@ -273,7 +273,8 @@ def slug(text: str, limit: int = 48) -> str:
 
 def finish(*, plan: ClipPlan, n: int, tr: Transcript, rms: np.ndarray, rights: RightsRecord, brand: Brand,
            settings: Settings, screen_terms: dict[str, list[str]], clip_sha256: str, history: History | None = None,
-           fingerprint: dict[str, Any] | None = None, llm: Any = None, title: str = "") -> Finished:
+           fingerprint: dict[str, Any] | None = None, llm: Any = None, title: str = "", kill_switch: bool = False,
+           registry: Any = None) -> Finished:
     """After the clip is rendered: metadata (the owner's title if they wrote one), then the full
     compliance gate. Whatever the owner edits is gated exactly like what fair-clip proposed."""
     words, tmap, sents = clip_window(plan, tr, rms)
@@ -286,7 +287,8 @@ def finish(*, plan: ClipPlan, n: int, tr: Transcript, rms: np.ndarray, rights: R
     fp = fingerprint or {"dhash": [], "shingles": text_fingerprint(words)}
     report, body = gate_clip(plan=plan, rights=rights, md=md, summary=summary, words=words, tmap=tmap, settings=settings,
                              media_sha256=rights.source_sha256 or "", clip_sha256=clip_sha256, fingerprint=fp,
-                             history=history or History(), kill_switch=False, screen_terms=screen_terms, extra=extra)
+                             history=history or History(), kill_switch=kill_switch, screen_terms=screen_terms,
+                             registry=registry, extra=extra)
     return Finished(plan, md, report, body, tmap.duration, f"{n:02d}-{slug(md.title)}.mp4", notes)
 
 
@@ -298,6 +300,7 @@ def hashtags(brand: Brand, vertical: bool, clip_text: str = "") -> str:
 
     stems = {stem(t) for t in tokens(clip_text)}
     ranked = sorted(brand.topics, key=lambda t: not (tokens(t) and all(stem(x) in stems for x in tokens(t))))
+    ranked = [t for t in ranked if tokens(t)]
     tags = ["Shorts"] if vertical else []
     for t in ranked:
         tag = re.sub(r"[^0-9A-Za-z]", "", t.title())
@@ -326,15 +329,16 @@ def _polish(md: Metadata, title: str, brand: Brand, plan: ClipPlan, clip_text: s
 def title_problems(title: str, plan: ClipPlan, tr: Transcript, rms: np.ndarray, channel: str) -> list[str]:
     """Live feedback while the owner types a title: the gate's grounding rule, in words. A title
     may only use words and numbers that are SAID in the clip or written in the owner's own take."""
-    from .gate import numbers, ungrounded_words
+    from .gate import numbers, ungrounded_words, without_phrase
 
     words, _tmap, _s = clip_window(plan, tr, rms)
     said = " ".join(w.text for w in words)
     va = " ".join(v.visible_text() for v in plan.value_add)
-    allowed = set(tokens(said)) | set(tokens(va)) | set(tokens(channel))
+    allowed = set(tokens(said)) | set(tokens(va))
     out = []
-    tt = tokens(title)
-    bad = ungrounded_words(title, allowed)
+    bare = without_phrase(title, channel)
+    tt = tokens(bare)
+    bad = ungrounded_words(bare, allowed)
     if tt and (len(tt) - len(bad)) / len(tt) < 0.7:
         out.append("not said in the clip or your take: " + ", ".join(dict.fromkeys(bad)))
     if extra := sorted(numbers(title, skip_years=False) - numbers(said, skip_years=False) - numbers(va, skip_years=False)):

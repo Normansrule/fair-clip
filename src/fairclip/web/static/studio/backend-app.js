@@ -48,7 +48,7 @@ export async function createBackend(status) {
     async analyze({ file, captions, brand, rights, duration }, progress) {
       const fd = new FormData();
       fd.append("video", file, file.name);
-      fd.append("captions", captions || "");
+      if (captions) fd.append("captions", new Blob([captions], { type: "text/plain" }), "captions.srt");
       fd.append("meta", JSON.stringify({ brand, rights, duration }));
       const r = await upload(fd, progress);
       session = r.session;

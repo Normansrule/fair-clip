@@ -126,7 +126,7 @@ def pick_tags(clip_text: str, topics: list[str], k: int = 8) -> list[str]:
 
     toks = tokens(clip_text)
     stems = {stem(t) for t in toks}
-    out: list[str] = [t.lower() for t in topics if t and all(stem(x) in stems for x in tokens(t))]
+    out: list[str] = [t.lower() for t in topics if tokens(t) and all(stem(x) in stems for x in tokens(t))]
     for m in _PROPER.finditer(clip_text):
         parts = m.group(1).split()
         starts_sentence = m.start() == 0 or re.search(r"[.!?…:]\s*$", clip_text[: m.start()]) is not None
@@ -141,7 +141,7 @@ def pick_tags(clip_text: str, topics: list[str], k: int = 8) -> list[str]:
     seen, tags = set(), []
     for t in out:
         key = stem(t.lower())
-        if key not in seen and len(t) <= 30:
+        if key not in seen and len(t) <= 30 and not any(ch in t for ch in "<>,"):
             seen.add(key)
             seen.update(stem(x) for x in t.lower().split())  # "Millennium Bridge" covers "millennium"
             tags.append(t)

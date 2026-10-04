@@ -382,6 +382,8 @@ class Metadata(Strict):
     def _clean_tags(cls, v: list[str]) -> list[str]:
         for t in v:
             no_hidden_chars(t)
+            if any(ch in t for ch in "<>,"):  # YouTube rejects these in tags (invalidTags)
+                raise ValueError("tags can't contain < > or commas")
         return v
 
 
