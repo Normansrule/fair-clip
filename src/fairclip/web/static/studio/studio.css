@@ -55,7 +55,7 @@ input[type=radio], input[type=checkbox] { width: auto; margin: 0 8px 0 0; accent
 .drop.over, .drop:focus-within { border-color: var(--flow); background: var(--flow-soft); }
 .drop.ok { border-style: solid; border-color: var(--pass); }
 .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0; }
-.drop-t { font-weight: 700; } .drop-n { color: var(--muted); font-size: .88rem; word-break: break-all; }
+.drop-t { font-weight: 700; } .drop-n { color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
 .need { font-size: .75rem; color: var(--warn); border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; margin-left: 4px; }
 .need.opt { color: var(--muted); }
 .preview { width: 100%; max-height: 220px; border-radius: 10px; background: #000; }

@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.4.0 (milestone 4: the Studio)
+
+**Added**
+- **Studio: finished clips in three steps**, in the browser or in the app:
+  1. **Your video:** add a video and its captions, say where it's from, and pick a channel name, style and accent colour.
+  2. **Your take:** fair-clip finds the best moments. For each one, write a sentence of your own and, if you like, a title. A text card or a template (key number, definition, steps) carries your take on screen.
+  3. **Download:** get one zip with the clips, a `.txt` per clip, `ALL-TITLES-AND-DESCRIPTIONS.txt`, `upload-sheet.csv` and a README. Each clip also has **Copy title / description / tags** buttons and a YouTube Studio checklist.
+- **Web Studio** on GitHub Pages (`/studio/`). fair-clip's own Python runs in the page (Pyodide) and FFmpeg runs as WebAssembly (ffmpeg.wasm), so the video never leaves your computer.
+  - Engines are pinned, hash-checked (`scripts/vendor_web.py`) and served from the site under a strict Content Security Policy.
+- **App Studio** at `/studio/` on the dashboard (and **Open Studio** on the overview page).
+  - It works without captions when speech-to-text is installed.
+  - Clips are judged by your own gate settings, screen terms, kill switch, history and affiliate registry. Every Studio run is in the audit log.
+- `fair-clip studio VIDEO --captions FILE --project studio.json`: the same flow on the command line, in two runs. The first writes the moments and a question for each into the project file. You add your takes, and the second run renders, gates and packages.
+- **A pro look:**
+  - Captions: three presets (`bold`, `clean`, `minimal`) with Inter fonts (OFL), word-by-word pop captions grouped like a caption editor would group them (never across a sentence or a pause).
+  - Brand and layout: a brand accent colour (rejected if it could be mistaken for the yellow disclosure cards), a hook card that never drops words, context cards and a progress bar.
+  - Edit and sound: punch-in on alternate jump cuts, a light grade, and broadcast audio (high-pass, compressor, −14 LUFS loudness, fades). Encodes come in `high` and `fast` presets.
+- **Captions import:** SRT and WebVTT, including YouTube auto-captions with per-word timings and rolling duplicates. Caption text is treated as untrusted.
+- **The example**, `examples/studio/`:
+  - **Resonance**, a 2-minute 1080p explainer made for this project and dedicated to CC0: animated diagrams (pycairo) and a Kokoro-82M AI narrator. `scripts/make_example.py` rebuilds it.
+  - The owner inputs used for the example clips (`project.json`).
+  - `scripts/export_studio_example.py` produces the example clips, the site cards and the release asset `fair-clip-example-clips.zip`.
+- **Metadata your viewers will see:**
+  - Your take leads the description, followed by "In this clip:".
+  - Hashtags come from your topics, the ones the clip talks about first, plus #Shorts for vertical clips.
+  - Tags are your topics plus names said in the clip.
+  - Your own title is checked live as you type, against the same rule the gate uses.
+- A headless-Chromium end-to-end test of both Studio backends (CI job `studio-e2e`; locally `FAIRCLIP_E2E=1`).
+
+**Changed**
+- Title grounding allows simple inflections ("sways" ↔ "swayed"; bases of 4+ letters only). The channel name no longer counts as "said in the clip".
+- Tags can't contain `<`, `>` or commas (YouTube rejects them).
+- The Pages workflow builds with read-only permissions and deploys in a separate job.
+- Fonts and the site's data files were hidden by a broad `.gitignore` rule; they're tracked now (a test guards it).
+- Image tags are now `0.4.0`: rebuild the sandbox with `make sandbox`.
+
 ## 0.3.0 (milestone 3: the affiliate module; renamed to fair-clip)
 
 **Renamed.** The project is now **fair-clip**:

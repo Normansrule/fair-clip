@@ -55,6 +55,13 @@ export async function createBackend(status) {
     if (!mounted) throw new Error("this browser can't read the file in place; try Chrome, Edge or Firefox");
   }
 
+  async function still(path, t, width) {
+    await run(["-ss", t.toFixed(2), "-i", path, "-frames:v", "1", "-vf", `scale=${width}:-2`, "-q:v", "5", "-y", "/work/still.jpg"]);
+    const img = await ff.readFile("/work/still.jpg");
+    await ff.deleteFile("/work/still.jpg");
+    return URL.createObjectURL(new Blob([img], { type: "image/jpeg" }));
+  }
+
   async function sha256(file, progress) {
     sw.hash_start();
     for (let o = 0; o < file.size; o += CHUNK) {
@@ -78,7 +85,13 @@ export async function createBackend(status) {
       const pcm = await ff.readFile("/work/a.raw");
       await ff.deleteFile("/work/a.raw");
       progress("finding the best moments…");
-      return j(sw.analyze(JSON.stringify({ brand, rights, duration }), captions || "", pcm));
+      const res = j(sw.analyze(JSON.stringify({ brand, rights, duration }), captions || "", pcm));
+      // Stills made by FFmpeg itself, so moments show a picture even where the browser can't play the file.
+      for (const m of res.candidates) {
+        progress(`making previews… ${m.i + 1}/${res.candidates.length}`);
+        try { m.poster = await still(`/in/${file.name}`, (m.start + m.end) / 2, 480); } catch { /* preview only */ }
+      }
+      return res;
     },
     async titleCheck(i, take, title) {
       return j(sw.title_check(i, JSON.stringify(take), title)).problems;
@@ -93,13 +106,15 @@ export async function createBackend(status) {
         onClip(k, 0, "rendering");
         await run(args, (t) => onClip(k, Math.min(0.99, t / p.duration), "rendering"));
         const data = await ff.readFile("/work/clip.mp4");
+        let poster = null;
+        try { poster = await still("/work/clip.mp4", Math.min(3.5, p.duration / 3), 360); } catch { /* preview only */ }
         await ff.deleteFile("/work/clip.mp4");
         const digest = await crypto.subtle.digest("SHA-256", data);
         const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
         const r = j(sw.finish(c.i, c.title || "", hex)).clip;
         const url = r.passed ? URL.createObjectURL(new Blob([data], { type: "video/mp4" })) : null;
         made.push({ i: c.i, filename: r.filename, data: r.passed ? data : null, result: r });
-        onClip(k, 1, r.passed ? "ready" : "blocked", { ...r, url });
+        onClip(k, 1, r.passed ? "ready" : "blocked", { ...r, url, poster });
       }
       const files = j(sw.package(JSON.stringify(made.map((m) => m.i)))).files;
       return files;

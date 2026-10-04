@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prove the media sandbox is isolated. Usage: scripts/sandbox_smoke.sh IMAGE
 set -euo pipefail
-IMG="${1:-fairclip-media:0.3.0}"
+IMG="${1:-fairclip-media:0.4.0}"
 FLAGS=(--rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 512m --user 65534:65534)
 pass() { printf '  \033[32m✓\033[0m %s\n' "$1"; }
 fail() { printf '  \033[31m✕\033[0m %s\n' "$1"; exit 1; }

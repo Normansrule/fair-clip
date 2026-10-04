@@ -121,6 +121,30 @@ The rules are mapped in [POLICY.md](POLICY.md). In short: a value-add minimum, d
 - CSP: `default-src 'self'`, no inline script, `frame-ancestors 'none'`. Jinja2 autoescaping is on, and a test injects `<script>` through the database.
 - Media is served only by SHA-256 and only if a clip references it, so no file paths ever come from the request.
 
+## Studio specifics
+
+**The app Studio** (`/studio/`, `web/studio_api.py`):
+
+- **Access:** it needs the dashboard session, and every POST must carry the CSRF token in `X-CSRF-Token`. Sessions and jobs belong to the user who created them.
+- **Uploads:**
+  - An upload is refused by its declared size before anything is written, and checked again while it streams to disk.
+  - The file name is reduced to `[A-Za-z0-9._-]`.
+  - Each Studio session keeps its upload, its FFmpeg job folders and its zip in one folder, which is deleted as a whole. Each user keeps at most 3 sessions, and sessions expire after 12 h. A session with a running job is never removed.
+- **Media:**
+  - Decoding happens only in the media sandbox.
+  - Without Docker, only the bundled examples, pinned by SHA-256 in `examples/*/SHA256SUMS`, run on the host.
+  - One render runs at a time.
+- **Gate:** every take is validated before any render. The gate uses your own settings, screen terms, kill switch, publishing history (duplicates) and affiliate registry.
+- **Audit:** analyze and make runs are recorded with the rights record, the file hash and the gate results.
+
+**The web Studio** (GitHub Pages, `site/studio/`):
+
+- **Content Security Policy:** `script-src 'self' 'wasm-unsafe-eval'`, plus `blob:` for local media previews. There is no CDN at runtime.
+- **Engines:** Pyodide and ffmpeg.wasm are vendored at build time against pinned SHA-256 hashes (`scripts/vendor_web.py`). Pyodide checks each wheel against its lock file again when it loads it. The Pages build runs with read-only permissions, and a separate job deploys it.
+- **Untrusted text:** caption files and everything typed in are treated as untrusted. They reach the subtitle renderer only through the same escaping as the app, and the page never uses `innerHTML` with data.
+- **Local only:** the video never leaves the tab.
+- **What the gate means here:** in the browser it runs on the user's own machine. It protects against mistakes; it can't enforce anything against the person running it. Publishing through fair-clip still requires the app's approval flow.
+
 ## Reporting a vulnerability
 
 See [SECURITY.md](../SECURITY.md).

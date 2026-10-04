@@ -41,6 +41,7 @@ from ..studio_run import (
     analyze_source,
     gate_inputs,
     make_clip,
+    moment_posters,
     owner_settings,
     package_files,
     write_zip,
@@ -199,8 +200,9 @@ def register(app: FastAPI, *, store: Store, pipeline: Pipeline, settings: Settin
             shutil.rmtree(d, ignore_errors=True)
             shutil.rmtree(work_dir(sid), ignore_errors=True)
             raise
+        posters = await run_in_threadpool(moment_posters, sess, runner=pipeline.runner, work=work_dir(sid))
         with lock:
-            sessions[sid] = {"created": time.time(), "session": sess, "user": s.get("u")}
+            sessions[sid] = {"created": time.time(), "session": sess, "user": s.get("u"), "posters": posters}
         store.audit.append(s.get("u", "?"), "studio_analyze", f"src-{sess.sha[:12]}",
                            {"rights_record": sess.rights.record_id, "basis": sess.rights.basis.value, "sha256": sess.sha,
                             "moments": len(sess.candidates)})
@@ -329,6 +331,22 @@ def register(app: FastAPI, *, store: Store, pipeline: Pipeline, settings: Settin
             return Response(status_code=404)
         m = j["made"][k]
         return FileResponse(m.clip, media_type="video/mp4", filename=m.finished.filename)
+
+    @app.get("/api/studio/session/{sid}/poster/{i}")
+    def studio_moment_poster(request: Request, sid: str, i: int) -> Response:
+        s = session(request)
+        v = owned(sid, s) if s else None
+        posters = v.get("posters", []) if v else []
+        if not 0 <= i < len(posters) or posters[i] is None or not posters[i].exists():
+            return Response(status_code=404)
+        return FileResponse(posters[i], media_type="image/jpeg")
+
+    @app.get("/api/studio/job/{jid}/poster/{k}")
+    def studio_clip_poster(request: Request, jid: str, k: int) -> Response:
+        j = own_job(jid, session(request))
+        if not j or not 0 <= k < len(j["made"]) or not j["made"][k].poster or not j["made"][k].poster.exists():
+            return Response(status_code=404)
+        return FileResponse(j["made"][k].poster, media_type="image/jpeg")
 
     @app.get("/api/studio/job/{jid}/zip")
     def studio_zip(request: Request, jid: str) -> Response:

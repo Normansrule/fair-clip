@@ -3,7 +3,7 @@
 #
 #   Latest release, checksum-verified (the usual way):
 #     curl -fsSL https://raw.githubusercontent.com/Normansrule/fair-clip/main/scripts/install.sh | bash
-#   A specific release:   curl -fsSL .../install.sh | FAIRCLIP_VERSION=v0.3.0 bash
+#   A specific release:   curl -fsSL .../install.sh | FAIRCLIP_VERSION=v0.4.0 bash
 #   From a clone you trust (development):   bash scripts/install.sh --from-checkout
 #   Remove it:            bash ~/.local/share/fair-clip/app/install.sh --uninstall   (keeps your data)
 #

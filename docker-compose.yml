@@ -5,7 +5,7 @@
 services:
   app:
     build: .
-    image: fairclip-app:0.3.0
+    image: fairclip-app:0.4.0
     user: "${APP_UID:-1000}:${APP_GID:-1000}"   # owns ./data on the host
     ports:
       - "127.0.0.1:8765:8765"     # loopback only: nothing on your network can reach it
@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: sandbox/Dockerfile.media
-    image: fairclip-media:0.3.0
+    image: fairclip-media:0.4.0
     network_mode: none            # no network at all, not even DNS
     volumes:
       - ./data/jobs:/data/jobs    # the ONLY thing it can see; same path as in the app

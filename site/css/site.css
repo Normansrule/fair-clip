@@ -86,3 +86,16 @@ pre.cmd code { font: inherit; }
 @media (max-width: 640px) { header.site .wrap { height: auto; padding-block: 8px; row-gap: 4px; } header nav { margin-left: 0; max-width: 100%; overflow-x: auto; white-space: nowrap; gap: 14px; } }
 .toggles label.stack { display: flex; flex-direction: column; gap: 6px; border-bottom: 0; }
 .toggles label.stack textarea, .toggles label.stack input { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; box-sizing: border-box; }
+/* studio + example clips */
+.steps3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.steps3 figcaption { padding: 8px 12px 10px; }
+.clips3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.clipcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.clipcard video { width: 100%; aspect-ratio: 9 / 16; max-height: 560px; background: #000; border-radius: 10px; object-fit: contain; }
+.clipcard h3 { margin: 0; font-size: 1.02rem; line-height: 1.35; }
+.clipcard .take { margin: 0; color: var(--muted); font-size: .92rem; border-left: 3px solid var(--flow); padding-left: 10px; }
+.clipcard pre { white-space: pre-wrap; font: .82rem/1.5 system-ui, sans-serif; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin: 0; max-height: 210px; overflow: auto; }
+.clipcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.clipcard button { font: inherit; font-size: .85rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+.clipcard button.copied { border-color: var(--pass); color: var(--pass); }
+.clipcard ul { margin: 0; padding-left: 18px; font-size: .85rem; color: var(--muted); }

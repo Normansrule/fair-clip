@@ -52,6 +52,7 @@ export async function createBackend(status) {
       fd.append("meta", JSON.stringify({ brand, rights, duration }));
       const r = await upload(fd, progress);
       session = r.session;
+      for (const m of r.candidates) m.poster = `/api/studio/session/${session}/poster/${m.i}`;
       return r;
     },
     async titleCheck(i, take, title) {
@@ -66,7 +67,8 @@ export async function createBackend(status) {
         for (const [k, r] of s.done.entries()) {
           if (!seen.has(k)) {
             seen.add(k);
-            onClip(k, 1, r.passed ? "ready" : "blocked", { ...r, url: r.passed ? `/api/studio/job/${job}/clip/${k}` : null });
+            onClip(k, 1, r.passed ? "ready" : "blocked", { ...r, url: r.passed ? `/api/studio/job/${job}/clip/${k}` : null,
+              poster: r.passed ? `/api/studio/job/${job}/poster/${k}` : null });
           }
         }
         if (s.state === "running" && s.current) onClip(s.current.k, s.current.progress, "rendering");

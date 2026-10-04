@@ -16,13 +16,16 @@
 
 </div>
 
-> **Status: v0.3.0 (milestone 3).** Everything in the MVP (rights intake, captions, the full compliance gate, the approval dashboard, the audit log, dry-run and private uploads), five animated value-add templates, a read-only YouTube Analytics pull, a one-command desktop install, and now the **affiliate module**: a registry of the programs you joined, the products you actually tested and their exact links, an editor on every clip, and **spoken-disclosure detection timed against the transcript**. The markets *gate rules* are live; its editing UI is milestone 4. See [Roadmap](#roadmap).
+> **Status: v0.4.0 (milestone 4: the Studio).** Add a video you have the rights to, write one sentence of your own per moment, and download finished clips with their titles, descriptions and tags ready to paste. It works [in your browser](https://normansrule.github.io/fair-clip/studio/) (nothing uploaded) or in the app. The [example](#the-studio-finished-clips-in-three-steps) goes from a free-to-use video to three clips. Everything from before is still here: the full compliance gate, the approval dashboard, private-first YouTube publishing, the audit log, animated templates, analytics and the affiliate module. See [Roadmap](#roadmap).
 >
-> **Two ways in:** the [web demo](https://normansrule.github.io/fair-clip/) runs in your browser with sample footage, nothing to install · the [app](#install-the-app-ubuntu--wsl2) runs the real pipeline on your own computer.
+> **Three ways in:**
+> - the [web Studio](https://normansrule.github.io/fair-clip/studio/) runs in your browser, nothing to install;
+> - the [app](#install-the-app-ubuntu--wsl2) runs the Studio *and* the full pipeline on your own computer;
+> - the [interactive demo](https://normansrule.github.io/fair-clip/demo.html) shows the gate and the equations.
 
 ## Contents
 
-1. [What you'll see](#what-youll-see)
+1. [What you'll see](#what-youll-see) · [The Studio](#the-studio-finished-clips-in-three-steps)
 2. [Quick start (≈ 5 minutes)](#quick-start--5-minutes) · [Install the app](#install-the-app-ubuntu--wsl2)
 3. [How it works](#how-it-works) · [Affiliate links](#affiliate-links-honestly)
 4. [Walkthrough: your own video](#walkthrough-your-own-video)
@@ -42,6 +45,56 @@
 <img src="assets/before-after.png" alt="Before and after: the raw 16:9 slide frame on the left; on the right the 9:16 clip with an owner-written context card, the full slide over a blurred fill, word-by-word captions, a lower third and the attribution line, each labelled." width="100%">
 
 *Figure 1. The value-add rule in one picture: the clip carries original context, not just the source.*
+
+## The Studio: finished clips in three steps
+
+| 1 · Your video | 2 · Your take | 3 · Download |
+|---|---|---|
+| <img src="assets/studio-step1.png" alt="Studio step 1: a video and its captions dropped in, the rights question answered (Creative Commons, CC0, with a credit line), and the synthetic-content box ticked." width="100%"> | <img src="assets/studio-step2.png" alt="Studio step 2: a moment with its still, the opening quote, a question, the owner's one-sentence take and a title." width="100%"> | <img src="assets/studio-step3.png" alt="Studio step 3: three clips ready, with Download all, Copy title, Copy description, Copy tags and the YouTube Studio checklist." width="100%"> |
+| Video + captions, where it's from, your look | One sentence of your own per moment (+ optional title, checked as you type) | One zip: clips + every title, description and tag |
+
+**The example.** The source is [*Resonance*](examples/studio), a 2-minute explainer made for this project and dedicated to CC0 (animated diagrams, AI narrator). The owner inputs are in [`project.json`](examples/studio/project.json): a channel name, an accent colour, and one sentence and a title per moment. Below is one frame from each of the three clips the Studio made from it. Download them all, with their texts, as [fair-clip-example-clips.zip](https://github.com/Normansrule/fair-clip/releases/latest/download/fair-clip-example-clips.zip).
+
+<img src="assets/studio-example-clips.png" alt="Three finished vertical clips: a context card about the Millennium Bridge over the diagram with pop captions; a 'Natural frequency' definition card over a swing animation; a '37 dampers' key-number card over the damper diagram. Each has the source credit at the bottom." width="100%">
+
+What you get for each clip (from `ALL-TITLES-AND-DESCRIPTIONS.txt`):
+
+```text
+TITLE
+Why London's Millennium Bridge closed after two days
+
+DESCRIPTION
+This video contains altered or synthetic content (disclosed to YouTube).
+
+No single walker could move a 325-metre steel bridge. The danger was feedback: the more it swayed, the more people stepped in time with it.
+
+In this clip: In June 2000, London opened the Millennium Bridge, and on opening day it began to sway sideways under the crowds. When we walk, our bodies rock slightly from side to side, about once a second.
+
+Clip from: Resonance (fair-clip example video)
+
+Source: "Resonance" example video by fair-clip contributors, CC0-1.0 https://creativecommons.org/publicdomain/zero/1.0/ (edited: clipped, reframed, captioned)
+
+#Shorts #Bridge #Resonance
+
+TAGS
+bridge, London, Millennium Bridge, sway, crowds, walk, bodies, rock
+
+YOUTUBE STUDIO CHECKLIST
+[ ] Altered or synthetic content: YES (this clip contains realistic altered or synthetic media)
+[ ] Made for kids: No
+[ ] Paid promotion: No
+[ ] Visibility: upload as Private first, watch it once on your phone, then publish.
+```
+
+Command-line version, two runs: the first writes the moments and a question for each into the project file, the second makes the clips.
+
+```bash
+fair-clip studio talk.mp4 --captions talk.srt --project talk-studio.json            # writes the moments
+# ...write a "take" (and optionally a "title") for each moment in talk-studio.json...
+fair-clip studio talk.mp4 --captions talk.srt --project talk-studio.json --out clips # makes the clips
+```
+
+The whole guide, including how the web version works and what differs from the app: [docs/STUDIO.md](docs/STUDIO.md).
 
 ## Quick start (≈ 5 minutes)
 
@@ -261,6 +314,10 @@ Prefer containers? `make compose-init && make compose-up` runs the dashboard in 
 ```text
 fair-clip/
 ├── src/fairclip/
+│   ├── studio.py          # the Studio core, shared by the app and the browser build
+│   ├── studio_run.py      # Studio on the app side (sandboxed FFmpeg)
+│   ├── studio_web.py      # JSON bridge the browser Studio calls (runs in Pyodide)
+│   ├── captions.py        # SRT / WebVTT import (incl. YouTube per-word timings)
 │   ├── models.py          # strict schemas for every stage (unknown fields = reject)
 │   ├── rights.py          # stage 1: rights records (hard stop)
 │   ├── transcribe.py      # stage 2: sidecar or faster-whisper (fed PCM from the sandbox)
@@ -272,6 +329,7 @@ fair-clip/
 │   │   ├── analyze.py     # audio energy, scene cuts, motion centroid, frame hashes
 │   │   ├── timeline.py    # jump cuts and the source→clip time map
 │   │   ├── overlay.py     # captions, hook, cards, disclosures (escaped ASS)
+│   │   ├── style.py       # look presets: pop captions, hook card, context cards, progress bar
 │   │   ├── templates.py   # animated value-add templates (key number, steps, compare, bar...)
 │   │   └── edit.py        # stage 4: the FFmpeg filter graph
 │   ├── metadata.py        # stage 6: grounded title/description/chapters
@@ -285,13 +343,15 @@ fair-clip/
 │   ├── data/              # bundled fonts and the default screen-terms list
 │   ├── audit.py           # append-only hash-chained log
 │   ├── vault.py · redact.py
-│   └── web/               # dashboard (FastAPI + Jinja2, no inline JS) + app manifest/icons
-├── tests/                 # 280+ tests: every gate reason, security, equations, templates, affiliate, end-to-end
-├── scripts/               # install.sh (the app), demo, asset/template renderers, sandbox smoke test
+│   └── web/               # dashboard (FastAPI + Jinja2, no inline JS), Studio page + API, app manifest/icons
+├── tests/                 # 360+ tests: every gate reason, security, equations, templates, affiliate, Studio, end-to-end
+│   └── e2e/               # headless-Chromium Studio runs, both backends (FAIRCLIP_E2E=1)
+├── scripts/               # install.sh (the app), demo, Studio build + engine vendoring, example generator, renderers
 ├── examples/demo/         # CC0 sample talk, transcript, rights record, plan
+├── examples/studio/       # "Resonance": CC0 1080p explainer, captions, rights, the example owner inputs
 ├── assets/                # generated visuals (sources: scripts/ + assets/src/)
-├── docs/                  # POLICY, SECURITY_MODEL, EQUATIONS, TEMPLATES, AFFILIATE, STYLE, SETUP_YOUTUBE, REFERENCES
-├── site/                  # GitHub Pages: overview + interactive demo
+├── docs/                  # STUDIO, POLICY, SECURITY_MODEL, EQUATIONS, TEMPLATES, AFFILIATE, STYLE, SETUP_YOUTUBE, REFERENCES
+├── site/                  # GitHub Pages: overview, example clips, interactive demo (+ studio/, built in CI)
 ├── sandbox/Dockerfile.media · Dockerfile · docker-compose.yml
 └── .github/               # CI, CodeQL, Scorecard, Pages, links, release, Dependabot
 ```
@@ -353,8 +413,13 @@ All sources are primary and verified: [docs/REFERENCES.md](docs/REFERENCES.md). 
 1. ✅ **MVP:** own and licensed content, dry-run and private uploads, rights intake, captions, compliance gate, approval UI, audit log.
 2. ✅ **Value-add templates** (five animated explainers), **YouTube Analytics pull** (read-only scope, separate token), **weight proposals from live data**, one-command app install.
 3. ✅ **Affiliate module:** a registry of programs (terms, review dates, link prefixes, required wording), evaluated products and exact links; a per-clip editor that re-renders; spoken-disclosure detection timed against the transcript.
-4. Markets module UI: data-source connectors with timestamps, mandatory review flow.
-5. Hardening: ✅ first independent review fixed (link obfuscation, hidden characters, in-video paid disclosure, upload race, audit-chain concurrency; see [CHANGELOG](CHANGELOG.md)); next, fuzzing of media inputs and prompt injection.
+4. ✅ **Studio:**
+   - three steps to finished clips, in the browser (Pyodide + ffmpeg.wasm, nothing uploaded) or in the app;
+   - the pro look (pop captions, hook card, punch-ins, broadcast audio);
+   - captions import, and copy-paste titles, descriptions and tags;
+   - a CC0 example from source to finished clips.
+5. Markets module UI: data-source connectors with timestamps, mandatory review flow.
+6. Hardening: ✅ independent reviews fixed (link obfuscation, hidden characters, in-video paid disclosure, upload race, audit-chain concurrency; see [CHANGELOG](CHANGELOG.md)); next, fuzzing of media inputs and prompt injection.
 
 ## Contributing, license, credits
 

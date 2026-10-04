@@ -120,6 +120,21 @@ def analyze_source(media: Path, captions: str | None, brand: studio.Brand, choic
     return Session(media, sha, rec, tr, audio.rms_db, cuts, brand, cands, settings, [studio.suggest_take(c) for c in cands])
 
 
+def moment_posters(s: Session, *, runner: MediaRunner, work: Path) -> list[Path | None]:
+    """A still from the middle of each moment (step 2 shows them; any browser can display a JPEG)."""
+    out: list[Path | None] = []
+    for c in s.candidates:
+        in_dir, out_dir, (src,) = analyze.job_dirs(work, [s.media])
+        try:
+            runner.run("ffmpeg", ["-protocol_whitelist", "file", "-ss", f"{(c.start + c.end) / 2:.2f}", "-i", f"@in/{src.name}",
+                                  "-frames:v", "1", "-vf", "scale=480:-2", "-q:v", "5", "-y", "@out/still.jpg"],
+                       in_dir=in_dir, out_dir=out_dir, inputs=[src])
+            out.append(out_dir / "still.jpg")
+        except Exception:  # noqa: BLE001 - a preview is optional
+            out.append(None)
+    return out
+
+
 def _transcribe(runner: MediaRunner, media: Path, work: Path) -> Transcript:
     from .transcribe import whisper_transcribe
 
@@ -130,7 +145,7 @@ def _transcribe(runner: MediaRunner, media: Path, work: Path) -> Transcript:
         return whisper_transcribe(np.fromfile(out_dir / "a.raw", dtype="<i2"))
     except ImportError as exc:
         raise StudioError("no captions file, and speech-to-text isn't installed: add an .srt/.vtt "
-                          "(YouTube Studio → Subtitles → Download) or install with `pip install fair-clip[asr]`") from exc
+                          "(YouTube Studio → Subtitles → Download) or install speech-to-text: `pip install '.[asr]'` in a source checkout") from exc
 
 
 def make_clip(s: Session, cand: Candidate, take: studio.Take, title: str, n: int, *, runner: MediaRunner, work: Path,
@@ -194,4 +209,4 @@ def write_zip(made: list[Made], brand: studio.Brand, dest: Path) -> Path:
     return dest
 
 
-__all__ = ["GateInputs", "Made", "Session", "gate_inputs", "owner_settings", "StudioError", "analyze_source", "make_clip", "package_files", "write_package", "write_zip"]
+__all__ = ["GateInputs", "Made", "Session", "gate_inputs", "moment_posters", "owner_settings", "StudioError", "analyze_source", "make_clip", "package_files", "write_package", "write_zip"]

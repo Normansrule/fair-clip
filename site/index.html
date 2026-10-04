@@ -8,11 +8,12 @@
 <title>fair-clip · security-first AI clipping</title>
 <meta name="description" content="Open-source pipeline that turns rights-cleared long videos into value-adding short clips, with a blocking compliance gate and human approval before YouTube.">
 <link rel="stylesheet" href="css/site.css">
+<script src="js/studio-example.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="wrap">
   <a class="brand" href="./"><span>◈</span> fair-clip</a>
-  <nav><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#affiliate">Affiliate</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
+  <nav><a href="studio/"><b>Studio</b></a><a href="#example">Example clips</a><a href="demo.html">Interactive demo</a><a href="#templates">Templates</a><a href="#affiliate">Affiliate</a><a href="#gate">Gate</a><a href="#security">Security</a><a href="#get">Get the app</a><a href="https://github.com/Normansrule/fair-clip">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
@@ -20,8 +21,26 @@
     <div class="motto">Automate the labor, never the judgment</div>
     <h1>Short clips that add something real, and never go out without a person saying yes.</h1>
     <p class="lede">fair-clip turns long videos you have the <strong>rights</strong> to into captioned vertical clips with your own commentary. Every clip passes a <strong>blocking compliance gate</strong> and <strong>human approval</strong> before it reaches YouTube. Self-hosted, dry-run by default, one narrow OAuth scope.</p>
-    <div class="cta"><a class="btn primary" href="demo.html">Try the interactive demo →</a><a class="btn" href="#get">Get the app</a></div>
+    <div class="cta"><a class="btn primary" href="studio/">Open the Studio →</a><a class="btn" href="#example">See example clips</a><a class="btn" href="#get">Get the app</a></div>
     <figure class="frame"><img src="assets/hero.gif" alt="Animated tour: a long sample video with a rights record goes in, highlights are ranked, a vertical clip with captions and an owner-written context card is rendered, the gate checks pass, a person approves, and the upload is scheduled as private with a publish time." width="960" height="540"></figure>
+  </section>
+
+  <section id="studio">
+    <h2>Studio: finished clips in three steps</h2>
+    <p class="sub"><b>1.</b> Add a video you have the rights to and its captions. <b>2.</b> fair-clip finds the best moments; write a sentence of your own for each (and a title if you like). <b>3.</b> Download the clips as one zip, with every title, description and tag ready to copy and paste. The <a href="studio/">web Studio</a> runs entirely in your browser tab (your video is never uploaded); the <a href="#get">app</a> does the same on your computer with the media sandbox.</p>
+    <div class="steps3">
+      <figure class="frame"><img src="assets/studio-step1.png" alt="Studio step 1: drop a video and its captions, say where the video is from, and choose your channel name, style and accent colour." width="1280" height="860" loading="lazy"><figcaption><b>1 · Your video</b>: rights first, then your look</figcaption></figure>
+      <figure class="frame"><img src="assets/studio-step2.png" alt="Studio step 2: each moment with a still, the quote it opens on, a question to answer, a box for your take and an optional title." width="1280" height="860" loading="lazy"><figcaption><b>2 · Your take</b>: one sentence per moment, in your words</figcaption></figure>
+      <figure class="frame"><img src="assets/studio-step3.png" alt="Studio step 3: finished clips with Copy title, Copy description and Copy tags buttons, the YouTube Studio checklist, and Download all." width="1280" height="860" loading="lazy"><figcaption><b>3 · Download</b>: videos + copy-paste texts</figcaption></figure>
+    </div>
+    <div class="cta spaced"><a class="btn primary" href="studio/">Open the Studio →</a><span class="note">Chrome, Edge or Firefox on a computer. First load fetches ~50 MB (Python and FFmpeg for your browser), then it's cached.</span></div>
+  </section>
+
+  <section id="example">
+    <h2>Example: from a free-to-use video to three finished clips</h2>
+    <p class="sub">The source is <a href="studio/example/source.mp4">“Resonance”</a>, a 2-minute explainer made for this project and dedicated to the public domain (CC0): animated diagrams and an AI narrator, so every clip carries YouTube's altered-or-synthetic disclosure. The owner inputs are a channel name, an accent colour, and for each moment one sentence and a title (<a href="https://github.com/Normansrule/fair-clip/blob/main/examples/studio/project.json">project.json</a>). Everything else below is what the Studio produced.</p>
+    <div id="example-clips" class="clips3"><p class="note">Loading the example…</p></div>
+    <p class="note spaced">Get all three as one download: <a href="https://github.com/Normansrule/fair-clip/releases/latest/download/fair-clip-example-clips.zip">fair-clip-example-clips.zip</a> (videos, ALL-TITLES-AND-DESCRIPTIONS.txt, upload-sheet.csv, README).</p>
   </section>
 
   <section>
@@ -84,7 +103,7 @@
   </section>
   <section id="get">
     <h2>Get the app</h2>
-    <p class="sub">fair-clip runs on your own computer. There is no hosted service and no account with us. Three ways in, all dry-run until you switch publishing on.</p>
+    <p class="sub">fair-clip runs on your own computer. There is no hosted service and no account with us. Three ways in, all dry-run until you switch publishing on. Each includes the Studio (Open Studio on the dashboard).</p>
     <div class="grid3">
       <div class="card"><h3>Desktop app (Ubuntu / WSL2)</h3><p>One command installs a checksum-verified release into your home folder and adds fair-clip to your apps menu (the Windows Start menu on WSL2).</p>
         <pre class="cmd"><code>curl -fsSL https://raw.githubusercontent.com/Normansrule/fair-clip/main/scripts/install.sh | bash

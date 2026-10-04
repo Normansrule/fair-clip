@@ -62,7 +62,7 @@ class MediaConfig(_S):
     # auto:   docker if the image exists; otherwise only the pinned trusted demo files may run on the host
     runner: Literal["docker", "auto", "worker"] = "auto"
     jobs_dir: str = ""  # worker mode: the shared volume path (same path in both containers)
-    image: str = "fairclip-media:0.3.0"
+    image: str = "fairclip-media:0.4.0"
     memory: str = "2g"
     cpus: str = "2"
     pids: Annotated[int, Field(ge=32, le=4096)] = 256

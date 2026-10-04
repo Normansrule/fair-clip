@@ -56,7 +56,7 @@ function setVideo(file) {
   const v = $("#preview");
   v.src = state.objectURL; v.hidden = false;
   v.onloadedmetadata = () => { state.duration = v.duration; $("#video-name").textContent = `${file.name} · ${fmt(v.duration)} · ${v.videoWidth}×${v.videoHeight}`; };
-  v.onerror = () => { $("#video-name").textContent = `${file.name} (this browser can't preview it; it may still work)`; };
+  v.onerror = () => { v.hidden = true; $("#video-name").textContent = `${file.name} · ${(file.size / 1e6).toFixed(1)} MB · ready (no preview in this browser; that's fine)`; };
   $("#video-name").textContent = file.name;
   $("#drop-video").classList.add("ok");
   if (!$("#r-title").value) $("#r-title").value = file.name.replace(/\.[^.]+$/, "").slice(0, 200);
@@ -198,6 +198,7 @@ function renderMoments(res) {
     card.dataset.i = m.i;
     const v = $(".m-video", card);
     v.src = `${state.objectURL}#t=${m.start},${m.end}`;
+    if (m.poster) v.poster = m.poster;
     v.addEventListener("timeupdate", () => { if (v.currentTime >= m.end) v.pause(); });
     $(".m-time", card).textContent = `${fmt(m.start)}–${fmt(m.end)} · ${Math.round(m.end - m.start)} s of source`;
     $(".m-h", card).textContent = `Moment ${m.i + 1}`;
@@ -308,6 +309,7 @@ function fillResult(el, r) {
   for (const b of r.blocks) bl.append(Object.assign(document.createElement("li"), { textContent: `${b.message}${b.fix ? ` (fix: ${b.fix})` : ""}` }));
   if (r.passed && r.url) {
     const v = $(".r-video", el); v.src = r.url; v.hidden = false;
+    if (r.poster) v.poster = r.poster;
     v.onloadedmetadata = () => v.classList.toggle("wide", v.videoWidth > v.videoHeight);
     const a = $(".r-dl", el); a.href = r.url; a.download = r.filename; a.hidden = false;
   }
