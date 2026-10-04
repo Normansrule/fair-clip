@@ -143,8 +143,11 @@ def test_ass_contains_disclosures_captions_and_attribution():
                                     "affiliate": {"start_card": [0.2, 3.0], "recommendation_cards": [[5, 7]]}})
     words = [W("hello", 0.5, 0.9), W("world", 1.0, 1.4)]
     ass = build_ass(plan, words, TimelineMap(keep_intervals(words, 0, 10, 5.0)), hook_text="hi", channel="Ch", attribution="Source: X (CC-BY-4.0)")
-    assert ass.count(",Disclose,") == 2 and ass.count(",Caption,") == 2
+    assert ass.count(",Disclose,") == 2 and ass.count(",PCaption,") == 2  # default "bold" preset
     assert "Source: X (CC-BY-4.0)" in ass and "MY TAKE" in ass
+    clean = build_ass(plan.model_copy(update={"style": "clean"}), words, TimelineMap(keep_intervals(words, 0, 10, 5.0)),
+                      hook_text="hi", channel="Ch", attribution="Source: X (CC-BY-4.0)")
+    assert clean.count(",Caption,") == 2 and "PCaption" not in clean  # the original look is still there
 
 
 # ------------------------------------------------------------------------------------ vault + redaction

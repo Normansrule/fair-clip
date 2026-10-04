@@ -338,11 +338,20 @@ class ClipPlan(Strict):
     made_for_kids: bool = False
     synthetic_or_altered: bool = False  # e.g. an AI voice-over or a realistic generated graphic
     lower_third: ShortText = ""
+    # The look (media/style.py): caption preset, brand accent, punch-in on jump cuts, progress bar.
+    style: Literal["bold", "clean", "minimal"] = "bold"
+    accent: Annotated[str, Field(pattern=r"^#[0-9A-Fa-f]{6}$")] = "#3DDC97"
+    punch_in: bool = True
+    progress_bar: bool = True
 
     @model_validator(mode="after")
     def _window(self) -> ClipPlan:
         if not (5.0 <= self.end - self.start <= 180.0):
             raise ValueError("clip length must be 5-180 s (Shorts cap is 3 minutes)")
+        from .media.style import accent_problem
+
+        if problem := accent_problem(self.accent):
+            raise ValueError(problem)
         return self
 
 

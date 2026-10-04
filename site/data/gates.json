@@ -1,0 +1,199 @@
+{
+ "clip-0109-635006": {
+  "passed": true,
+  "results": [
+   {
+    "code": "OK",
+    "check": "Safety",
+    "severity": "pass",
+    "message": "kill switch off"
+   },
+   {
+    "code": "OK",
+    "check": "Rights",
+    "severity": "pass",
+    "message": "rights record demo-bridge-talk-cc0 (creative_commons) covers this use"
+   },
+   {
+    "code": "OK",
+    "check": "Value-add",
+    "severity": "pass",
+    "message": "2 element(s), 71% coverage, 36 words, 0% copied"
+   },
+   {
+    "code": "OK",
+    "check": "Disclosures",
+    "severity": "pass",
+    "message": "upload flags consistent (synthetic=True, kids=False, paid=False)"
+   },
+   {
+    "code": "OK",
+    "check": "Links",
+    "severity": "pass",
+    "message": "1 link(s), all allowlisted"
+   },
+   {
+    "code": "OK",
+    "check": "Metadata",
+    "severity": "pass",
+    "message": "title 84 chars, 100% grounded; description 690 bytes"
+   },
+   {
+    "code": "OK",
+    "check": "Uniqueness",
+    "severity": "pass",
+    "message": "not a duplicate; 0/3 today"
+   },
+   {
+    "code": "OK",
+    "check": "Screen",
+    "severity": "pass",
+    "message": "no screened terms"
+   },
+   {
+    "code": "OK",
+    "check": "Untrusted input",
+    "severity": "pass",
+    "message": "no instruction-like text or spoken links in the transcript"
+   }
+  ],
+  "title": "So what actually threatens a bridge like this? Usually it is not weight. It is wind.",
+  "plan_tags": []
+ },
+ "clip-0043-488e58": {
+  "passed": false,
+  "results": [
+   {
+    "code": "OK",
+    "check": "Safety",
+    "severity": "pass",
+    "message": "kill switch off"
+   },
+   {
+    "code": "OK",
+    "check": "Rights",
+    "severity": "pass",
+    "message": "rights record demo-bridge-talk-cc0 (creative_commons) covers this use"
+   },
+   {
+    "code": "VALUE_ADD_MISSING",
+    "check": "Value-add",
+    "severity": "block",
+    "message": "No original value-add \u2014 fix: Add commentary, a context card, a graphic or analysis."
+   },
+   {
+    "code": "OK",
+    "check": "Disclosures",
+    "severity": "pass",
+    "message": "upload flags consistent (synthetic=True, kids=False, paid=False)"
+   },
+   {
+    "code": "OK",
+    "check": "Links",
+    "severity": "pass",
+    "message": "1 link(s), all allowlisted"
+   },
+   {
+    "code": "OK",
+    "check": "Metadata",
+    "severity": "pass",
+    "message": "title 88 chars, 100% grounded; description 429 bytes"
+   },
+   {
+    "code": "OK",
+    "check": "Uniqueness",
+    "severity": "pass",
+    "message": "not a duplicate; 0/3 today"
+   },
+   {
+    "code": "OK",
+    "check": "Screen",
+    "severity": "pass",
+    "message": "no screened terms"
+   },
+   {
+    "code": "OK",
+    "check": "Untrusted input",
+    "severity": "pass",
+    "message": "no instruction-like text or spoken links in the transcript"
+   }
+  ],
+  "title": "The cables pull down on the top of each tower, so the tower is squeezed, in compression.",
+  "plan_tags": []
+ },
+ "clip-0082-c53956": {
+  "passed": true,
+  "results": [
+   {
+    "code": "OK",
+    "check": "Safety",
+    "severity": "pass",
+    "message": "kill switch off"
+   },
+   {
+    "code": "OK",
+    "check": "Rights",
+    "severity": "pass",
+    "message": "rights record demo-bridge-talk-cc0 (creative_commons) covers this use"
+   },
+   {
+    "code": "OK",
+    "check": "Value-add",
+    "severity": "pass",
+    "message": "1 element(s), 50% coverage, 19 words, 0% copied"
+   },
+   {
+    "code": "OK",
+    "check": "Disclosures",
+    "severity": "pass",
+    "message": "upload flags consistent (synthetic=True, kids=False, paid=False)"
+   },
+   {
+    "code": "AFFILIATE_SINGLE_CHANNEL",
+    "check": "Affiliate",
+    "severity": "warn",
+    "message": "Disclosure only audio or only on-screen \u2014 fix: FTC: both audio and video is more likely clear."
+   },
+   {
+    "code": "OK",
+    "check": "Affiliate",
+    "severity": "pass",
+    "message": "disclosures present at start, near recommendations and above the first link"
+   },
+   {
+    "code": "OK",
+    "check": "Links",
+    "severity": "pass",
+    "message": "2 link(s), all allowlisted"
+   },
+   {
+    "code": "OK",
+    "check": "Metadata",
+    "severity": "pass",
+    "message": "title 87 chars, 100% grounded; description 638 bytes"
+   },
+   {
+    "code": "OK",
+    "check": "Uniqueness",
+    "severity": "pass",
+    "message": "not a duplicate; 0/3 today"
+   },
+   {
+    "code": "OK",
+    "check": "Screen",
+    "severity": "pass",
+    "message": "no screened terms"
+   },
+   {
+    "code": "OK",
+    "check": "Untrusted input",
+    "severity": "pass",
+    "message": "no instruction-like text or spoken links in the transcript"
+   }
+  ],
+  "title": "So the weight of the truck travels from deck, to suspenders, to cables, to towers, and\u2026",
+  "plan_tags": [
+   "affiliate"
+  ]
+ }
+}

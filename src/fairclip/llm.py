@@ -25,7 +25,6 @@ import secrets
 from typing import Protocol
 from urllib.parse import urlsplit
 
-import httpx
 from pydantic import ValidationError
 
 from .models import Metadata
@@ -92,6 +91,8 @@ class OpenAICompatibleAdapter:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
+        import httpx  # only when a model endpoint is actually configured
+
         r = httpx.post(
             f"{self.base_url}/chat/completions",
             headers=headers,

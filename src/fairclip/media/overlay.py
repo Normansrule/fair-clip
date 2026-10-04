@@ -11,6 +11,7 @@ import textwrap
 from dataclasses import dataclass
 
 from ..models import ClipPlan, TemplateKind, ValueAddKind, Word
+from . import style as sty
 from . import templates as tpl
 from .timeline import TimelineMap
 
@@ -137,11 +138,24 @@ def paid_disclosure_text(plan: ClipPlan) -> str:
 def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text: str,
               channel: str, attribution: str) -> str:
     L = VERTICAL if plan.aspect == "9:16" else HORIZONTAL
-    wrapw = 30 if plan.aspect == "9:16" else 60
+    vertical = plan.aspect == "9:16"
+    wrapw = 30 if vertical else 60
     D = tmap.duration
-    lines = [header(L)]
+    preset = sty.PRESETS[plan.style]
+    legacy = plan.style == "clean"
+    head = header(L)
+    if not legacy:  # preset styles are added to the same [V4+ Styles] block
+        head = head.replace("\n\n[Events]", "\n" + "\n".join(sty.styles(preset, vertical, plan.accent)) + "\n\n[Events]", 1)
+    if not legacy:
+        head = head.replace(f"Style: Tpl,{tpl.TEMPLATE_FONT},", "Style: Tpl,Inter,", 1)
+    lines = [head]
     if plan.hook_seconds > 0 and hook_text:
-        lines.append(ev(3, 0, plan.hook_seconds, "Hook", wrap(hook_text, 24 if plan.aspect == "9:16" else 44), pos=(L.w // 2, L.hook_y)))
+        if legacy:
+            lines.append(ev(3, 0, plan.hook_seconds, "Hook", wrap(hook_text, 24 if vertical else 44), pos=(L.w // 2, L.hook_y)))
+        else:
+            lines.extend(sty.hook_events(preset, hook_text, plan.hook_seconds, vertical, L.w))
+    if plan.progress_bar and not legacy:
+        lines.extend(sty.progress_events(D, L.w, plan.accent))
     for va in plan.value_add:
         a, b = min(va.start, D), min(va.end, D)
         if b <= a:
@@ -149,11 +163,17 @@ def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text
         if va.template is not TemplateKind.CARD:
             lines.extend(tpl.template_events(va, plan.aspect, D, LABELS[va.kind], count_up=plan.markets is None))
             continue
+        if not legacy:
+            lines.extend(sty.card_events(preset, LABELS[va.kind], va.text, a, b, vertical, plan.accent, L.w))
+            continue
         lines.append(ev(2, a, b, "CardLabel", LABELS[va.kind], pos=(L.w // 2, L.card_y)))
         lines.append(ev(2, a, b, "Card", wrap(va.text, wrapw), pos=(L.w // 2, L.card_y + int(L.font_card * 1.55))))
     if plan.lower_third or channel:
-        lines.append(ev(2, min(plan.hook_seconds, D), min(plan.hook_seconds + 4.0, D), "Lower",
-                        escape(plan.lower_third or channel), pos=(50, L.h - 240 if plan.aspect == "9:16" else L.h - 60)))
+        a, b = min(plan.hook_seconds, D), min(plan.hook_seconds + 4.0, D)
+        if legacy:
+            lines.append(ev(2, a, b, "Lower", escape(plan.lower_third or channel), pos=(50, L.h - 240 if vertical else L.h - 60)))
+        else:
+            lines.extend(sty.pill_events(preset, plan.lower_third or channel, a, b, vertical, plan.accent))
     if attribution:
         lines.append(ev(0, 0, D, "Fine", escape(attribution), pos=(L.w // 2, L.h - 40), fade=False))
     if plan.affiliate:
@@ -172,5 +192,13 @@ def build_ass(plan: ClipPlan, words: list[Word], tmap: TimelineMap, *, hook_text
         if m.data_points:
             src = "; ".join(f"{d.label}: {d.value} ({d.source_name}, {d.retrieved_at:%Y-%m-%d %H:%M} UTC)" for d in m.data_points[:4])
             lines.append(ev(2, max(0.0, D - 5.0), D, "Card", wrap("Sources: " + src, wrapw), pos=(L.w // 2, L.card_y)))
-    lines.extend(caption_events(words, tmap, L))
+    if legacy:
+        lines.extend(caption_events(words, tmap, L))
+    else:
+        mapped = []
+        for w in words:
+            a, b = tmap.to_clip(w.start), tmap.to_clip(w.end)
+            if a is not None and b is not None:
+                mapped.append((escape(w.text), a, max(b, a + 0.08)))
+        lines.extend(sty.caption_events(preset, mapped, vertical, plan.accent, L.w))
     return "\n".join(lines) + "\n"

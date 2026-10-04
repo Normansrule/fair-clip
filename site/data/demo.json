@@ -1,0 +1,209 @@
+{
+ "source_id": "src-5348585bf807",
+ "probe": {
+  "duration": 125.76,
+  "width": 1280,
+  "height": 720,
+  "fps": 25.0,
+  "vcodec": "h264",
+  "acodec": "aac",
+  "container": "isobmff"
+ },
+ "weights": {
+  "energy": 0.25,
+  "relevance": 0.35,
+  "rate": 0.15,
+  "scene": 0.1,
+  "silence": 0.15
+ },
+ "candidates": [
+  {
+   "candidate_id": "src-5348585bf807-c0109",
+   "source_id": "src-5348585bf807",
+   "start": 80.874,
+   "end": 105.784,
+   "text": "So what actually threatens a bridge like this? Usually it is not weight. It is wind. In 1940, the Tacoma Narrows Bridge twisted itself apart in a steady wind, only months after it opened. Its deck was thin and flexible, so the wind made it flutter, and each twist made the next one bigger. Modern decks are deeper and stiffer, and engineers test scale models in wind tunnels before anything is built.",
+   "features": {
+    "audio_energy_db": -33.64970319086381,
+    "speech_rate_wps": 2.890405459654756,
+    "relevance": 0.33218191941495984,
+    "scene_density": 0.0,
+    "silence_ratio": 0.13253012048192772
+   },
+   "z": {
+    "energy": 3.0,
+    "relevance": 0.33218191941495984,
+    "rate": 1.9564319960920156,
+    "scene": 0.0,
+    "silence": 0.13253012048192772
+   },
+   "score": 1.1398489531367493,
+   "rank": 1
+  },
+  {
+   "candidate_id": "src-5348585bf807-c0043",
+   "source_id": "src-5348585bf807",
+   "start": 26.693,
+   "end": 50.494,
+   "text": "And those main cables are in pure tension, like a rope in a game of tug of war. Steel is incredibly good at tension, which is exactly why engineers chose it. Now the main cables drape over the towers. Here is the surprising part: the towers are not holding the bridge sideways at all. The cables pull down on the top of each tower, so the tower is squeezed, in compression.",
+   "features": {
+    "audio_energy_db": -37.78156512752925,
+    "speech_rate_wps": 2.9830679383219194,
+    "relevance": 0.2683281572999747,
+    "scene_density": 0.0,
+    "silence_ratio": 0.18487394957983194
+   },
+   "z": {
+    "energy": 1.1823222654658854,
+    "relevance": 0.2683281572999747,
+    "rate": 2.8857083416686513,
+    "scene": 0.0,
+    "silence": 0.18487394957983194
+   },
+   "score": 0.7946205802347853,
+   "rank": 2
+  },
+  {
+   "candidate_id": "src-5348585bf807-c0082",
+   "source_id": "src-5348585bf807",
+   "start": 58.358,
+   "end": 79.707,
+   "text": "But the cables still have to end somewhere. At each end they are tied into huge blocks called anchorages, often set deep into rock. The anchorage holds the cable back, the way your feet hold you back in tug of war. So the weight of the truck travels from deck, to suspenders, to cables, to towers, and finally into the ground.",
+   "features": {
+    "audio_energy_db": -36.65187241773858,
+    "speech_rate_wps": 2.857276687432667,
+    "relevance": 0.19999999999999996,
+    "scene_density": 0.0,
+    "silence_ratio": 0.16393442622950818
+   },
+   "z": {
+    "energy": 1.8941813969890573,
+    "relevance": 0.19999999999999996,
+    "rate": 1.624196286160666,
+    "scene": 0.0,
+    "silence": 0.16393442622950818
+   },
+   "score": 0.7625846282369378,
+   "rank": 3
+  },
+  {
+   "candidate_id": "src-5348585bf807-c0002",
+   "source_id": "src-5348585bf807",
+   "start": 0.62,
+   "end": 30.913,
+   "text": "Here's a question that sounds simple: how does a suspension bridge hold up a fully loaded truck? The deck looks like it's floating, but every kilogram of that truck is going somewhere. Let's follow the weight, one piece at a time. First, the truck pushes down on the deck. The deck hangs from vertical ropes called suspenders. The suspenders pull down on the two main cables. And those main cables are in pure tension, like a rope in a game of tug of war.",
+   "features": {
+    "audio_energy_db": -40.663728973521934,
+    "speech_rate_wps": 2.7729178358036513,
+    "relevance": 0.23354968324845685,
+    "scene_density": 0.0,
+    "silence_ratio": 0.21287128712871287
+   },
+   "z": {
+    "energy": -0.6338306002952984,
+    "relevance": 0.23354968324845685,
+    "rate": 0.7781938212316432,
+    "scene": 0.0,
+    "silence": 0.21287128712871287
+   },
+   "score": 0.008083119178574835,
+   "rank": 4
+  },
+  {
+   "candidate_id": "src-5348585bf807-c0121",
+   "source_id": "src-5348585bf807",
+   "start": 99.378,
+   "end": 123.645,
+   "text": "Modern decks are deeper and stiffer, and engineers test scale models in wind tunnels before anything is built. Let's recap. Cables pull, towers push, anchorages hold, and the ground takes it all. And the thing to respect most isn't the heaviest truck. It's the wind. Next time you drive across one, you'll know exactly where your weight is going.",
+   "features": {
+    "audio_energy_db": -41.446872096340904,
+    "speech_rate_wps": 2.431285284542795,
+    "relevance": 0.15191090506254998,
+    "scene_density": 0.0,
+    "silence_ratio": 0.21649484536082475
+   },
+   "z": {
+    "energy": -1.1273166416202525,
+    "relevance": 0.15191090506254998,
+    "rate": -2.6479075882292746,
+    "scene": 0.0,
+    "silence": 0.21649484536082475
+   },
+   "score": -0.6583207086716855,
+   "rank": 5
+  }
+ ],
+ "stages": {
+  "rights": {
+   "log": [
+    "2026-10-04T03:42:04+00:00 creative_commons record demo-bridge-talk-cc0 accepted",
+    "2026-10-04T03:42:04+00:00 probe ok via local-trusted: 125.8s 1280x720 h264/aac"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:42:04+00:00"
+  },
+  "transcribe": {
+   "log": [
+    "2026-10-04T03:42:05+00:00 324 words, 24 sentences (sidecar)"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:42:05+00:00"
+  },
+  "highlights": {
+   "log": [
+    "2026-10-04T03:42:08+00:00 0 scene cuts; top 5 candidates ranked"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:42:08+00:00"
+  },
+  "edit": {
+   "log": [
+    "2026-10-04T03:42:08+00:00 clip-0109-635006: cutting pauses > 0.6s",
+    "2026-10-04T03:42:32+00:00 clip-0109-635006: 23.7s clip, 1.2s of pauses removed (local-trusted)",
+    "2026-10-04T03:42:33+00:00 clip-0043-488e58: cutting pauses > 0.6s",
+    "2026-10-04T03:42:52+00:00 clip-0043-488e58: 21.4s clip, 2.4s of pauses removed (local-trusted)",
+    "2026-10-04T03:42:53+00:00 clip-0082-c53956: cutting pauses > 0.6s",
+    "2026-10-04T03:43:13+00:00 clip-0082-c53956: 19.9s clip, 1.4s of pauses removed (local-trusted)"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:43:13+00:00"
+  },
+  "value_add": {
+   "log": [
+    "2026-10-04T03:42:32+00:00 clip-0109-635006: 2 element(s), template 'context-card'",
+    "2026-10-04T03:42:52+00:00 clip-0043-488e58: 0 element(s), template 'bare'",
+    "2026-10-04T03:43:13+00:00 clip-0082-c53956: 1 element(s), template 'product-note'"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:43:13+00:00"
+  },
+  "metadata": {
+   "log": [
+    "2026-10-04T03:42:32+00:00 clip-0109-635006: extractive metadata (no model)",
+    "2026-10-04T03:42:52+00:00 clip-0043-488e58: extractive metadata (no model)",
+    "2026-10-04T03:43:13+00:00 clip-0082-c53956: extractive metadata (no model)"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:43:13+00:00"
+  },
+  "gate": {
+   "log": [
+    "2026-10-04T03:42:33+00:00 clip-0109-635006: 0 block(s), 0 warning(s)",
+    "2026-10-04T03:42:53+00:00 clip-0043-488e58: 1 block(s), 0 warning(s)",
+    "2026-10-04T03:43:14+00:00 clip-0082-c53956: 0 block(s), 1 warning(s)"
+   ],
+   "status": "done",
+   "updated": "2026-10-04T03:43:14+00:00"
+  },
+  "approval": {
+   "log": [
+    "2026-10-04T03:42:33+00:00 clip-0109-635006: awaiting_approval",
+    "2026-10-04T03:42:53+00:00 clip-0043-488e58: blocked",
+    "2026-10-04T03:43:14+00:00 clip-0082-c53956: awaiting_approval"
+   ],
+   "status": "waiting",
+   "updated": "2026-10-04T03:43:14+00:00"
+  }
+ },
+ "exported": "2026-10-04T03:43:14+00:00"
+}

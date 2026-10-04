@@ -20,14 +20,16 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from datetime import UTC, date, datetime
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator, model_validator
 
 from .links import entry_problems
 from .models import ShortText, Strict, no_hidden_chars
-from .store import Store
+
+if TYPE_CHECKING:  # the store needs sqlite3, which the browser build doesn't have
+    from .store import Store
 
 REGISTRY_KEY = "affiliate_registry"
 TERMS_STALE_DAYS = 180  # re-read a program's terms at least twice a year

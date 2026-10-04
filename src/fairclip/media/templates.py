@@ -230,7 +230,8 @@ def template_events(va: ValueAddElement, aspect: str, duration: float, label: st
     return ev
 
 
-TEMPLATE_STYLE = ("Style: Tpl,DejaVu Sans,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,"
+TEMPLATE_FONT = "DejaVu Sans"
+TEMPLATE_STYLE = (f"Style: Tpl,{TEMPLATE_FONT},40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,"
                   "100,100,0,0,1,0,0,7,0,0,0,1")
 
 EXAMPLES: dict[str, dict] = {

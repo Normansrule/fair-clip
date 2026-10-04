@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import json
 import os
-import resource
 import shutil
 import subprocess
 from collections.abc import Iterable, Sequence
@@ -26,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from ..store import sha256_file
+from ..util import sha256_file
 
 Tool = Literal["ffmpeg", "ffprobe"]
 FONTS_DIR = Path(__file__).resolve().parent.parent / "data" / "fonts"
@@ -183,6 +182,8 @@ class MediaRunner:
 
 
 def _limit_local() -> None:  # pragma: no cover - runs in the child process
+    import resource  # POSIX-only; imported here so the module also loads in the browser build
+
     resource.setrlimit(resource.RLIMIT_AS, (4 * 1024**3, 4 * 1024**3))
     resource.setrlimit(resource.RLIMIT_CPU, (1800, 1800))
     resource.setrlimit(resource.RLIMIT_FSIZE, (4 * 1024**3, 4 * 1024**3))
