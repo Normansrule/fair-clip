@@ -13,13 +13,13 @@ requires-python = ">=3.11"
 # Exact pins: see requirements.lock for the full, hash-pinned set used by CI and Docker.
 dependencies = [
   "fastapi==0.142.2",
-  "uvicorn==0.46.0",
-  "pydantic==2.13.3",
+  "uvicorn==0.54.0",
+  "pydantic==2.13.5",
   "jinja2==3.1.6",
-  "python-multipart==0.0.26",
+  "python-multipart==0.0.32",
   "itsdangerous==2.2.0",
-  "numpy==2.4.4",
-  "cryptography==46.0.7",
+  "numpy==2.4.6",
+  "cryptography==50.0.2",
   "httpx==0.28.1",
 ]
 
@@ -27,7 +27,7 @@ dependencies = [
 # Real YouTube publishing (OAuth + Data API v3). Not needed for dry-run or the demo.
 youtube = [
   "google-api-python-client==2.201.0",
-  "google-auth==2.59.1",
+  "google-auth==2.60.0",
   "google-auth-oauthlib==1.5.0",
 ]
 # Operating-system keychain for refresh tokens (preferred over the encrypted-file vault).
@@ -36,10 +36,10 @@ keychain = ["keyring==25.7.0"]
 asr = ["faster-whisper==1.2.1"]
 dev = [
   "pytest==9.1.1",
-  "ruff==0.16.9",
-  "pillow==12.2.0",
-  "matplotlib==3.10.9",
-  "playwright==1.56.0",
+  "ruff==0.16.10",
+  "pillow==12.3.0",
+  "matplotlib==3.11.2",
+  "playwright==1.63.0",
 ]
 
 [project.scripts]
